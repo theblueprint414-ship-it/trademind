@@ -231,57 +231,114 @@ export default function LandingPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareJsonLd) }} />
       <style>{`
-        .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.65s ease, transform 0.65s ease; }
+        /* ── Reveal animations ── */
+        .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.55s cubic-bezier(0.16,1,0.3,1), transform 0.55s cubic-bezier(0.16,1,0.3,1); }
         .reveal.in-view { opacity: 1; transform: translateY(0); }
-        .reveal-delay-1 { transition-delay: 0.1s; }
-        .reveal-delay-2 { transition-delay: 0.2s; }
-        .reveal-delay-3 { transition-delay: 0.3s; }
-        .reveal-delay-4 { transition-delay: 0.4s; }
-        .card-lift { transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; }
-        .card-lift:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.35); border-color: var(--border-bright); }
-        .mockup-verdict { transition: all 0.3s ease; }
+        .reveal-delay-1 { transition-delay: 0.08s; }
+        .reveal-delay-2 { transition-delay: 0.16s; }
+        .reveal-delay-3 { transition-delay: 0.24s; }
+        .reveal-delay-4 { transition-delay: 0.32s; }
+
+        /* ── Card hover ── */
+        .card-lift { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), border-color 0.15s; }
+        .card-lift:hover { transform: translateY(-2px); border-color: var(--border-bright); }
+
+        /* ── Mockup ── */
         .mockup-fade { opacity: 0; }
-        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
-        @keyframes live-pulse { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,59,92,0.4)} 50%{opacity:0.8;box-shadow:0 0 0 4px rgba(255,59,92,0)} }
-        @keyframes count-up { from{opacity:0;transform:scale(0.8)} to{opacity:1;transform:scale(1)} }
-@keyframes shimmer-btn { 0%{left:-100%} 100%{left:150%} }
-        .btn-primary { position: relative; overflow: hidden; }
-        .btn-primary::before { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent); transform:skewX(-20deg); }
-        .btn-primary:hover::before { animation: shimmer-btn 0.5s ease; }
-        .faq-item { border-bottom: 1px solid var(--border); }
-        .faq-answer { overflow: hidden; transition: max-height 0.3s ease, opacity 0.3s ease; }
-        .trader-card:hover { transform: translateY(-4px) !important; }
-        .trader-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+
+        /* ── Keyframes ── */
+        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
         @keyframes scroll-logos { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-        .logos-track { display:flex; gap:48px; animation: scroll-logos 20s linear infinite; align-items:center; }
+        @keyframes hero-glow { 0%,100%{opacity:0.5} 50%{opacity:0.8} }
+
+        /* ── Logo strip ── */
+        .logos-track { display:flex; gap:48px; animation: scroll-logos 24s linear infinite; align-items:center; }
         .logos-track:hover { animation-play-state: paused; }
+
+        /* ── FAQ ── */
+        .faq-item { border-bottom: 1px solid var(--border); }
+        .faq-answer { overflow: hidden; transition: max-height 0.3s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease; }
+
+        /* ── Trader cards ── */
+        .trader-card { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), border-color 0.15s; }
+        .trader-card:hover { transform: translateY(-3px) !important; border-color: var(--border-bright) !important; }
+
+        /* ── Grid ── */
         .before-after-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-        /* Desktop dropdown nav */
-        .nav-center { display:flex; align-items:center; gap:2px; }
+
+        /* ── Hero gradient text ── */
+        .hero-gradient-text {
+          background: linear-gradient(180deg, #f7f8f8 20%, rgba(247,248,248,0.55) 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+
+        /* ── Desktop dropdown nav ── */
+        .nav-center { display:flex; align-items:center; gap:0; }
         .nav-dd-wrap { position:relative; }
-        .nav-dd-wrap > .nav-dd-trigger { cursor:default; display:flex; align-items:center; gap:4px; }
-        .nav-dd { display:none; position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%); min-width:185px; background:#0D1420; border:1px solid #1E2D45; border-radius:14px; padding:8px; z-index:100; flex-direction:column; gap:2px; box-shadow:0 16px 48px rgba(0,0,0,0.55); }
+        .nav-dd-wrap > .nav-dd-trigger { cursor:default; display:flex; align-items:center; gap:5px; }
+        .nav-dd {
+          display:none; position:absolute; top:calc(100% + 12px); left:50%; transform:translateX(-50%);
+          min-width:192px; background:#0f1011; border:1px solid rgba(255,255,255,0.09);
+          border-radius:12px; padding:6px; z-index:100; flex-direction:column; gap:1px;
+          box-shadow:0 20px 60px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(255,255,255,0.04);
+        }
         .nav-dd-wrap:hover .nav-dd { display:flex; }
         .nav-dd-wrap:hover .nav-dd-trigger { color:var(--text); }
-        .nav-dd-item { color:#7A8BA8; text-decoration:none; font-size:13px; padding:9px 14px; border-radius:9px; transition:background 0.13s, color 0.13s; display:block; white-space:nowrap; }
-        .nav-dd-item:hover { background:rgba(255,255,255,0.06); color:#E8F0FF; }
-        .nav-dd-sep { height:1px; background:#1E2D45; margin:4px 0; }
-        @media(max-width:820px) {
-          .nav-center { display:none !important; }
+        .nav-dd-item { color:var(--text-dim); text-decoration:none; font-size:13px; font-weight:500; letter-spacing:-0.011em; padding:8px 12px; border-radius:7px; transition:background 0.12s, color 0.12s; display:block; white-space:nowrap; }
+        .nav-dd-item:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+        .nav-dd-sep { height:1px; background:rgba(255,255,255,0.07); margin:4px 0; }
+
+        /* ── Hero CTA buttons ── */
+        .hero-cta-primary {
+          display:inline-flex; align-items:center; gap:8px;
+          background:#e5e5e6; color:#010102;
+          border:none; border-radius:8px; padding:11px 22px;
+          font-size:14px; font-weight:600; letter-spacing:-0.011em;
+          cursor:pointer; transition:background 0.15s, transform 0.15s;
+          text-decoration:none; white-space:nowrap;
         }
+        .hero-cta-primary:hover { background:#fff; transform:translateY(-1px); }
+        .hero-cta-ghost {
+          display:inline-flex; align-items:center; gap:6px;
+          color:var(--text-dim); font-size:14px; font-weight:500;
+          letter-spacing:-0.011em; text-decoration:none; padding:11px 16px;
+          border-radius:8px; transition:color 0.15s;
+        }
+        .hero-cta-ghost:hover { color:var(--text); }
+
+        /* ── Responsive ── */
+        @media(max-width:820px) { .nav-center { display:none !important; } }
         @media(max-width:640px) {
           .before-after-row { grid-template-columns:1fr; }
-          .hero-text { text-align:center; }
-          .hero-buttons { justify-content:center; }
-          .hero-section-inner { padding: 40px 20px 40px !important; }
+          .hero-section-inner { padding: 60px 20px 40px !important; }
           .hero-mockup { display:none !important; }
           .nav-btn-ghost { display:none !important; }
-          .nav-btn-primary { padding: 9px 14px !important; font-size: 12px !important; white-space: nowrap; }
+          .nav-btn-primary { padding: 8px 14px !important; font-size: 13px !important; }
           .hero-mobile-score { display:flex !important; }
           .how-grid { grid-template-columns: 1fr !important; }
           .stats-row { gap: 24px !important; padding: 32px 0 0 !important; }
+          .hero-stat-row { flex-direction:column !important; align-items:center; }
         }
         .hero-mobile-score { display: none; }
+
+        /* ── Marketing headings — Linear-style tight tracking ── */
+        h2.font-bebas, h3.font-bebas {
+          font-family: var(--font-geist-sans), -apple-system, sans-serif;
+          letter-spacing: -0.038em;
+          font-weight: 800;
+        }
+
+        /* ── Section divider ── */
+        .section-label {
+          display: inline-flex; align-items: center; gap: 8px;
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 9999px; padding: 4px 14px;
+          font-size: 11px; color: var(--text-muted); font-weight: 600;
+          letter-spacing: 0.06em; background: rgba(255,255,255,0.025);
+          margin-bottom: 20px; text-transform: uppercase;
+        }
       `}</style>
 
       <a href="#main-content" style={{ position: "absolute", left: -9999, top: "auto", width: 1, height: 1, overflow: "hidden" }}
@@ -353,146 +410,145 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero */}
-      <section id="main-content" style={{ position: "relative", overflow: "hidden", background: "radial-gradient(ellipse 90% 60% at 50% -10%, rgba(79,142,247,0.12), transparent)" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(79,142,247,0.13) 1px, transparent 1px)", backgroundSize: "30px 30px", WebkitMaskImage: "radial-gradient(ellipse 90% 90% at 50% 30%, black 30%, transparent 100%)", maskImage: "radial-gradient(ellipse 90% 90% at 50% 30%, black 30%, transparent 100%)", pointerEvents: "none" }} />
+      <section id="main-content" style={{ position: "relative", overflow: "hidden", background: "var(--bg)" }}>
+        {/* Mesh background */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "24px 24px", WebkitMaskImage: "radial-gradient(ellipse 65% 55% at 50% 40%, black 30%, transparent 100%)", maskImage: "radial-gradient(ellipse 65% 55% at 50% 40%, black 30%, transparent 100%)", pointerEvents: "none" }} />
+        {/* Brand glow */}
+        <div style={{ position: "absolute", width: 800, height: 600, background: "radial-gradient(ellipse, rgba(94,106,210,0.1) 0%, transparent 70%)", top: "0%", left: "50%", transform: "translateX(-50%)", pointerEvents: "none", animation: "hero-glow 6s ease-in-out infinite" }} />
 
-        <div className="hero-section-inner" style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 24px 60px", position: "relative" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 64, flexWrap: "wrap" }}>
+        <div className="hero-section-inner" style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 24px 80px", position: "relative" }}>
 
-            {/* Left */}
-            <div className="hero-text" style={{ flex: "1 1 380px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
-                <div className="hero-badge" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.25)", borderRadius: 20, padding: "6px 16px" }}>
-                  <div style={{ width: 6, height: 6, background: "var(--blue)", borderRadius: "50%", boxShadow: "0 0 6px var(--blue)", animation: "pulse-dot 2s ease-in-out infinite" }} />
-                  <span style={{ fontSize: 12, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.1em" }}>TRADING PSYCHOLOGY PROTOCOL</span>
+          {/* Centered hero text */}
+          <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 64px" }}>
+
+            {/* Badge */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid rgba(255,255,255,0.09)", borderRadius: 9999, padding: "5px 14px", fontSize: 12, color: "var(--text-dim)", fontWeight: 500, letterSpacing: "-0.011em", marginBottom: 32, background: "rgba(255,255,255,0.03)" }}>
+              <div style={{ width: 5, height: 5, background: "var(--green)", borderRadius: "50%", animation: "pulse-dot 2.5s ease-in-out infinite" }} />
+              Trading psychology protocol · Research-backed · Free to start
+            </div>
+
+            <h1 style={{ fontSize: "clamp(42px, 7vw, 80px)", fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: 24 }}>
+              <span className="hero-gradient-text">Know if your mind is ready<br />before you risk a dollar.</span>
+            </h1>
+
+            <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-dim)", lineHeight: 1.7, letterSpacing: "-0.011em", marginBottom: 40, maxWidth: 520, margin: "0 auto 40px" }}>
+              60 seconds every morning. 5 questions. A score from 0 to 100 and a verdict that tells you exactly how to trade today: <strong style={{ color: "var(--green)", fontWeight: 600 }}>GO</strong>, <strong style={{ color: "var(--amber)", fontWeight: 600 }}>CAUTION</strong>, or <strong style={{ color: "var(--red)", fontWeight: 600 }}>NO-TRADE</strong>.
+            </p>
+
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", alignItems: "center", flexWrap: "wrap", marginBottom: 48 }}>
+              <Link href="/login?callbackUrl=/settings" className="hero-cta-primary">
+                Start for free
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </Link>
+              <a href="#how" className="hero-cta-ghost">
+                See how it works
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M2 8l4.5 4.5L11 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </a>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, flexWrap: "wrap" }} className="hero-stat-row">
+              {[
+                { icon: "✓", text: "4-day free trial — cancel before day 5, pay nothing" },
+                { icon: "✓", text: "Used by FTMO, TopStep, Apex & funded traders" },
+              ].map((item) => (
+                <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-muted)", letterSpacing: "-0.011em" }}>
+                  <span style={{ color: "var(--green)", fontWeight: 700 }}>{item.icon}</span>
+                  {item.text}
                 </div>
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 7, background: "rgba(0,232,122,0.08)", border: "1px solid rgba(0,232,122,0.2)", borderRadius: 20, padding: "6px 14px" }}>
-                  <div style={{ width: 6, height: 6, background: "var(--green)", borderRadius: "50%", animation: "pulse-dot 2s ease-in-out infinite" }} />
-                  <span style={{ fontSize: 11, color: "var(--green)", fontWeight: 700, letterSpacing: "0.08em" }}>PEER-REVIEWED · RESEARCH-BACKED</span>
+              ))}
+            </div>
+          </div>
+
+          {/* App mockup — centered below hero text */}
+          <div className="hero-mockup" style={{ maxWidth: 420, margin: "0 auto", position: "relative" }}>
+            <div style={{ position: "absolute", inset: -40, background: `radial-gradient(ellipse, ${phase.glow} 0%, transparent 70%)`, pointerEvents: "none", transition: "background 0.8s ease", zIndex: 0 }} />
+            <div style={{ position: "relative", zIndex: 1, background: "var(--surface)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 16, overflow: "hidden", boxShadow: `0 0 0 0.5px rgba(255,255,255,0.04), 0 32px 80px rgba(0,0,0,0.6)`, transition: "box-shadow 0.6s ease" }}>
+              <div style={{ background: "var(--surface2)", padding: "9px 14px", display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid var(--border)" }}>
+                <div style={{ display: "flex", gap: 5 }}>
+                  {["rgba(255,95,86,0.6)", "rgba(255,189,46,0.6)", "rgba(39,201,63,0.6)"].map((c, i) => (
+                    <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />
+                  ))}
                 </div>
+                <div style={{ flex: 1, background: "var(--bg)", borderRadius: 4, padding: "3px 10px", fontSize: 10, color: "var(--text-muted)", textAlign: "center", letterSpacing: "0.02em" }}>trademindedge.com/dashboard</div>
               </div>
 
-              <h1 className="font-bebas" style={{ fontSize: "clamp(52px, 8vw, 96px)", lineHeight: 0.95, marginBottom: 8 }}>You don&apos;t lose to</h1>
-              <h1 className="font-bebas" style={{ fontSize: "clamp(52px, 8vw, 96px)", lineHeight: 0.95, marginBottom: 8 }}>bad setups.</h1>
-              <h1 className="font-bebas" style={{ fontSize: "clamp(52px, 8vw, 96px)", lineHeight: 0.95, marginBottom: 24 }}>
-                <span style={{ background: "linear-gradient(135deg, var(--red), var(--amber))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>You lose to bad days.</span>
-              </h1>
-
-              {/* Mobile-only animated score preview */}
-              <div className="hero-mobile-score" style={{ justifyContent: "center", marginBottom: 20 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 16, background: `${phase.glow}`, border: `1px solid ${phase.glowHex}40`, borderRadius: 16, padding: "14px 20px", transition: "all 0.5s ease", opacity: mockupTransitioning ? 0.5 : 1 }}>
-                  <svg width="52" height="52" viewBox="0 0 64 64">
-                    <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
+              <div style={{ padding: 16 }}>
+                <div style={{ background: phase.glow, border: `1px solid ${phase.glowHex}30`, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, marginBottom: 10, transition: "background 0.5s ease, border-color 0.5s ease", opacity: mockupTransitioning ? 0.5 : 1 }}>
+                  <svg width="60" height="60" viewBox="0 0 64 64" style={{ flexShrink: 0 }}>
+                    <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
                     <circle cx="32" cy="32" r="26" fill="none" stroke={phase.color} strokeWidth="6"
                       strokeDasharray={`${(phase.score / 100) * 163.4} 163.4`}
                       strokeLinecap="round" transform="rotate(-90 32 32)"
-                      style={{ filter: `drop-shadow(0 0 5px ${phase.color})`, transition: "stroke-dasharray 0.6s ease, stroke 0.4s ease" }}
+                      style={{ filter: `drop-shadow(0 0 6px ${phase.color})`, transition: "stroke-dasharray 0.6s ease, stroke 0.4s ease" }}
                     />
                     <text x="32" y="37" textAnchor="middle" fill="white" fontSize="14" fontWeight="700">{phase.score}</text>
                   </svg>
                   <div style={{ opacity: mockupTransitioning ? 0 : 1, transition: "opacity 0.3s ease" }}>
-                    <div style={{ fontSize: 8, color: "rgba(255,255,255,0.4)", letterSpacing: "0.1em", marginBottom: 2 }}>TODAY · MENTAL SCORE</div>
-                    <div className="font-bebas" style={{ fontSize: 28, color: phase.color, lineHeight: 1, textShadow: `0 0 16px ${phase.color}80` }}>{phase.verdict}</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginTop: 1 }}>{phase.msg}</div>
+                    <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 4 }}>TODAY · MENTAL SCORE</div>
+                    <div className="font-bebas" style={{ fontSize: 30, color: phase.color, lineHeight: 1, textShadow: `0 0 20px ${phase.color}60` }}>{phase.verdict}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{phase.msg}</div>
                   </div>
                 </div>
-              </div>
 
-              <p style={{ fontSize: "clamp(15px, 1.8vw, 18px)", color: "var(--text-dim)", maxWidth: 480, lineHeight: 1.8, marginBottom: 32 }}>
-                You lost because you traded on the wrong day — when your mind was tired, stressed, or chasing. TradeMind gives you a daily mental score and a clear verdict in 60 seconds: <strong style={{ color: "var(--green)" }}>GO</strong>, <strong style={{ color: "var(--amber)" }}>CAUTION</strong>, or <strong style={{ color: "var(--red)" }}>NO-TRADE</strong>. No gray areas. No second-guessing.
-              </p>
-
-              <div className="hero-buttons" style={{ display: "flex", marginBottom: 24 }}>
-                <Link href="/login?callbackUrl=/settings">
-                  <button className="btn-primary" style={{ fontSize: 16, padding: "16px 36px", borderRadius: 12, display: "flex", alignItems: "center", gap: 8 }}>
-                    Start Free Trial <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  </button>
-                </Link>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5 7-7" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Trusted by FTMO, TopStep, Apex & funded traders worldwide</span>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 10 }}>
+                  {[{ val: "7🔥", label: "STREAK", color: "var(--amber)" }, { val: "76", label: "7-DAY AVG", color: "var(--green)" }, { val: "14", label: "THIS MONTH", color: "var(--blue)" }].map((s) => (
+                    <div key={s.label} style={{ background: "var(--surface2)", borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
+                      <div className="font-bebas" style={{ fontSize: 18, color: s.color, lineHeight: 1, marginBottom: 2 }}>{s.val}</div>
+                      <div style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.06em" }}>{s.label}</div>
+                    </div>
+                  ))}
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5 7-7" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>4-day free trial · Cancel before day 5, pay nothing</span>
+
+                <div style={{ background: "var(--surface2)", borderRadius: 8, padding: "10px 10px 8px" }}>
+                  <div style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.1em", marginBottom: 8 }}>LAST 7 DAYS</div>
+                  <div style={{ display: "flex", gap: 5, alignItems: "flex-end", height: 36 }}>
+                    {[65, 80, 55, 90, 72, 48, 82].map((v, i) => (
+                      <div key={i} style={{ flex: 1, height: (v / 100) * 32, background: v >= 70 ? "var(--green)" : v >= 45 ? "var(--amber)" : "var(--red)", borderRadius: 3, opacity: i === 6 ? 1 : 0.45 }} />
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 12 }}>
+                  {MOCKUP_PHASES.map((p, i) => (
+                    <div key={i} onClick={() => setMockupPhase(i)} style={{ width: i === mockupPhase ? 16 : 6, height: 4, borderRadius: 2, background: i === mockupPhase ? p.color : "var(--border-bright)", transition: "all 0.3s ease", cursor: "pointer" }} />
+                  ))}
                 </div>
               </div>
             </div>
+          </div>
 
-            {/* Right: Animated App Mockup */}
-            <div className="hero-mockup" style={{ flex: "1 1 320px", display: "flex", justifyContent: "center" }}>
-              <div style={{ width: "100%", maxWidth: 360, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", boxShadow: `0 40px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04), 0 0 60px ${phase.glow}`, transition: "box-shadow 0.6s ease" }}>
-                <div style={{ background: "var(--surface2)", padding: "10px 14px", display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid var(--border)" }}>
-                  <div style={{ display: "flex", gap: 5 }}>
-                    {["rgba(255,95,86,0.7)", "rgba(255,189,46,0.7)", "rgba(39,201,63,0.7)"].map((c, i) => (
-                      <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />
-                    ))}
-                  </div>
-                  <div style={{ flex: 1, background: "var(--bg)", borderRadius: 4, padding: "3px 10px", fontSize: 10, color: "var(--text-muted)", textAlign: "center" }}>trademindedge.com/dashboard</div>
-                </div>
-
-                <div style={{ padding: 16 }}>
-                  <div style={{ background: phase.glow, border: `1px solid ${phase.glowHex}40`, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, marginBottom: 10, transition: "background 0.5s ease, border-color 0.5s ease", opacity: mockupTransitioning ? 0.5 : 1 }}>
-                    <svg width="60" height="60" viewBox="0 0 64 64" style={{ flexShrink: 0 }}>
-                      <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
-                      <circle cx="32" cy="32" r="26" fill="none" stroke={phase.color} strokeWidth="6"
-                        strokeDasharray={`${(phase.score / 100) * 163.4} 163.4`}
-                        strokeLinecap="round" transform="rotate(-90 32 32)"
-                        style={{ filter: `drop-shadow(0 0 6px ${phase.color})`, transition: "stroke-dasharray 0.6s ease, stroke 0.4s ease" }}
-                      />
-                      <text x="32" y="37" textAnchor="middle" fill="white" fontSize="14" fontWeight="700">{phase.score}</text>
-                    </svg>
-                    <div style={{ opacity: mockupTransitioning ? 0 : 1, transition: "opacity 0.3s ease" }}>
-                      <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 4 }}>TODAY · MENTAL SCORE</div>
-                      <div className="font-bebas" style={{ fontSize: 30, color: phase.color, lineHeight: 1, textShadow: `0 0 20px ${phase.color}80` }}>{phase.verdict}</div>
-                      <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{phase.msg}</div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 10 }}>
-                    {[{ val: "7🔥", label: "STREAK", color: "var(--amber)" }, { val: "76", label: "7-DAY AVG", color: "var(--green)" }, { val: "14", label: "THIS MONTH", color: "var(--blue)" }].map((s) => (
-                      <div key={s.label} style={{ background: "var(--surface2)", borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
-                        <div className="font-bebas" style={{ fontSize: 18, color: s.color, lineHeight: 1, marginBottom: 2 }}>{s.val}</div>
-                        <div style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.06em" }}>{s.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div style={{ background: "var(--surface2)", borderRadius: 8, padding: "10px 10px 8px" }}>
-                    <div style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.1em", marginBottom: 8 }}>LAST 7 DAYS</div>
-                    <div style={{ display: "flex", gap: 5, alignItems: "flex-end", height: 36 }}>
-                      {[65, 80, 55, 90, 72, 48, 82].map((v, i) => (
-                        <div key={i} style={{ flex: 1, height: (v / 100) * 32, background: v >= 70 ? "var(--green)" : v >= 45 ? "var(--amber)" : "var(--red)", borderRadius: 3, opacity: i === 6 ? 1 : 0.5, boxShadow: i === 6 ? `0 0 6px ${v >= 70 ? "var(--green)" : "var(--amber)"}` : "none" }} />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 12 }}>
-                    {MOCKUP_PHASES.map((p, i) => (
-                      <div key={i} onClick={() => setMockupPhase(i)} style={{ width: i === mockupPhase ? 16 : 6, height: 6, borderRadius: 3, background: i === mockupPhase ? p.color : "var(--surface3)", transition: "all 0.3s ease", cursor: "pointer" }} />
-                    ))}
-                  </div>
-                </div>
+          {/* Mobile score preview */}
+          <div className="hero-mobile-score" style={{ justifyContent: "center", marginBottom: 32, marginTop: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, background: phase.glow, border: `1px solid ${phase.glowHex}30`, borderRadius: 14, padding: "14px 20px", transition: "all 0.5s ease", opacity: mockupTransitioning ? 0.5 : 1 }}>
+              <svg width="52" height="52" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
+                <circle cx="32" cy="32" r="26" fill="none" stroke={phase.color} strokeWidth="6"
+                  strokeDasharray={`${(phase.score / 100) * 163.4} 163.4`}
+                  strokeLinecap="round" transform="rotate(-90 32 32)"
+                  style={{ filter: `drop-shadow(0 0 5px ${phase.color})`, transition: "stroke-dasharray 0.6s ease, stroke 0.4s ease" }}
+                />
+                <text x="32" y="37" textAnchor="middle" fill="white" fontSize="14" fontWeight="700">{phase.score}</text>
+              </svg>
+              <div style={{ opacity: mockupTransitioning ? 0 : 1, transition: "opacity 0.3s ease" }}>
+                <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 2 }}>TODAY · MENTAL SCORE</div>
+                <div className="font-bebas" style={{ fontSize: 28, color: phase.color, lineHeight: 1 }}>{phase.verdict}</div>
+                <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{phase.msg}</div>
               </div>
             </div>
-
           </div>
 
           {/* Stats row */}
-          <div className="stats-row reveal" style={{ display: "flex", gap: 48, justifyContent: "center", padding: "48px 0 0", marginTop: 48, borderTop: "1px solid var(--border)", flexWrap: "wrap" }}>
+          <div className="stats-row reveal" style={{ display: "flex", gap: 0, justifyContent: "center", padding: "56px 0 0", marginTop: 56, borderTop: "1px solid var(--border)", flexWrap: "wrap" }}>
             {[
               { val: "26%", label: "worse decisions from one night under 6 hours sleep", color: "var(--red)", src: "Walker, 2017" },
               { val: "60s", label: "daily check-in — done before you open your charts", color: "var(--blue)", src: null },
               { val: "3×", label: "more rule violations in the final session hour", color: "var(--amber)", src: "Baumeister, 2000" },
-              { val: "60%", label: "stronger loss aversion under emotional stress", color: "#8B5CF6", src: "Lo et al., 2005" },
-            ].map((s) => (
-              <div key={s.label} style={{ textAlign: "center" }}>
-                <div className="font-bebas" style={{ fontSize: 44, color: s.color, lineHeight: 1, textShadow: `0 0 20px ${s.color}50` }}>{s.val}</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6, letterSpacing: "0.04em", maxWidth: 130 }}>{s.label}</div>
-                {s.src && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4, fontStyle: "italic", opacity: 0.6 }}>{s.src}</div>}
+              { val: "60%", label: "stronger loss aversion under emotional stress", color: "var(--purple)", src: "Lo et al., 2005" },
+            ].map((s, i) => (
+              <div key={s.label} style={{ textAlign: "center", flex: "1 1 180px", padding: "24px 20px", borderRight: i < 3 ? "1px solid var(--border)" : "none" }}>
+                <div className="font-bebas" style={{ fontSize: 48, color: s.color, lineHeight: 1, letterSpacing: "-0.02em" }}>{s.val}</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, letterSpacing: "-0.011em", maxWidth: 140, margin: "8px auto 0", lineHeight: 1.6 }}>{s.label}</div>
+                {s.src && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 6, opacity: 0.5, letterSpacing: "0" }}>{s.src}</div>}
               </div>
             ))}
           </div>
@@ -711,7 +767,7 @@ export default function LandingPage() {
           {TRADER_TYPES.map((t, i) => (
             <div key={t.type} className={`card trader-card reveal reveal-delay-${i + 1}`} style={{ padding: 28, borderColor: `${t.color}25`, height: "100%" }}>
               <div style={{ marginBottom: 16 }}>{t.icon}</div>
-              <h3 className="font-bebas" style={{ fontSize: 22, color: t.color, marginBottom: 12, letterSpacing: "0.02em" }}>{t.type}</h3>
+              <h3 className="font-bebas" style={{ fontSize: 22, color: t.color, marginBottom: 12 }}>{t.type}</h3>
               <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 14 }}>{t.pain}</p>
               <div style={{ height: 1, background: `${t.color}20`, marginBottom: 14 }} />
               <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7 }}>{t.fix}</p>
@@ -1103,7 +1159,7 @@ export default function LandingPage() {
           </div>
           <div className="reveal reveal-delay-2">
             <Link href="/login?callbackUrl=/settings">
-              <button className="btn-primary" style={{ fontSize: 17, padding: "20px 56px", borderRadius: 14, boxShadow: "0 8px 32px rgba(79,142,247,0.4)" }}>
+              <button className="btn-primary" style={{ fontSize: 17, padding: "20px 56px", borderRadius: 14, boxShadow: "0 8px 32px rgba(255,255,255,0.07)" }}>
                 Start Free Trial — Cancel Anytime
               </button>
             </Link>
