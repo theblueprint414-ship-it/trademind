@@ -164,6 +164,7 @@ export default function LandingPage() {
   const [mockupPhase, setMockupPhase] = useState(0);
   const [mockupTransitioning, setMockupTransitioning] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [siteStats, setSiteStats] = useState<{ checkins: number } | null>(null);
 
 
   const revealRef = useRef<IntersectionObserver | null>(null);
@@ -185,6 +186,10 @@ export default function LandingPage() {
       }, 300);
     }, 3200);
     return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/stats").then((r) => r.json()).then((d) => setSiteStats(d)).catch(() => {});
   }, []);
 
   // Track referral code from ?ref=CODE
@@ -279,8 +284,8 @@ export default function LandingPage() {
           <img src="/logo.svg" alt="TradeMind" style={{ display: "block", width: 120, height: "auto", flexShrink: 0 }} />
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <a href="#how" className="nav-link">How it works</a>
-            <a href="#trader-types" className="nav-link" style={{ display: "none" } as React.CSSProperties}>For you</a>
             <a href="#pricing" className="nav-link">Pricing</a>
+            <Link href="/about" className="nav-link">About</Link>
             <Link href="/login"><button className="btn-ghost nav-btn-ghost" style={{ padding: "8px 18px", fontSize: 13 }}>Log in</button></Link>
             <Link href="/login?callbackUrl=/settings"><button className="btn-primary nav-btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>Start Free Trial</button></Link>
           </div>
@@ -654,6 +659,27 @@ export default function LandingPage() {
           ))}
         </div>
       </section>
+
+      {/* Social proof strip */}
+      <div style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "18px 24px", background: "rgba(255,255,255,0.015)" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
+          {[
+            {
+              value: siteStats && siteStats.checkins > 0 ? `${siteStats.checkins.toLocaleString()}+` : "—",
+              label: "check-ins logged",
+              color: "var(--green)",
+            },
+            { value: "5", label: "questions, 60 seconds", color: "var(--blue)" },
+            { value: "3×", label: "more losses on sub-45 days", color: "var(--amber)" },
+            { value: "Free", label: "to start — no card needed", color: "var(--text-dim)" },
+          ].map((s) => (
+            <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 18, fontWeight: 800, color: s.color, fontVariantNumeric: "tabular-nums" }}>{s.value}</span>
+              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{s.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* How it works */}
       <section id="how" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
@@ -1034,47 +1060,72 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer style={{ borderTop: "1px solid var(--border)", padding: "48px 24px 32px", color: "var(--text-muted)", fontSize: 13 }}>
+      <footer style={{ borderTop: "1px solid var(--border)", padding: "56px 24px 32px", color: "var(--text-muted)", fontSize: 13 }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 40, justifyContent: "space-between", marginBottom: 40 }}>
-            <div style={{ minWidth: 200 }}>
-              <div style={{ marginBottom: 12 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 40, justifyContent: "space-between", marginBottom: 48 }}>
+
+            {/* Brand */}
+            <div style={{ minWidth: 200, maxWidth: 240 }}>
+              <div style={{ marginBottom: 14 }}>
                 <img src="/logo.svg" alt="TradeMind" height="22" style={{ display: "block" }} />
               </div>
-              <p style={{ lineHeight: 1.7, maxWidth: 220, marginBottom: 8 }}>The only tool that tells you if your mind is ready to trade — before you risk your money.</p>
-              <p>support@trademindedge.com</p>
+              <p style={{ lineHeight: 1.75, marginBottom: 12 }}>The only tool that tells you whether your mind is ready to trade — before you risk a dollar.</p>
+              <a href="mailto:support@trademindedge.com" style={{ color: "var(--text-muted)", textDecoration: "none" }}>support@trademindedge.com</a>
             </div>
+
+            {/* Product */}
             <div>
-              <div style={{ fontWeight: 700, fontSize: 12, letterSpacing: "0.08em", color: "var(--text)", marginBottom: 14 }}>PRODUCT</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.1em", color: "var(--text)", marginBottom: 16 }}>PRODUCT</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
                 <a href="#how" style={{ color: "var(--text-muted)", textDecoration: "none" }}>How it works</a>
                 <a href="#pricing" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Pricing</a>
-                <Link href="/coach" style={{ color: "var(--text-muted)", textDecoration: "none" }}>AI Coach</Link>
+                <Link href="/changelog" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Changelog</Link>
+                <Link href="/integrations" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Integrations</Link>
+                <Link href="/for-ftmo-traders" style={{ color: "var(--text-muted)", textDecoration: "none" }}>For Prop Traders</Link>
               </div>
             </div>
+
+            {/* Features */}
             <div>
-              <div style={{ fontWeight: 700, fontSize: 12, letterSpacing: "0.08em", color: "var(--text)", marginBottom: 14 }}>FEATURES</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.1em", color: "var(--text)", marginBottom: 16 }}>FEATURES</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
                 <Link href="/journal" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Trade Journal</Link>
                 <Link href="/analytics" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Analytics</Link>
                 <Link href="/playbook" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Playbook</Link>
                 <Link href="/partners" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Accountability</Link>
+                <Link href="/coach" style={{ color: "var(--text-muted)", textDecoration: "none" }}>AI Coach</Link>
               </div>
             </div>
+
+            {/* Compare */}
             <div>
-              <div style={{ fontWeight: 700, fontSize: 12, letterSpacing: "0.08em", color: "var(--text)", marginBottom: 14 }}>LEGAL</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.1em", color: "var(--text)", marginBottom: 16 }}>COMPARE</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                <Link href="/vs-tradezella" style={{ color: "var(--text-muted)", textDecoration: "none" }}>vs Tradezella</Link>
+                <Link href="/vs-tradersync" style={{ color: "var(--text-muted)", textDecoration: "none" }}>vs TraderSync</Link>
+                <Link href="/vs-edgewonk" style={{ color: "var(--text-muted)", textDecoration: "none" }}>vs Edgewonk</Link>
+                <Link href="/blog" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Blog</Link>
+              </div>
+            </div>
+
+            {/* Company */}
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.1em", color: "var(--text)", marginBottom: 16 }}>COMPANY</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+                <Link href="/about" style={{ color: "var(--text-muted)", textDecoration: "none" }}>About</Link>
+                <Link href="/security" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Security</Link>
+                <Link href="/contact" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Contact</Link>
                 <Link href="/privacy" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Privacy Policy</Link>
                 <Link href="/terms" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Terms of Service</Link>
                 <Link href="/refund" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Refund Policy</Link>
-                <Link href="/contact" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Contact & Support</Link>
-                <Link href="/login" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Sign in</Link>
               </div>
             </div>
+
           </div>
+
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: 24, display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "space-between", alignItems: "center" }}>
             <p>© 2026 TradeMind. All rights reserved.</p>
-            <p>Not financial advice. Your mental score is a performance indicator — all trading decisions are your own.</p>
+            <p style={{ maxWidth: 480, textAlign: "right" }}>Not financial advice. Your mental score is a cognitive performance indicator — all trading decisions are your own responsibility.</p>
           </div>
         </div>
       </footer>
