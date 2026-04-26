@@ -30,6 +30,8 @@ const PUBLIC_PATHS = [
   "/join-circle",
   "/unsubscribe",
   "/u/",
+  "/help",
+  "/testimonials",
 ];
 const GATE_PATHS = ["/dashboard", "/partners", "/settings"];
 

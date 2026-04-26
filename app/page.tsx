@@ -1071,6 +1071,11 @@ export default function LandingPage() {
               </div>
               <p style={{ lineHeight: 1.75, marginBottom: 12 }}>The only tool that tells you whether your mind is ready to trade — before you risk a dollar.</p>
               <a href="mailto:support@trademindedge.com" style={{ color: "var(--text-muted)", textDecoration: "none" }}>support@trademindedge.com</a>
+              <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
+                <a href="https://twitter.com/trademindedge" target="_blank" rel="noopener noreferrer" aria-label="TradeMind on X (Twitter)" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid var(--border)", color: "var(--text-muted)", textDecoration: "none", transition: "background 0.2s, color 0.2s" }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.257 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                </a>
+              </div>
             </div>
 
             {/* Product */}
@@ -1105,6 +1110,7 @@ export default function LandingPage() {
                 <Link href="/vs-tradersync" style={{ color: "var(--text-muted)", textDecoration: "none" }}>vs TraderSync</Link>
                 <Link href="/vs-edgewonk" style={{ color: "var(--text-muted)", textDecoration: "none" }}>vs Edgewonk</Link>
                 <Link href="/blog" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Blog</Link>
+                <Link href="/testimonials" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Trader Stories</Link>
               </div>
             </div>
 
@@ -1114,6 +1120,7 @@ export default function LandingPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
                 <Link href="/about" style={{ color: "var(--text-muted)", textDecoration: "none" }}>About</Link>
                 <Link href="/security" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Security</Link>
+                <Link href="/help" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Help Center</Link>
                 <Link href="/contact" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Contact</Link>
                 <Link href="/privacy" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Privacy Policy</Link>
                 <Link href="/terms" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Terms of Service</Link>

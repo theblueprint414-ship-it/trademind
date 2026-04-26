@@ -47,5 +47,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/blog/trading-discipline`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/morning-routine-traders`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/partners-program`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
+    { url: `${base}/testimonials`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.8 },
+    { url: `${base}/help`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
   ];
 }
