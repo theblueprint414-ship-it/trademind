@@ -85,7 +85,7 @@ export default function PreMarketRoutine() {
                 <div style={{ width: 2, background: "var(--border)", marginRight: 20, flexShrink: 0, borderRadius: 1 }} />
                 <div style={{ paddingBottom: 28 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                    <span style={{ fontSize: 11, fontWeight: 800, fontFamily: "monospace", color: "var(--blue)", background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.18)", borderRadius: 6, padding: "2px 8px" }}>{step.time}</span>
+                    <span style={{ fontSize: 11, fontWeight: 800, fontFamily: "monospace", color: "var(--blue)", background: "rgba(94,106,210,0.08)", border: "1px solid rgba(94,106,210,0.18)", borderRadius: 6, padding: "2px 8px" }}>{step.time}</span>
                     <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text)" }}>{step.title}</span>
                   </div>
                   <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.75, margin: 0 }}>{step.content}</p>

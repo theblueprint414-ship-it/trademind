@@ -106,7 +106,7 @@ export default function ReportPage() {
           </select>
           <button
             onClick={() => window.print()}
-            style={{ background: "linear-gradient(135deg,#4F8EF7,#3a6fd8)", color: "white", border: "none", padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+            style={{ background: "linear-gradient(135deg,#5e6ad2,#4a5bbd)", color: "white", border: "none", padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
           >
             Save as PDF
           </button>
@@ -188,7 +188,7 @@ export default function ReportPage() {
                   {[
                     { val: `${totalPnl >= 0 ? "+" : ""}$${Math.abs(Math.round(totalPnl)).toLocaleString()}`, label: "TOTAL P&L", color: totalPnl >= 0 ? "#00E87A" : "#FF3B5C" },
                     { val: winRate !== null ? `${winRate}%` : "—", label: "WIN RATE", color: winRate !== null && winRate >= 50 ? "#00E87A" : "#FF3B5C" },
-                    { val: withPnl.length, label: "TRADES", color: "#4F8EF7" },
+                    { val: withPnl.length, label: "TRADES", color: "#5e6ad2" },
                   ].map((s) => (
                     <div key={s.label} style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 24, fontWeight: 800, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.val}</div>
@@ -223,12 +223,12 @@ export default function ReportPage() {
                   <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 80 }}>
                     <defs>
                       <linearGradient id="trend-grad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#4F8EF7" stopOpacity="0.3" />
-                        <stop offset="100%" stopColor="#4F8EF7" stopOpacity="0" />
+                        <stop offset="0%" stopColor="#5e6ad2" stopOpacity="0.3" />
+                        <stop offset="100%" stopColor="#5e6ad2" stopOpacity="0" />
                       </linearGradient>
                     </defs>
                     <path d={`${d} L ${xs[xs.length - 1]} ${H} L ${xs[0]} ${H} Z`} fill="url(#trend-grad)" />
-                    <path d={d} fill="none" stroke="#4F8EF7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <path d={d} fill="none" stroke="#5e6ad2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     {checkins.map((c, i) => (
                       <circle key={i} cx={xs[i]} cy={ys[i]} r="3" fill={verdictColor(c.score)} />
                     ))}

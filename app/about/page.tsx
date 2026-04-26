@@ -84,7 +84,7 @@ export default function AboutPage() {
       <style>{`
         .timeline-dot { width:12px; height:12px; border-radius:50%; background:var(--blue); border:2px solid var(--bg); box-shadow:0 0 0 2px var(--blue); flex-shrink:0; margin-top:4px; }
         .value-card { transition:transform 0.2s ease,border-color 0.2s ease; }
-        .value-card:hover { transform:translateY(-3px); border-color:rgba(79,142,247,0.3) !important; }
+        .value-card:hover { transform:translateY(-3px); border-color:rgba(94,106,210,0.3) !important; }
       `}</style>
 
       {/* Nav */}
@@ -104,7 +104,7 @@ export default function AboutPage() {
 
         {/* Header */}
         <div style={{ marginBottom: 72 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(79,142,247,0.07)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 24 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(94,106,210,0.07)", border: "1px solid rgba(94,106,210,0.2)", marginBottom: 24 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)" }}>OUR STORY</span>
           </div>
           <h1 style={{ fontSize: "clamp(36px, 6vw, 60px)", fontWeight: 800, lineHeight: 1.08, marginBottom: 24 }}>
@@ -120,8 +120,8 @@ export default function AboutPage() {
         </div>
 
         {/* Mission statement */}
-        <div style={{ padding: "40px 40px", borderRadius: 20, background: "linear-gradient(135deg, rgba(79,142,247,0.07), rgba(139,92,246,0.05))", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 72, position: "relative", overflow: "hidden" }}>
-          <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(79,142,247,0.1), transparent)", pointerEvents: "none" }} />
+        <div style={{ padding: "40px 40px", borderRadius: 20, background: "linear-gradient(135deg, rgba(94,106,210,0.07), rgba(139,92,246,0.05))", border: "1px solid rgba(94,106,210,0.2)", marginBottom: 72, position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: -40, right: -40, width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(94,106,210,0.1), transparent)", pointerEvents: "none" }} />
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", color: "var(--blue)", marginBottom: 16 }}>OUR MISSION</div>
           <p style={{ fontSize: "clamp(20px, 3vw, 28px)", fontWeight: 700, lineHeight: 1.4, color: "var(--text)", margin: 0, position: "relative" }}>
             "Give every serious trader the mental edge to know — before they open a position — whether today is a day to trade at full size, trade smaller, or protect their capital entirely."
@@ -133,7 +133,7 @@ export default function AboutPage() {
           <h2 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>What we stand for</h2>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
             {VALUES.map((v) => (
-              <div key={v.title} className="card value-card" style={{ padding: "24px 24px", border: "1px solid rgba(79,142,247,0.12)" }}>
+              <div key={v.title} className="card value-card" style={{ padding: "24px 24px", border: "1px solid rgba(94,106,210,0.12)" }}>
                 <div style={{ fontSize: 32, marginBottom: 14 }}>{v.icon}</div>
                 <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{v.title}</div>
                 <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>{v.body}</p>
@@ -173,7 +173,7 @@ export default function AboutPage() {
               { ref: "Lo et al., 2005", finding: "Emotions are not the enemy of good trading — but unregulated emotions are. Traders who track emotional states make systematically better position-sizing decisions." },
               { ref: "Baumeister, 2000", finding: "Decision fatigue is real and measurable. Traders who check in after their peak hours make 40% more rule violations than those who trade in their optimal window." },
             ].map((r) => (
-              <div key={r.ref} style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "12px 16px", borderRadius: 10, background: "rgba(79,142,247,0.04)", border: "1px solid rgba(79,142,247,0.1)" }}>
+              <div key={r.ref} style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "12px 16px", borderRadius: 10, background: "rgba(94,106,210,0.04)", border: "1px solid rgba(94,106,210,0.1)" }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: "var(--blue)", whiteSpace: "nowrap", marginTop: 1 }}>{r.ref}</span>
                 <span style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6 }}>{r.finding}</span>
               </div>

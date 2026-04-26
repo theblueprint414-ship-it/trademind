@@ -69,7 +69,7 @@ const RELEASES: { version: string; date: string; entries: Entry[] }[] = [
 
 const TAG_COLORS: Record<string, { bg: string; border: string; color: string }> = {
   NEW:      { bg: "rgba(0,232,122,0.08)",   border: "rgba(0,232,122,0.25)",   color: "var(--green)" },
-  IMPROVED: { bg: "rgba(79,142,247,0.08)",  border: "rgba(79,142,247,0.25)",  color: "var(--blue)"  },
+  IMPROVED: { bg: "rgba(94,106,210,0.08)",  border: "rgba(94,106,210,0.25)",  color: "var(--blue)"  },
   FIX:      { bg: "rgba(255,176,32,0.08)",  border: "rgba(255,176,32,0.25)",  color: "var(--amber)" },
 };
 
@@ -78,7 +78,7 @@ export default function ChangelogPage() {
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <style>{`
         .cl-entry { transition: border-color 0.2s ease; }
-        .cl-entry:hover { border-color: rgba(79,142,247,0.2) !important; }
+        .cl-entry:hover { border-color: rgba(94,106,210,0.2) !important; }
       `}</style>
 
       {/* Nav */}
@@ -97,7 +97,7 @@ export default function ChangelogPage() {
 
         {/* Header */}
         <div style={{ marginBottom: 56 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(79,142,247,0.07)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 24 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(94,106,210,0.07)", border: "1px solid rgba(94,106,210,0.2)", marginBottom: 24 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--blue)", boxShadow: "0 0 6px var(--blue)" }} />
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)" }}>WE SHIP FAST</span>
           </div>

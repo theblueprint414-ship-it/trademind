@@ -350,7 +350,7 @@ export default function DashboardPage() {
         .stat-card:hover { border-color: var(--border-bright) !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
         .bar-col:hover .bar-fill { opacity: 1 !important; }
         .brief-card { position: relative; overflow: hidden; }
-        .brief-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(79,142,247,0.06),rgba(139,92,246,0.06),rgba(0,232,122,0.04)); pointer-events:none; border-radius:inherit; }
+        .brief-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(94,106,210,0.06),rgba(139,92,246,0.06),rgba(0,232,122,0.04)); pointer-events:none; border-radius:inherit; }
         .ring-glow { position:absolute; border-radius:50%; animation:ring-breathe 4s ease-in-out infinite; pointer-events:none; }
       `}</style>
 
@@ -371,9 +371,9 @@ export default function DashboardPage() {
       {/* Upgrade Welcome */}
       {showUpgradeWelcome && (
         <div style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(7,11,20,0.94)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={() => setShowUpgradeWelcome(false)}>
-          <div style={{ maxWidth: 400, width: "100%", textAlign: "center", background: "var(--surface)", border: `1px solid ${isPremium ? "rgba(139,92,246,0.3)" : "rgba(79,142,247,0.3)"}`, borderRadius: 20, padding: "48px 32px", boxShadow: `0 0 80px ${isPremium ? "rgba(139,92,246,0.1)" : "rgba(79,142,247,0.08)"}` }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ maxWidth: 400, width: "100%", textAlign: "center", background: "var(--surface)", border: `1px solid ${isPremium ? "rgba(139,92,246,0.3)" : "rgba(94,106,210,0.3)"}`, borderRadius: 20, padding: "48px 32px", boxShadow: `0 0 80px ${isPremium ? "rgba(139,92,246,0.1)" : "rgba(94,106,210,0.08)"}` }} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
-            <div className="font-bebas" style={{ fontSize: 52, lineHeight: 1, marginBottom: 12, background: isPremium ? "linear-gradient(135deg,#8B5CF6,#6366f1)" : "linear-gradient(135deg,#4F8EF7,#3a6fd8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+            <div className="font-bebas" style={{ fontSize: 52, lineHeight: 1, marginBottom: 12, background: isPremium ? "linear-gradient(135deg,#8B5CF6,#6366f1)" : "linear-gradient(135deg,#5e6ad2,#4a5bbd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               {isPremium ? "Welcome to Premium" : "Welcome to Pro"}
             </div>
             <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 28 }}>
@@ -543,7 +543,7 @@ export default function DashboardPage() {
 
         {/* MORNING BRIEF */}
         {morningBriefInsight && (
-          <div className="card brief-card dash-section s2" style={{ padding: "18px 22px", marginBottom: 16, border: "1px solid rgba(79,142,247,0.18)" }}>
+          <div className="card brief-card dash-section s2" style={{ padding: "18px 22px", marginBottom: 16, border: "1px solid rgba(94,106,210,0.18)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--blue)", boxShadow: "0 0 6px var(--blue)" }} />
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "var(--blue)" }}>MORNING BRIEF</span>
@@ -643,8 +643,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Monthly */}
-          <div className="card stat-card" style={{ padding: "18px 14px", textAlign: "center", background: "linear-gradient(160deg, rgba(79,142,247,0.05), var(--surface))", borderColor: monthlyCount > 0 ? "rgba(79,142,247,0.15)" : undefined }}>
-            <div className="font-bebas" style={{ fontSize: 30, color: "var(--blue)", lineHeight: 1, marginBottom: 4, textShadow: "0 0 20px rgba(79,142,247,0.4)" }}>
+          <div className="card stat-card" style={{ padding: "18px 14px", textAlign: "center", background: "linear-gradient(160deg, rgba(94,106,210,0.05), var(--surface))", borderColor: monthlyCount > 0 ? "rgba(94,106,210,0.15)" : undefined }}>
+            <div className="font-bebas" style={{ fontSize: 30, color: "var(--blue)", lineHeight: 1, marginBottom: 4, textShadow: "0 0 20px rgba(94,106,210,0.4)" }}>
               {monthlyCount > 0 ? monthlyCount : "—"}
             </div>
             <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em", marginBottom: weeklyGoalCount > 0 ? 4 : 0 }}>THIS MONTH</div>
@@ -669,7 +669,7 @@ export default function DashboardPage() {
 
         {/* Lifestyle correlation strip — premium */}
         {isPremium && lifestyleInsight && lifestyleInsight.exerciseLift !== null && lifestyleInsight.exerciseCount >= 3 && (
-          <div className="dash-section s3" style={{ marginBottom: 16, padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(0,232,122,0.05), rgba(79,142,247,0.04))", border: "1px solid rgba(0,232,122,0.15)", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <div className="dash-section s3" style={{ marginBottom: 16, padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(0,232,122,0.05), rgba(94,106,210,0.04))", border: "1px solid rgba(0,232,122,0.15)", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: 16, flex: 1, flexWrap: "wrap" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.08em" }}>EXERCISE DAYS</span>
@@ -693,7 +693,7 @@ export default function DashboardPage() {
 
         {/* Upgrade nudge — free users with 7+ check-ins */}
         {showUpgradeNudge && !isPro && (
-          <div className="dash-section s3" style={{ marginBottom: 20, padding: "16px 20px", borderRadius: 14, background: "linear-gradient(135deg, rgba(79,142,247,0.07), rgba(79,142,247,0.03))", border: "1px solid rgba(79,142,247,0.25)", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <div className="dash-section s3" style={{ marginBottom: 20, padding: "16px 20px", borderRadius: 14, background: "linear-gradient(135deg, rgba(94,106,210,0.07), rgba(94,106,210,0.03))", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 200 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>
                 You&apos;ve done {monthlyCount} check-ins — unlock what the data is hiding
@@ -728,7 +728,7 @@ export default function DashboardPage() {
               </span>
             </div>
             <div style={{ height: 6, borderRadius: 4, background: "var(--surface2)", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${Math.min((weeklyGoalCount / weeklyGoal) * 100, 100)}%`, background: weeklyGoalCount >= weeklyGoal ? "var(--green)" : "linear-gradient(90deg, var(--blue), var(--purple))", borderRadius: 4, transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow: weeklyGoalCount >= weeklyGoal ? "0 0 8px var(--green)" : "0 0 8px rgba(79,142,247,0.5)" }} />
+              <div style={{ height: "100%", width: `${Math.min((weeklyGoalCount / weeklyGoal) * 100, 100)}%`, background: weeklyGoalCount >= weeklyGoal ? "var(--green)" : "linear-gradient(90deg, var(--blue), var(--purple))", borderRadius: 4, transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow: weeklyGoalCount >= weeklyGoal ? "0 0 8px var(--green)" : "0 0 8px rgba(94,106,210,0.5)" }} />
             </div>
           </div>
         )}
@@ -818,9 +818,9 @@ export default function DashboardPage() {
 
         {/* WEEK 1 ONBOARDING — show until 5 check-ins */}
         {monthlyCount < 5 && (
-          <div className="card dash-section s3" style={{ padding: "28px 24px", marginBottom: 20, background: "linear-gradient(135deg, rgba(79,142,247,0.04) 0%, var(--surface) 70%)", border: "1px solid rgba(79,142,247,0.18)" }}>
+          <div className="card dash-section s3" style={{ padding: "28px 24px", marginBottom: 20, background: "linear-gradient(135deg, rgba(94,106,210,0.04) 0%, var(--surface) 70%)", border: "1px solid rgba(94,106,210,0.18)" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: 20, flexWrap: "wrap" }}>
-              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2.5a7.5 7.5 0 100 15 7.5 7.5 0 000-15z" stroke="var(--blue)" strokeWidth="1.4"/><path d="M10 9v4M10 7h.01" stroke="var(--blue)" strokeWidth="1.6" strokeLinecap="round"/></svg>
               </div>
               <div style={{ flex: 1, minWidth: 220 }}>
@@ -1009,7 +1009,7 @@ export default function DashboardPage() {
                 partners.map((p) => <PartnerCard key={p.id} partner={p} />)
               ) : (
                 <div className="card" style={{ padding: "28px 24px", display: "flex", alignItems: "center", gap: 20, border: "1px dashed var(--border)" }}>
-                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(79,142,247,0.08)", border: "1px dashed rgba(79,142,247,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(94,106,210,0.08)", border: "1px dashed rgba(94,106,210,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ color: "var(--blue)" }}><circle cx="7" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/><circle cx="14" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M1 17c0-2.76 2.686-5 6-5M11 12c3.314 0 6 2.24 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
                   </div>
                   <div style={{ flex: 1 }}>
@@ -1037,7 +1037,7 @@ export default function DashboardPage() {
       {/* Quick-Add Trade FAB */}
       <button
         onClick={() => { setShowQuickTrade(true); setQtSaved(false); setQtSymbol(""); setQtPnl(""); setQtSetup(""); setQtError(null); }}
-        style={{ position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 0px))", right: 20, zIndex: 100, width: 52, height: 52, borderRadius: "50%", background: "linear-gradient(135deg, var(--blue), #3a6fd8)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(79,142,247,0.4)", transition: "transform 0.15s ease, box-shadow 0.15s ease" }}
+        style={{ position: "fixed", bottom: "calc(80px + env(safe-area-inset-bottom, 0px))", right: 20, zIndex: 100, width: 52, height: 52, borderRadius: "50%", background: "linear-gradient(135deg, var(--blue), #4a5bbd)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 20px rgba(94,106,210,0.4)", transition: "transform 0.15s ease, box-shadow 0.15s ease" }}
         onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1.08)"; }}
         onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.transform = "scale(1)"; }}
         title="Quick-add trade"

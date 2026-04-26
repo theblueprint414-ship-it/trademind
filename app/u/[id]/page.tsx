@@ -67,14 +67,14 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: 64, fontWeight: 900, color: "#FF3B5C", marginBottom: 16 }}>404</div>
           <p style={{ color: "#7A8BA8", marginBottom: 24 }}>This profile doesn&apos;t exist or is private.</p>
-          <Link href="/" style={{ color: "#4F8EF7", textDecoration: "none" }}>← TradeMind</Link>
+          <Link href="/" style={{ color: "#5e6ad2", textDecoration: "none" }}>← TradeMind</Link>
         </div>
       </div>
     );
   }
 
   const firstName = profile.name?.split(" ")[0] ?? "Trader";
-  const streakColor = profile.streak >= 30 ? "#8B5CF6" : profile.streak >= 14 ? "#4F8EF7" : "#FFB020";
+  const streakColor = profile.streak >= 30 ? "#8B5CF6" : profile.streak >= 14 ? "#5e6ad2" : "#FFB020";
   const streakEmoji = profile.streak >= 60 ? "👑" : profile.streak >= 30 ? "🏆" : profile.streak >= 14 ? "⚡" : "🔥";
 
   // Build 30-day calendar grid
@@ -94,12 +94,12 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
       {/* Nav */}
       <nav style={{ borderBottom: "1px solid #1E2D45", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(7,11,20,0.92)", backdropFilter: "blur(12px)", position: "sticky", top: 0, zIndex: 40 }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-          <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(79,142,247,0.15)", border: "1px solid rgba(79,142,247,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#4F8EF7" }} />
+          <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(94,106,210,0.15)", border: "1px solid rgba(94,106,210,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 12, height: 12, borderRadius: "50%", background: "#5e6ad2" }} />
           </div>
           <span style={{ fontWeight: 700, fontSize: 16, color: "#E8F0FF" }}>TradeMind</span>
         </Link>
-        <Link href="/dashboard" style={{ background: "#4F8EF7", color: "white", borderRadius: 8, padding: "8px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
+        <Link href="/dashboard" style={{ background: "#5e6ad2", color: "white", borderRadius: 8, padding: "8px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>
           Track Your Edge →
         </Link>
       </nav>
@@ -143,7 +143,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 24 }}>
           {[
             { label: "STREAK", value: `${profile.streak}d`, color: streakColor },
-            { label: "BEST STREAK", value: `${profile.longestStreak}d`, color: "#4F8EF7" },
+            { label: "BEST STREAK", value: `${profile.longestStreak}d`, color: "#5e6ad2" },
             { label: "AVG SCORE", value: profile.avgScore ? `${profile.avgScore}` : "—", color: profile.avgScore ? scoreColor(profile.avgScore) : "#3D4F6A" },
             { label: "GO RATE", value: `${profile.goRate}%`, color: profile.goRate >= 60 ? "#00E87A" : profile.goRate >= 40 ? "#FFB020" : "#FF3B5C" },
           ].map((s) => (
@@ -196,14 +196,14 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         )}
 
         {/* CTA */}
-        <div style={{ background: "linear-gradient(135deg,rgba(79,142,247,0.08),rgba(79,142,247,0.02))", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 16, padding: "32px 28px", textAlign: "center" }}>
+        <div style={{ background: "linear-gradient(135deg,rgba(94,106,210,0.08),rgba(94,106,210,0.02))", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 16, padding: "32px 28px", textAlign: "center" }}>
           <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8, letterSpacing: "-0.01em" }}>
             Know your mental edge before you trade
           </div>
           <p style={{ fontSize: 14, color: "#7A8BA8", lineHeight: 1.6, marginBottom: 24 }}>
             60-second daily check-in. GO / CAUTION / NO-TRADE. Free forever.
           </p>
-          <Link href="/dashboard" style={{ display: "inline-block", background: "#4F8EF7", color: "white", textDecoration: "none", borderRadius: 10, padding: "13px 32px", fontSize: 15, fontWeight: 700 }}>
+          <Link href="/dashboard" style={{ display: "inline-block", background: "#5e6ad2", color: "white", textDecoration: "none", borderRadius: 10, padding: "13px 32px", fontSize: 15, fontWeight: 700 }}>
             Start Your First Check-in →
           </Link>
         </div>

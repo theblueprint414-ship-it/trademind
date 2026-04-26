@@ -16,9 +16,9 @@ const STORIES = [
     name: "Marcus T.",
     role: "NQ Futures Trader",
     context: "Using TradeMind for 4 months",
-    color: "#4F8EF7",
+    color: "#5e6ad2",
     badge: "Analytics Insight",
-    badgeColor: "#4F8EF7",
+    badgeColor: "#5e6ad2",
     headline: "Found a pattern that cost him thousands — in week 3.",
     quote: "6 years trading NQ futures. I thought I had my emotions handled. Week 3 with TradeMind I saw it clearly: 80% of my losing trades happened between 2–4 PM on days my sleep score was under 50. That one insight covered a year of subscription in the first month.",
     detail: "Marcus had been trading NQ futures for six years and considered himself an experienced, emotionally controlled trader. He connected his MT5 account via MetaAPI and ran 3 weeks of check-ins before reviewing his analytics. The P&L vs. psychology chart revealed a concentration of losing trades he hadn't noticed: afternoon sessions on low-sleep days. He now checks his sleep score before deciding whether to trade the afternoon session at all.",
@@ -81,9 +81,9 @@ const STORIES = [
     name: "Sarah M.",
     role: "Forex Trader",
     context: "Using TradeMind for 10 weeks",
-    color: "#4F8EF7",
+    color: "#5e6ad2",
     badge: "Work-Life Balance",
-    badgeColor: "#4F8EF7",
+    badgeColor: "#5e6ad2",
     headline: "The permission to step back she didn't know she needed.",
     quote: "I trade forex and the 24/7 grind was killing me. TradeMind gave me something I didn't know I needed: permission to step back. My NO-TRADE days are now my best days — because I didn't lose anything.",
     detail: "Sarah trades forex across London and New York sessions and describes pre-TradeMind as 'always on, always watching, always making decisions I shouldn't have.' The check-in structure imposed a daily gate that gave her legitimate grounds to walk away — not because she was being lazy, but because her score said the risk wasn't worth it. She now treats NO-TRADE verdicts as mental recovery days and reports her overall stress level dropped in week 3.",
@@ -106,21 +106,24 @@ const STORIES = [
 
 export default function TestimonialsPage() {
   return (
-    <div style={{ background: "#070B14", minHeight: "100vh", color: "#E8F0FF", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <style>{`
-        :root { --bg: #070B14; --surface: #0D1420; --border: #1E2D45; --text: #E8F0FF; --muted: #7A8BA8; --dim: #3D4F6A; }
-        .story-card { background: #0D1420; border: 1px solid #1E2D45; border-radius: 20px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
-        .story-card:hover { transform: translateY(-3px); }
+        .story-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; transition: border-color 0.2s, transform 0.2s; }
+        .story-card:hover { border-color: var(--border-bright); transform: translateY(-3px); }
       `}</style>
 
       {/* Nav */}
-      <nav style={{ borderBottom: "1px solid #1E2D45", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-          <img src="/logo.svg" alt="TradeMind" height="20" />
-        </Link>
-        <div style={{ display: "flex", gap: 24, fontSize: 14 }}>
-          <Link href="/login" style={{ color: "#7A8BA8", textDecoration: "none" }}>Sign in</Link>
-          <Link href="/login" style={{ background: "linear-gradient(135deg, #4F8EF7, #3a6fd8)", color: "white", textDecoration: "none", borderRadius: 8, padding: "7px 18px", fontSize: 13, fontWeight: 600 }}>Start Free →</Link>
+      <nav className="app-header" style={{ position: "sticky" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
+            <img src="/logo.svg" alt="TradeMind" style={{ display: "block", width: 120, height: "auto" }} />
+          </Link>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <Link href="/login" className="nav-link" style={{ fontSize: 13 }}>Log in</Link>
+            <Link href="/login?callbackUrl=/settings">
+              <button className="btn-primary" style={{ padding: "9px 20px", fontSize: 13 }}>Start Free →</button>
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -128,14 +131,14 @@ export default function TestimonialsPage() {
 
         {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 72 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 20, padding: "6px 16px", fontSize: 12, color: "#4F8EF7", fontWeight: 600, letterSpacing: "0.06em", marginBottom: 24 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 20, padding: "6px 16px", fontSize: 12, color: "#5e6ad2", fontWeight: 600, letterSpacing: "0.06em", marginBottom: 24 }}>
             TRADER STORIES
           </div>
           <h1 style={{ fontSize: "clamp(32px, 5vw, 48px)", fontWeight: 800, margin: "0 0 16px", lineHeight: 1.15 }}>Real traders. Real results.</h1>
-          <p style={{ fontSize: 18, color: "#7A8BA8", margin: "0 auto 28px", maxWidth: 520, lineHeight: 1.7 }}>
+          <p style={{ fontSize: 18, color: "var(--text-dim)", margin: "0 auto 28px", maxWidth: 520, lineHeight: 1.7 }}>
             No fabricated statistics. No guaranteed returns. These are traders who changed the way they show up every morning.
           </p>
-          <p style={{ fontSize: 13, color: "#3D4F6A", maxWidth: 480, margin: "0 auto", lineHeight: 1.7 }}>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 480, margin: "0 auto", lineHeight: 1.7 }}>
             Individual results vary. Trading involves substantial risk of loss. TradeMind is a cognitive performance tool, not financial advice.
           </p>
         </div>
@@ -150,8 +153,8 @@ export default function TestimonialsPage() {
                   <div style={{ width: 48, height: 48, borderRadius: "50%", background: `${s.color}22`, border: `2px solid ${s.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: s.color, flexShrink: 0 }}>{s.initials}</div>
                   <div>
                     <div style={{ fontWeight: 700, fontSize: 15 }}>{s.name}</div>
-                    <div style={{ color: "#7A8BA8", fontSize: 13 }}>{s.role}</div>
-                    <div style={{ color: "#3D4F6A", fontSize: 12, marginTop: 2 }}>{s.context}</div>
+                    <div style={{ color: "var(--text-dim)", fontSize: 13 }}>{s.role}</div>
+                    <div style={{ color: "var(--text-muted)", fontSize: 12, marginTop: 2 }}>{s.context}</div>
                   </div>
                 </div>
                 <div style={{ display: "inline-flex", alignItems: "center", background: `${s.badgeColor}18`, border: `1px solid ${s.badgeColor}30`, borderRadius: 20, padding: "5px 14px", fontSize: 11, fontWeight: 700, color: s.badgeColor, letterSpacing: "0.07em" }}>
@@ -165,13 +168,13 @@ export default function TestimonialsPage() {
               </div>
 
               {/* Pull quote */}
-              <div style={{ margin: "20px 32px", padding: "20px 24px", background: "#070B14", border: `1px solid ${s.color}20`, borderLeft: `3px solid ${s.color}`, borderRadius: "0 12px 12px 0" }}>
+              <div style={{ margin: "20px 32px", padding: "20px 24px", background: "var(--surface2)", border: `1px solid ${s.color}20`, borderLeft: `3px solid ${s.color}`, borderRadius: "0 12px 12px 0" }}>
                 <p style={{ margin: 0, color: "#C8D8F0", fontSize: 15, lineHeight: 1.8, fontStyle: "italic" }}>"{s.quote}"</p>
               </div>
 
               {/* Detail */}
               <div style={{ padding: "0 32px 28px" }}>
-                <p style={{ color: "#7A8BA8", fontSize: 14, lineHeight: 1.85, margin: "0 0 16px" }}>{s.detail}</p>
+                <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.85, margin: "0 0 16px" }}>{s.detail}</p>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", background: `${s.color}0D`, border: `1px solid ${s.color}20`, borderRadius: 10 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
                   <span style={{ fontSize: 13, color: "#C8D8F0", fontWeight: 600 }}>{s.impact}</span>
@@ -182,8 +185,8 @@ export default function TestimonialsPage() {
         </div>
 
         {/* Legal disclaimer */}
-        <div style={{ marginTop: 48, padding: "20px 24px", background: "rgba(255,255,255,0.02)", border: "1px solid #1E2D45", borderRadius: 12, textAlign: "center" }}>
-          <p style={{ color: "#3D4F6A", fontSize: 12, lineHeight: 1.7, margin: 0 }}>
+        <div style={{ marginTop: 48, padding: "20px 24px", background: "rgba(255,255,255,0.02)", border: "1px solid var(--border)", borderRadius: 12, textAlign: "center" }}>
+          <p style={{ color: "var(--text-muted)", fontSize: 12, lineHeight: 1.7, margin: 0 }}>
             These are individual accounts from real TradeMind users. Results reflect their personal experiences and are not representative of typical outcomes. Trading involves substantial risk of loss. Past performance is not indicative of future results. TradeMind provides a cognitive performance indicator — not financial advice, not a trading signal, and not a guarantee of any outcome.
           </p>
         </div>
@@ -191,8 +194,8 @@ export default function TestimonialsPage() {
         {/* CTA */}
         <div style={{ marginTop: 64, textAlign: "center" }}>
           <h2 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px" }}>Start your first check-in today.</h2>
-          <p style={{ color: "#7A8BA8", fontSize: 15, margin: "0 0 32px", lineHeight: 1.7 }}>Free forever. No credit card. 60 seconds a morning.</p>
-          <Link href="/login" style={{ display: "inline-block", background: "linear-gradient(135deg, #4F8EF7, #3a6fd8)", color: "white", textDecoration: "none", borderRadius: 12, padding: "16px 40px", fontSize: 16, fontWeight: 700 }}>
+          <p style={{ color: "var(--text-dim)", fontSize: 15, margin: "0 0 32px", lineHeight: 1.7 }}>Free forever. No credit card. 60 seconds a morning.</p>
+          <Link href="/login" style={{ display: "inline-block", background: "linear-gradient(135deg, #5e6ad2, #4a5bbd)", color: "white", textDecoration: "none", borderRadius: 12, padding: "16px 40px", fontSize: 16, fontWeight: 700 }}>
             Get Started Free →
           </Link>
         </div>
@@ -200,13 +203,13 @@ export default function TestimonialsPage() {
       </main>
 
       {/* Footer */}
-      <footer style={{ borderTop: "1px solid #1E2D45", padding: "32px 24px", textAlign: "center", color: "#3D4F6A", fontSize: 12 }}>
+      <footer style={{ borderTop: "1px solid var(--border)", padding: "32px 24px", textAlign: "center", color: "var(--text-muted)", fontSize: 12 }}>
         <div style={{ display: "flex", gap: 20, justifyContent: "center", flexWrap: "wrap", marginBottom: 12 }}>
-          <Link href="/privacy" style={{ color: "#3D4F6A", textDecoration: "none" }}>Privacy</Link>
-          <Link href="/terms" style={{ color: "#3D4F6A", textDecoration: "none" }}>Terms</Link>
-          <Link href="/security" style={{ color: "#3D4F6A", textDecoration: "none" }}>Security</Link>
-          <Link href="/help" style={{ color: "#3D4F6A", textDecoration: "none" }}>Help</Link>
-          <Link href="/contact" style={{ color: "#3D4F6A", textDecoration: "none" }}>Contact</Link>
+          <Link href="/privacy" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Privacy</Link>
+          <Link href="/terms" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Terms</Link>
+          <Link href="/security" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Security</Link>
+          <Link href="/help" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Help</Link>
+          <Link href="/contact" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Contact</Link>
         </div>
         <p>© 2026 TradeMind. All rights reserved.</p>
       </footer>

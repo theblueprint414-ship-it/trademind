@@ -58,7 +58,7 @@ export default function WhyFundedTradersFailPage() {
 
           {/* Category + Date */}
           <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 24 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 6, padding: "3px 10px" }}>TRADING PSYCHOLOGY</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 6, padding: "3px 10px" }}>TRADING PSYCHOLOGY</span>
             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>April 2025 · 8 min read</span>
           </div>
 
@@ -209,7 +209,7 @@ export default function WhyFundedTradersFailPage() {
           </section>
 
           {/* CTA card */}
-          <div style={{ background: "linear-gradient(135deg,rgba(79,142,247,0.08),rgba(79,142,247,0.03))", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 20, padding: "40px 32px", marginBottom: 48, textAlign: "center" }}>
+          <div style={{ background: "linear-gradient(135deg,rgba(94,106,210,0.08),rgba(94,106,210,0.03))", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 20, padding: "40px 32px", marginBottom: 48, textAlign: "center" }}>
             <div style={{ fontSize: 28, fontWeight: 900, letterSpacing: "-0.02em", marginBottom: 12 }}>
               Your next funded account starts here
             </div>

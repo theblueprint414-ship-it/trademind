@@ -33,9 +33,9 @@ const TAG_COLORS: Record<string, string> = {
   "Perfect Setup": "rgba(0,232,122,0.15)",
   "Off-plan": "rgba(255,176,32,0.15)",
   Disciplined: "rgba(0,232,122,0.15)",
-  Breakout: "rgba(79,142,247,0.15)",
+  Breakout: "rgba(94,106,210,0.15)",
   News: "rgba(139,92,246,0.15)",
-  Scalp: "rgba(79,142,247,0.15)",
+  Scalp: "rgba(94,106,210,0.15)",
   Swing: "rgba(139,92,246,0.15)",
 };
 
@@ -66,9 +66,9 @@ function EmotionPicker({ value, onChange }: { value: number | null; onChange: (v
           onClick={() => onChange(i + 1)}
           style={{
             flex: 1, padding: "10px 0", borderRadius: 10, border: `1.5px solid ${value === i + 1 ? "var(--blue)" : "var(--border)"}`,
-            background: value === i + 1 ? "rgba(79,142,247,0.12)" : "var(--surface2)",
+            background: value === i + 1 ? "rgba(94,106,210,0.12)" : "var(--surface2)",
             cursor: "pointer", fontSize: 20, transition: "all 0.15s",
-            boxShadow: value === i + 1 ? "0 0 12px rgba(79,142,247,0.25)" : "none",
+            boxShadow: value === i + 1 ? "0 0 12px rgba(94,106,210,0.25)" : "none",
           }}
         >
           {e}
@@ -98,7 +98,7 @@ function TagPicker({ selected, onChange }: { selected: string[]; onChange: (tags
             style={{
               padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer",
               border: `1.5px solid ${active ? (TAG_TEXT_COLORS[tag] ?? "var(--blue)") : "var(--border)"}`,
-              background: active ? (TAG_COLORS[tag] ?? "rgba(79,142,247,0.12)") : "var(--surface2)",
+              background: active ? (TAG_COLORS[tag] ?? "rgba(94,106,210,0.12)") : "var(--surface2)",
               color: active ? (TAG_TEXT_COLORS[tag] ?? "var(--blue)") : "var(--text-muted)",
               transition: "all 0.15s",
             }}
@@ -120,7 +120,7 @@ function TagPills({ tags }: { tags: string[] }) {
           key={tag}
           style={{
             padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600,
-            background: TAG_COLORS[tag] ?? "rgba(79,142,247,0.12)",
+            background: TAG_COLORS[tag] ?? "rgba(94,106,210,0.12)",
             color: TAG_TEXT_COLORS[tag] ?? "var(--blue)",
             border: `1px solid ${TAG_TEXT_COLORS[tag] ?? "var(--blue)"}30`,
           }}
@@ -467,7 +467,7 @@ export default function JournalPage() {
     label: string;
   }) {
     return (
-      <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(79,142,247,0.2)" }}>
+      <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(94,106,210,0.2)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>{label}</div>
           <button onClick={onCancel} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20 }}>×</button>
@@ -618,7 +618,7 @@ export default function JournalPage() {
 
         {/* First-time empty state */}
         {!loading && allEntries.length === 0 && (
-          <div className="card" style={{ padding: 32, marginBottom: 24, border: "1px solid rgba(79,142,247,0.2)", background: "rgba(79,142,247,0.03)", textAlign: "center" }}>
+          <div className="card" style={{ padding: 32, marginBottom: 24, border: "1px solid rgba(94,106,210,0.2)", background: "rgba(94,106,210,0.03)", textAlign: "center" }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>📓</div>
             <div className="font-bebas" style={{ fontSize: 28, marginBottom: 8, letterSpacing: "0.03em" }}>Log Your First Trade</div>
             <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 0, maxWidth: 380, margin: "0 auto" }}>
@@ -662,7 +662,7 @@ export default function JournalPage() {
                 style={{
                   flexShrink: 0, padding: "8px 16px", borderRadius: 20,
                   border: `1.5px solid ${isSelected ? "var(--blue)" : "var(--border)"}`,
-                  background: isSelected ? "rgba(79,142,247,0.12)" : "var(--surface2)",
+                  background: isSelected ? "rgba(94,106,210,0.12)" : "var(--surface2)",
                   color: isSelected ? "var(--blue)" : "var(--text-muted)",
                   cursor: "pointer", fontSize: 12, fontWeight: isSelected ? 700 : 400,
                   whiteSpace: "nowrap", transition: "all 0.15s",
@@ -701,7 +701,7 @@ export default function JournalPage() {
               </div>
             </Link>
             <button onClick={() => { setShowCsvImport(true); setCsvResult(null); setCsvError(null); }}
-              style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px dashed rgba(79,142,247,0.4)", background: "rgba(79,142,247,0.05)", cursor: "pointer", textAlign: "center" }}>
+              style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px dashed rgba(94,106,210,0.4)", background: "rgba(94,106,210,0.05)", cursor: "pointer", textAlign: "center" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--blue)" }}>📥 Import CSV</div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Tradovate, MT4, NinjaTrader</div>
             </button>
@@ -746,7 +746,7 @@ export default function JournalPage() {
           const hasRisk = emotional || offPlan || noRR;
           return (
             <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(7,11,20,0.92)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-              <div className="card" style={{ maxWidth: 420, width: "100%", padding: 28, border: "1px solid rgba(79,142,247,0.25)" }}>
+              <div className="card" style={{ maxWidth: 420, width: "100%", padding: 28, border: "1px solid rgba(94,106,210,0.25)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                   <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em", color: "var(--blue)" }}>PRE-TRADE CHECK</div>
                   <button onClick={() => setShowPreCheck(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20 }}>×</button>
@@ -817,7 +817,7 @@ export default function JournalPage() {
         {/* CSV import modal */}
         {showCsvImport && (
           <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(7,11,20,0.92)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-            <div className="card" style={{ maxWidth: 440, width: "100%", padding: 28, border: "1px solid rgba(79,142,247,0.25)" }}>
+            <div className="card" style={{ maxWidth: 440, width: "100%", padding: 28, border: "1px solid rgba(94,106,210,0.25)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                 <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>IMPORT CSV</div>
                 <button onClick={() => { setShowCsvImport(false); setCsvResult(null); setCsvError(null); }} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20 }}>×</button>
@@ -1045,7 +1045,7 @@ export default function JournalPage() {
                       )}
 
                       {entry.reflection && (
-                        <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-dim)", background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)", borderRadius: 8, padding: "8px 12px", fontStyle: "italic", lineHeight: 1.5 }}>
+                        <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-dim)", background: "rgba(94,106,210,0.05)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 8, padding: "8px 12px", fontStyle: "italic", lineHeight: 1.5 }}>
                           💭 {entry.reflection}
                         </div>
                       )}

@@ -168,7 +168,7 @@ export default function LeaderboardPage() {
                   gap: 14,
                   padding: "14px 16px",
                   borderBottom: i < allEntries.length - 1 ? "1px solid var(--border)" : "none",
-                  background: entry.isCurrentUser ? "rgba(79,142,247,0.06)" : "transparent",
+                  background: entry.isCurrentUser ? "rgba(94,106,210,0.06)" : "transparent",
                 }}
               >
                 <div style={{ minWidth: 32, display: "flex", justifyContent: "center" }}>
@@ -180,7 +180,7 @@ export default function LeaderboardPage() {
                       {entry.name}
                     </span>
                     {entry.isCurrentUser && (
-                      <span style={{ fontSize: 10, fontWeight: 700, color: "var(--blue)", background: "rgba(79,142,247,0.15)", borderRadius: 4, padding: "2px 6px" }}>YOU</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, color: "var(--blue)", background: "rgba(94,106,210,0.15)", borderRadius: 4, padding: "2px 6px" }}>YOU</span>
                     )}
                     {entry.checkedInToday && (
                       <span style={{ fontSize: 10, color: "var(--green)" }}>✓ today</span>
@@ -202,7 +202,7 @@ export default function LeaderboardPage() {
                 <div style={{ padding: "8px 16px", background: "var(--surface2)", borderTop: "1px solid var(--border)" }}>
                   <span style={{ fontSize: 11, color: "var(--text-muted)" }}>— YOUR PRIVATE SCORE —</span>
                 </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", background: "rgba(79,142,247,0.06)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "14px 16px", background: "rgba(94,106,210,0.06)" }}>
                   <div style={{ minWidth: 32, textAlign: "center", fontSize: 13, color: "var(--text-muted)" }}>—</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

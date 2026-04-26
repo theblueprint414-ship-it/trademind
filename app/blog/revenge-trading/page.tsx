@@ -107,7 +107,7 @@ export default function RevengeTrading() {
 
           <p><strong style={{ color: "var(--text)" }}>3. Pre-session mental check.</strong> Revenge trading is dramatically less common among traders who complete a structured pre-session mental assessment. Not because the check-in prevents losses — but because it creates a baseline. You know what your mental state was when you started. A sharp drop after a loss is measurable, not just felt. And measurable states can trigger pre-committed rules.</p>
 
-          <div style={{ background: "linear-gradient(135deg, rgba(79,142,247,0.05), var(--surface))", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 14, padding: "28px 24px", margin: "40px 0" }}>
+          <div style={{ background: "linear-gradient(135deg, rgba(94,106,210,0.05), var(--surface))", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 14, padding: "28px 24px", margin: "40px 0" }}>
             <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", marginBottom: 12 }}>THE BOTTOM LINE</div>
             <p style={{ fontSize: 16, color: "var(--text)", lineHeight: 1.8, margin: "0 0 20px" }}>
               Revenge trading isn't a character flaw. It's a predictable biological response to loss — one that every trader will experience. The difference between traders who survive it and those who don't isn't discipline. It's whether they had a system in place before the loss happened.

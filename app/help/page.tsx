@@ -123,7 +123,7 @@ export default function HelpPage() {
   return (
     <div style={{ background: "var(--bg, #070B14)", minHeight: "100vh", color: "var(--text, #E8F0FF)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
       <style>{`
-        :root { --bg: #070B14; --surface: #0D1420; --border: #1E2D45; --text: #E8F0FF; --muted: #7A8BA8; --dim: #3D4F6A; --blue: #4F8EF7; --green: #00E87A; --purple: #8B5CF6; }
+        :root { --bg: #070B14; --surface: #0D1420; --border: #1E2D45; --text: #E8F0FF; --muted: #7A8BA8; --dim: #3D4F6A; --blue: #5e6ad2; --green: #00E87A; --purple: #8B5CF6; }
         .faq-item { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: border-color 0.2s; }
         .faq-item:hover { border-color: #2E4A6A; }
         .faq-q { width: 100%; background: none; border: none; color: var(--text); font-size: 15px; font-weight: 600; text-align: left; padding: 22px 24px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; line-height: 1.5; }
@@ -133,19 +133,24 @@ export default function HelpPage() {
         details[open] .faq-icon { transform: rotate(45deg); }
         .faq-icon { transition: transform 0.2s; }
         details[open] summary .faq-icon { transform: rotate(45deg); }
-        .cat-pill { display: inline-block; background: rgba(79,142,247,0.12); border: 1px solid rgba(79,142,247,0.25); color: var(--blue); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; border-radius: 20px; padding: 4px 12px; margin-right: 8px; margin-bottom: 8px; }
+        .cat-pill { display: inline-block; background: rgba(94,106,210,0.12); border: 1px solid rgba(94,106,210,0.25); color: var(--blue); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; border-radius: 20px; padding: 4px 12px; margin-right: 8px; margin-bottom: 8px; }
         .help-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; text-decoration: none; color: inherit; display: block; transition: border-color 0.2s, transform 0.2s; }
         .help-card:hover { border-color: var(--blue); transform: translateY(-2px); }
       `}</style>
 
       {/* Nav */}
-      <nav style={{ borderBottom: "1px solid var(--border)", padding: "0 24px", height: 56, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
-          <img src="/logo.svg" alt="TradeMind" height="20" />
-        </Link>
-        <div style={{ display: "flex", gap: 24, fontSize: 14 }}>
-          <Link href="/dashboard" style={{ color: "var(--muted)", textDecoration: "none" }}>Dashboard</Link>
-          <Link href="/contact" style={{ color: "var(--muted)", textDecoration: "none" }}>Contact</Link>
+      <nav className="app-header" style={{ position: "sticky" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
+            <img src="/logo.svg" alt="TradeMind" style={{ display: "block", width: 120, height: "auto" }} />
+          </Link>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <Link href="/dashboard" className="nav-link" style={{ fontSize: 13 }}>Dashboard</Link>
+            <Link href="/contact" className="nav-link" style={{ fontSize: 13 }}>Contact</Link>
+            <Link href="/login?callbackUrl=/settings">
+              <button className="btn-primary" style={{ padding: "9px 20px", fontSize: 13 }}>Start Free →</button>
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -153,7 +158,7 @@ export default function HelpPage() {
 
         {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 64 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 20, padding: "6px 16px", fontSize: 12, color: "var(--blue)", fontWeight: 600, letterSpacing: "0.06em", marginBottom: 24 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 20, padding: "6px 16px", fontSize: 12, color: "var(--blue)", fontWeight: 600, letterSpacing: "0.06em", marginBottom: 24 }}>
             HELP CENTER
           </div>
           <h1 style={{ fontSize: "clamp(30px, 5vw, 44px)", fontWeight: 800, margin: "0 0 16px", lineHeight: 1.15 }}>How can we help?</h1>
@@ -202,7 +207,7 @@ export default function HelpPage() {
         </div>
 
         {/* Still need help */}
-        <div style={{ marginTop: 64, background: "linear-gradient(135deg, rgba(79,142,247,0.08), rgba(139,92,246,0.08))", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 20, padding: "40px 36px", textAlign: "center" }}>
+        <div style={{ marginTop: 64, background: "linear-gradient(135deg, rgba(94,106,210,0.08), rgba(139,92,246,0.08))", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 20, padding: "40px 36px", textAlign: "center" }}>
           <div style={{ fontSize: 28, marginBottom: 16 }}>💬</div>
           <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 10px" }}>Still need help?</h2>
           <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.8, margin: "0 0 24px" }}>
@@ -210,7 +215,7 @@ export default function HelpPage() {
           </p>
           <a
             href="mailto:support@trademindedge.com"
-            style={{ display: "inline-block", background: "linear-gradient(135deg, #4F8EF7, #3a6fd8)", color: "white", textDecoration: "none", borderRadius: 10, padding: "13px 32px", fontSize: 14, fontWeight: 600 }}
+            style={{ display: "inline-block", background: "linear-gradient(135deg, #5e6ad2, #4a5bbd)", color: "white", textDecoration: "none", borderRadius: 10, padding: "13px 32px", fontSize: 14, fontWeight: 600 }}
           >
             Email Support →
           </a>

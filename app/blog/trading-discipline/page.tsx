@@ -35,7 +35,7 @@ export default function TradingDiscipline() {
 
         <div style={{ marginBottom: 40 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 16 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 6, padding: "3px 10px" }}>DISCIPLINE</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 6, padding: "3px 10px" }}>DISCIPLINE</span>
             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>April 2026 · 7 min read</span>
           </div>
           <h1 style={{ fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 800, lineHeight: 1.15, marginBottom: 20 }}>
@@ -87,7 +87,7 @@ export default function TradingDiscipline() {
 
           <p>This means that mental state management is, literally, discipline management. Getting enough sleep is not a wellness habit — it is a trading performance variable. Managing external stressors, maintaining physical routines, completing the pre-session check-in — these directly determine how much discipline is available to you when you sit down to trade. Build the habit, and discipline becomes less effortful over time as the supporting conditions become consistent.</p>
 
-          <div style={{ background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.15)", borderRadius: 12, padding: "20px 24px", margin: "32px 0" }}>
+          <div style={{ background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 12, padding: "20px 24px", margin: "32px 0" }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--blue)", marginBottom: 10 }}>The Discipline Audit</div>
             <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>Every week, answer three questions: (1) How many trades violated my criteria this week? (2) On which days did I violate rules most — and what was my mental state score on those days? (3) What is the one system change that would make the most-violated rule structurally harder to break? The answers, repeated weekly, are the actual discipline-building process.</p>
           </div>

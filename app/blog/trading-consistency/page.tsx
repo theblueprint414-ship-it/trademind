@@ -59,7 +59,7 @@ export default function TradingConsistency() {
 
           <p>Returns compound geometrically, not arithmetically. A 20% gain followed by a 20% loss does not leave you flat — it leaves you down 4%. (1.2 × 0.8 = 0.96.) A 50% gain followed by a 50% loss leaves you down 25%. (1.5 × 0.5 = 0.75.) The average looks like 0%, but the actual result is a significant loss.</p>
 
-          <div style={{ background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.15)", borderRadius: 12, padding: "20px 24px", margin: "32px 0" }}>
+          <div style={{ background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 12, padding: "20px 24px", margin: "32px 0" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", marginBottom: 12 }}>THE MATH</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 14, color: "var(--text-dim)" }}>
               <div style={{ display: "flex", gap: 20 }}>

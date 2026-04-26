@@ -230,7 +230,7 @@ function launchConfetti() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  const COLORS = ["#FFB020", "#00E87A", "#4F8EF7", "#FF3B5C", "#8B5CF6", "#ffffff"];
+  const COLORS = ["#FFB020", "#00E87A", "#5e6ad2", "#FF3B5C", "#8B5CF6", "#ffffff"];
   const particles = Array.from({ length: 90 }, () => ({
     x: Math.random() * canvas.width,
     y: -10 - Math.random() * 40,
@@ -666,7 +666,7 @@ function ResultContent() {
                   <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>Did you exercise today?</div>
                   <div style={{ display: "flex", gap: 6 }}>
                     {[{ label: "Yes", val: true }, { label: "No", val: false }].map(({ label, val }) => (
-                      <button key={label} onClick={() => setLifestyleExercise(val)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: `1.5px solid ${lifestyleExercise === val ? "var(--blue)" : "var(--border)"}`, background: lifestyleExercise === val ? "rgba(79,142,247,0.1)" : "var(--surface2)", color: lifestyleExercise === val ? "var(--blue)" : "var(--text-muted)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{label}</button>
+                      <button key={label} onClick={() => setLifestyleExercise(val)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: `1.5px solid ${lifestyleExercise === val ? "var(--blue)" : "var(--border)"}`, background: lifestyleExercise === val ? "rgba(94,106,210,0.1)" : "var(--surface2)", color: lifestyleExercise === val ? "var(--blue)" : "var(--text-muted)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>{label}</button>
                     ))}
                   </div>
                 </div>
@@ -702,7 +702,7 @@ function ResultContent() {
           </Link>
           <Link href="/journal" style={{ textDecoration: "none" }}>
             <div className="card" style={{ padding: "12px 14px", display: "flex", alignItems: "center", gap: 8, cursor: "pointer", transition: "border-color 0.15s" }}
-              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(79,142,247,0.3)")}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(94,106,210,0.3)")}
               onMouseLeave={(e) => (e.currentTarget.style.borderColor = "transparent")}>
               <svg width="16" height="16" viewBox="0 0 18 18" fill="none" style={{ color: "var(--blue)", flexShrink: 0 }}><rect x="4" y="2" width="10" height="14" rx="2" stroke="currentColor" strokeWidth="1.3"/><path d="M7 6h4M7 9h4M7 12h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
               <span style={{ fontSize: 12, color: "var(--text-dim)" }}>Full journal</span>
@@ -744,7 +744,7 @@ function ResultContent() {
         {/* Streak card */}
         {streak > 0 ? (
           <div
-            style={{ padding: "20px", borderRadius: 14, background: streak >= 30 ? "rgba(139,92,246,0.06)" : streak >= 14 ? "rgba(79,142,247,0.05)" : streak >= 7 ? "rgba(255,176,32,0.06)" : "rgba(255,176,32,0.04)", border: `1px solid ${streak >= 30 ? "rgba(139,92,246,0.3)" : streak >= 14 ? "rgba(79,142,247,0.25)" : streak >= 7 ? "rgba(255,176,32,0.3)" : "rgba(255,176,32,0.15)"}`, cursor: "pointer", transition: "border-color 0.15s" }}
+            style={{ padding: "20px", borderRadius: 14, background: streak >= 30 ? "rgba(139,92,246,0.06)" : streak >= 14 ? "rgba(94,106,210,0.05)" : streak >= 7 ? "rgba(255,176,32,0.06)" : "rgba(255,176,32,0.04)", border: `1px solid ${streak >= 30 ? "rgba(139,92,246,0.3)" : streak >= 14 ? "rgba(94,106,210,0.25)" : streak >= 7 ? "rgba(255,176,32,0.3)" : "rgba(255,176,32,0.15)"}`, cursor: "pointer", transition: "border-color 0.15s" }}
             onClick={() => setShowStreakShare(true)}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -765,7 +765,7 @@ function ResultContent() {
           </div>
         ) : (
           <div style={{ padding: "18px 20px", borderRadius: 14, background: "var(--surface2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>📅</div>
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>📅</div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>Come back tomorrow</div>
               <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>Consecutive check-ins reveal patterns that single days can&apos;t show.</p>
@@ -778,9 +778,9 @@ function ResultContent() {
           <div style={{ position: "fixed", inset: 0, zIndex: 9000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }} onClick={() => setShowStreakShare(false)}>
             <div style={{ background: "var(--surface)", borderRadius: 20, padding: 28, width: "100%", maxWidth: 340, border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 20 }} onClick={(e) => e.stopPropagation()}>
               {/* Streak card preview */}
-              <div style={{ borderRadius: 16, padding: "28px 24px", background: streak >= 30 ? "linear-gradient(135deg,rgba(139,92,246,0.15),rgba(99,102,241,0.1))" : streak >= 14 ? "linear-gradient(135deg,rgba(79,142,247,0.15),rgba(99,102,241,0.08))" : "linear-gradient(135deg,rgba(255,176,32,0.12),rgba(255,59,92,0.06))", border: `1px solid ${streak >= 30 ? "rgba(139,92,246,0.35)" : streak >= 14 ? "rgba(79,142,247,0.3)" : "rgba(255,176,32,0.3)"}`, textAlign: "center" }}>
+              <div style={{ borderRadius: 16, padding: "28px 24px", background: streak >= 30 ? "linear-gradient(135deg,rgba(139,92,246,0.15),rgba(99,102,241,0.1))" : streak >= 14 ? "linear-gradient(135deg,rgba(94,106,210,0.15),rgba(99,102,241,0.08))" : "linear-gradient(135deg,rgba(255,176,32,0.12),rgba(255,59,92,0.06))", border: `1px solid ${streak >= 30 ? "rgba(139,92,246,0.35)" : streak >= 14 ? "rgba(94,106,210,0.3)" : "rgba(255,176,32,0.3)"}`, textAlign: "center" }}>
                 <div style={{ fontSize: 52, marginBottom: 8 }}>{streak >= 30 ? "🏆" : streak >= 14 ? "⚡" : "🔥"}</div>
-                <div className="font-bebas" style={{ fontSize: 72, lineHeight: 1, color: streak >= 30 ? "#8B5CF6" : streak >= 14 ? "#4F8EF7" : "var(--amber)", textShadow: `0 0 30px ${streak >= 30 ? "rgba(139,92,246,0.5)" : streak >= 14 ? "rgba(79,142,247,0.5)" : "rgba(255,176,32,0.5)"}` }}>{streak}</div>
+                <div className="font-bebas" style={{ fontSize: 72, lineHeight: 1, color: streak >= 30 ? "#8B5CF6" : streak >= 14 ? "#5e6ad2" : "var(--amber)", textShadow: `0 0 30px ${streak >= 30 ? "rgba(139,92,246,0.5)" : streak >= 14 ? "rgba(94,106,210,0.5)" : "rgba(255,176,32,0.5)"}` }}>{streak}</div>
                 <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: "0.12em", color: "var(--text)", marginBottom: 8 }}>DAY STREAK</div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
                   {streak >= 30 ? "30 days of mental discipline." : streak >= 14 ? "Two weeks of trading with clarity." : streak >= 7 ? "One week — the habit is real." : `${streak} days building the edge.`}

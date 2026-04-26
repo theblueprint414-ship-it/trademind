@@ -86,7 +86,7 @@ export default function IntegrationsPage() {
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <style>{`
         .int-card { transition: transform 0.15s ease, border-color 0.2s ease; }
-        .int-card:hover { transform: translateY(-2px); border-color: rgba(79,142,247,0.3) !important; }
+        .int-card:hover { transform: translateY(-2px); border-color: rgba(94,106,210,0.3) !important; }
       `}</style>
 
       {/* Nav */}
@@ -105,7 +105,7 @@ export default function IntegrationsPage() {
 
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 64 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(79,142,247,0.07)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 24 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(94,106,210,0.07)", border: "1px solid rgba(94,106,210,0.2)", marginBottom: 24 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)" }}>INTEGRATIONS</span>
           </div>
           <h1 style={{ fontSize: "clamp(32px, 5vw, 52px)", fontWeight: 800, lineHeight: 1.1, marginBottom: 16 }}>Works with your setup.</h1>

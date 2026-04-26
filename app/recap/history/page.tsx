@@ -17,7 +17,7 @@ interface RecapEntry {
 const MOODS = [
   { label: "Rough", emoji: "😔", color: "#FF3B5C" },
   { label: "Okay", emoji: "😐", color: "#FFB020" },
-  { label: "Good", emoji: "🙂", color: "#4F8EF7" },
+  { label: "Good", emoji: "🙂", color: "#5e6ad2" },
   { label: "Great", emoji: "😄", color: "#00E87A" },
 ];
 

@@ -68,7 +68,7 @@ export default function MeasureTradingPerformance() {
               <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "20px 22px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
                   <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)" }}>{m.name}</div>
-                  <div style={{ fontSize: 11, fontFamily: "monospace", color: "var(--blue)", background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.15)", borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap" }}>{m.formula}</div>
+                  <div style={{ fontSize: 11, fontFamily: "monospace", color: "var(--blue)", background: "rgba(94,106,210,0.08)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap" }}>{m.formula}</div>
                 </div>
                 <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.75, margin: 0 }}>{m.why}</p>
               </div>

@@ -549,7 +549,7 @@ function CohortBenchmarkCard({ data }: { data: BenchmarkData }) {
   ];
 
   return (
-    <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(79,142,247,0.15)", background: "rgba(79,142,247,0.02)" }}>
+    <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(94,106,210,0.15)", background: "rgba(94,106,210,0.02)" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
         <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>YOU VS COMMUNITY</h3>
         <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)" }}>{data.totalUsers.toLocaleString()} traders</div>
@@ -644,8 +644,8 @@ function TopInsightCard({ data }: { data: AnalyticsData }) {
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3l8 4v5c0 4.5-3.4 8.7-8 10-4.6-1.3-8-5.5-8-10V7l8-4z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M8.5 12l2.5 2.5 5-5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
       text: `You've respected your NO-TRADE signal ${data.respectedNoTradeCount} times — saving an estimated $${data.estimatedSaved.toLocaleString()} in losses. That discipline is worth more than any single win.`,
       color: "var(--blue)",
-      bg: "rgba(79,142,247,0.05)",
-      border: "rgba(79,142,247,0.2)",
+      bg: "rgba(94,106,210,0.05)",
+      border: "rgba(94,106,210,0.2)",
     });
   }
 
@@ -694,7 +694,7 @@ function PremiumUpsell() {
         <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 32 }}>
           See your mental score trend, P&L correlation, 90-day calendar, and estimated losses you avoided — the data no other tool shows.
         </p>
-        <div className="card" style={{ padding: 28, marginBottom: 24, border: "1px solid rgba(79,142,247,0.25)", background: "rgba(79,142,247,0.04)" }}>
+        <div className="card" style={{ padding: 28, marginBottom: 24, border: "1px solid rgba(94,106,210,0.25)", background: "rgba(94,106,210,0.04)" }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", marginBottom: 16 }}>PRO PLAN INCLUDES</div>
           {["Mental score trend (30/90 day)", "Psychology vs P&L correlation chart", "90-day calendar heatmap", "Estimated saved losses counter", "Discipline % and streak tracking", "Trade journal, partners & email reminders"].map((f) => (
             <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 14, color: "var(--text-dim)", textAlign: "left" }}>
@@ -784,7 +784,7 @@ export default function AnalyticsPage() {
         <div style={{ maxWidth: 680, margin: "0 auto", padding: "40px 24px 120px" }}>
 
           {/* Progress header */}
-          <div className="card" style={{ padding: "28px 24px", marginBottom: 20, border: "1px solid rgba(79,142,247,0.2)", background: "linear-gradient(135deg, rgba(79,142,247,0.05), var(--surface))" }}>
+          <div className="card" style={{ padding: "28px 24px", marginBottom: 20, border: "1px solid rgba(94,106,210,0.2)", background: "linear-gradient(135deg, rgba(94,106,210,0.05), var(--surface))" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 18, flexWrap: "wrap" }}>
               <div>
                 <div className="font-bebas" style={{ fontSize: 36, color: "var(--blue)", lineHeight: 1 }}>{checkins} / {nextMilestone?.at ?? 30}</div>
@@ -795,7 +795,7 @@ export default function AnalyticsPage() {
                   {nextMilestone ? `${nextMilestone.at - checkins} more to unlock: ${nextMilestone.label}` : "All patterns unlocked"}
                 </div>
                 <div style={{ height: 6, borderRadius: 3, background: "var(--surface3)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", borderRadius: 3, background: "var(--blue)", width: `${progressPct}%`, transition: "width 0.6s ease", boxShadow: "0 0 8px rgba(79,142,247,0.6)" }} />
+                  <div style={{ height: "100%", borderRadius: 3, background: "var(--blue)", width: `${progressPct}%`, transition: "width 0.6s ease", boxShadow: "0 0 8px rgba(94,106,210,0.6)" }} />
                 </div>
               </div>
             </div>
@@ -941,7 +941,7 @@ export default function AnalyticsPage() {
             <div style={{ display: "flex", gap: 6 }}>
               {([30, 90] as const).map((r) => (
                 <button key={r} onClick={() => setTrendRange(r)}
-                  style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${trendRange === r ? "var(--blue)" : "var(--border)"}`, background: trendRange === r ? "rgba(79,142,247,0.1)" : "transparent", color: trendRange === r ? "var(--blue)" : "var(--text-muted)", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>
+                  style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${trendRange === r ? "var(--blue)" : "var(--border)"}`, background: trendRange === r ? "rgba(94,106,210,0.1)" : "transparent", color: trendRange === r ? "var(--blue)" : "var(--text-muted)", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>
                   {r}D
                 </button>
               ))}
@@ -1041,7 +1041,7 @@ export default function AnalyticsPage() {
         {data.behavioralPatterns && <BehavioralPatternsCard data={data.behavioralPatterns} />}
 
         {/* CTA: Playbook */}
-        <div className="card" style={{ padding: 24, textAlign: "center", border: "1px solid rgba(79,142,247,0.2)", background: "rgba(79,142,247,0.03)" }}>
+        <div className="card" style={{ padding: 24, textAlign: "center", border: "1px solid rgba(94,106,210,0.2)", background: "rgba(94,106,210,0.03)" }}>
           <div style={{ marginBottom: 12, display: "flex", justifyContent: "center", color: "var(--blue)" }}><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="currentColor" strokeWidth="2"/><path d="M11 11h10M11 16h10M11 21h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></div>
           <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>Define Your Trading Rules</div>
           <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 20 }}>

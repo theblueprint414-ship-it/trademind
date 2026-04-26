@@ -239,7 +239,7 @@ export default function CheckinPage() {
 
       {/* Progress bar */}
       <div style={{ height: 3, background: "var(--surface2)", position: "relative" }}>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, var(--blue), var(--purple))", width: `${progress}%`, transition: "width 0.5s cubic-bezier(0.4,0,0.2,1)", boxShadow: "0 0 10px rgba(79,142,247,0.6)" }} />
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, var(--blue), var(--purple))", width: `${progress}%`, transition: "width 0.5s cubic-bezier(0.4,0,0.2,1)", boxShadow: "0 0 10px rgba(94,106,210,0.6)" }} />
       </div>
 
       {/* Step dots */}
@@ -264,7 +264,7 @@ export default function CheckinPage() {
         }}
       >
         {/* Category tag */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(79,142,247,0.08)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 20, padding: "6px 16px", marginBottom: 36 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(94,106,210,0.08)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 20, padding: "6px 16px", marginBottom: 36 }}>
           <span style={{ color: "var(--blue)" }}>{QUESTION_ICONS[question.id]}</span>
           <span style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.1em" }}>{question.category.toUpperCase()}</span>
         </div>
@@ -285,7 +285,7 @@ export default function CheckinPage() {
                   onClick={() => handleSelect(opt.value)}
                   className="opt-btn has-ripple"
                   style={{
-                    background: isSelected ? "rgba(79,142,247,0.14)" : "var(--surface)",
+                    background: isSelected ? "rgba(94,106,210,0.14)" : "var(--surface)",
                     border: isSelected ? "1.5px solid var(--blue)" : "1.5px solid var(--border)",
                     borderRadius: 14,
                     padding: "17px 22px",
@@ -296,7 +296,7 @@ export default function CheckinPage() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    boxShadow: isSelected ? "0 0 20px rgba(79,142,247,0.2)" : "none",
+                    boxShadow: isSelected ? "0 0 20px rgba(94,106,210,0.2)" : "none",
                     transform: isSelected ? "translateX(6px)" : "translateX(0)",
                     transition: "all 0.18s ease",
                     animationDelay: `${idx * 55}ms`,

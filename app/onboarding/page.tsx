@@ -8,7 +8,7 @@ import { MT4Demo, TopstepXDemo, TradovateDemo, BinanceGuide, BybitGuide, Coinbas
 type Step = "welcome" | "trader-type" | "limit" | "broker";
 
 const FEATURES = [
-  { icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="10" r="5.5" stroke="#4F8EF7" strokeWidth="1.6"/><path d="M4.5 26c0-4.142 4.253-7.5 9.5-7.5s9.5 3.358 9.5 7.5" stroke="#4F8EF7" strokeWidth="1.6" strokeLinecap="round"/><path d="M20 7l2-1.5M22.5 10h2M20 13l2 1.5" stroke="#4F8EF7" strokeWidth="1.4" strokeLinecap="round"/></svg>, title: "60-Second Daily Check-in", desc: "Before you touch the markets, you&apos;ll know your mental state. GO, CAUTION, or NO-TRADE — every single day." },
+  { icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="10" r="5.5" stroke="#5e6ad2" strokeWidth="1.6"/><path d="M4.5 26c0-4.142 4.253-7.5 9.5-7.5s9.5 3.358 9.5 7.5" stroke="#5e6ad2" strokeWidth="1.6" strokeLinecap="round"/><path d="M20 7l2-1.5M22.5 10h2M20 13l2 1.5" stroke="#5e6ad2" strokeWidth="1.4" strokeLinecap="round"/></svg>, title: "60-Second Daily Check-in", desc: "Before you touch the markets, you&apos;ll know your mental state. GO, CAUTION, or NO-TRADE — every single day." },
   { icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="5" y="5" width="18" height="18" rx="4" stroke="#FF3B5C" strokeWidth="1.6"/><path d="M10 14h8M14 10v8" stroke="#FF3B5C" strokeWidth="1.8" strokeLinecap="round"/></svg>, title: "Hard Stop on Overtrading", desc: "Set your daily limit. Hit it — you&apos;re locked out for an hour. No willpower needed." },
   { icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 21l6-8 5 5 7-12 4 6" stroke="#00E87A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M4 24.5h20" stroke="#00E87A" strokeWidth="1.8" strokeLinecap="round"/></svg>, title: "Psychology → P&L Correlation", desc: "See exactly which mental states cost you money. Stop repeating the same expensive mistakes." },
 ];
@@ -21,7 +21,7 @@ const BROKERS = [
   { id: "bybit",        name: "Bybit",           abbr: "BYB", color: "#F7A600", needsSecret: true,  secretLabel: "API Secret", keyLabel: "API KEY",     keyPlaceholder: "Paste your API key",     firms: "Bybit crypto" },
   { id: "coinbase",     name: "Coinbase",        abbr: "CB",  color: "#0052FF", needsSecret: true,  secretLabel: "API Secret", keyLabel: "API KEY",     keyPlaceholder: "Paste your API key",     firms: "Coinbase Advanced Trade" },
   { id: "kraken",       name: "Kraken",          abbr: "KRK", color: "#5741D9", needsSecret: true,  secretLabel: "Private Key",keyLabel: "API KEY",     keyPlaceholder: "Paste your API key",     firms: "Kraken crypto" },
-  { id: "tradovate",    name: "Tradovate",       abbr: "TRD", color: "#4F8EF7", needsSecret: true,  secretLabel: "Password",   keyLabel: "USERNAME",   keyPlaceholder: "Your Tradovate username",  firms: "Apex, Funded Next, Lucid, TopStep futures" },
+  { id: "tradovate",    name: "Tradovate",       abbr: "TRD", color: "#5e6ad2", needsSecret: true,  secretLabel: "Password",   keyLabel: "USERNAME",   keyPlaceholder: "Your Tradovate username",  firms: "Apex, Funded Next, Lucid, TopStep futures" },
   { id: "tradestation", name: "TradeStation",    abbr: "TS",  color: "#FF3B5C", needsSecret: false, secretLabel: "",           keyLabel: "API KEY",     keyPlaceholder: "",                       firms: "" },
   { id: "ibkr",         name: "IBKR",            abbr: "IB",  color: "#CC0000", needsSecret: false, secretLabel: "",           keyLabel: "API KEY",     keyPlaceholder: "",                       firms: "" },
 ];
@@ -141,7 +141,7 @@ export default function OnboardingPage() {
         {step === "welcome" && (
           <div>
             <div style={{ textAlign: "center", marginBottom: 40 }}>
-              <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}><svg width="56" height="56" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="20" r="11" stroke="#4F8EF7" strokeWidth="2.5"/><path d="M9 52c0-8.284 8.506-15 19-15s19 6.716 19 15" stroke="#4F8EF7" strokeWidth="2.5" strokeLinecap="round"/><path d="M40 14l3-2.5M44 20h3M40 26l3 2.5" stroke="#4F8EF7" strokeWidth="2" strokeLinecap="round"/></svg></div>
+              <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}><svg width="56" height="56" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="20" r="11" stroke="#5e6ad2" strokeWidth="2.5"/><path d="M9 52c0-8.284 8.506-15 19-15s19 6.716 19 15" stroke="#5e6ad2" strokeWidth="2.5" strokeLinecap="round"/><path d="M40 14l3-2.5M44 20h3M40 26l3 2.5" stroke="#5e6ad2" strokeWidth="2" strokeLinecap="round"/></svg></div>
               <h1 className="font-bebas" style={{ fontSize: 44, lineHeight: 1, marginBottom: 12 }}>Your Mind Is Your Edge</h1>
               <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7 }}>
                 Most losses aren&apos;t about the market — they&apos;re about the mental state you were in when you entered.<br />
@@ -172,7 +172,7 @@ export default function OnboardingPage() {
           <div>
             <div style={{ textAlign: "center", marginBottom: 36 }}>
               <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M8 36l10-14 8 8 12-18 8 10" stroke="#4F8EF7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M8 40h32" stroke="#4F8EF7" strokeWidth="2.5" strokeLinecap="round"/></svg>
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><path d="M8 36l10-14 8 8 12-18 8 10" stroke="#5e6ad2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M8 40h32" stroke="#5e6ad2" strokeWidth="2.5" strokeLinecap="round"/></svg>
               </div>
               <h1 className="font-bebas" style={{ fontSize: 40, lineHeight: 1, marginBottom: 12 }}>What Kind of Trader Are You?</h1>
               <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7 }}>
@@ -195,7 +195,7 @@ export default function OnboardingPage() {
                     padding: "16px 20px",
                     borderRadius: 12,
                     border: `1.5px solid ${traderType === t.id ? "var(--blue)" : "var(--border)"}`,
-                    background: traderType === t.id ? "rgba(79,142,247,0.08)" : "var(--surface2)",
+                    background: traderType === t.id ? "rgba(94,106,210,0.08)" : "var(--surface2)",
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
@@ -312,7 +312,7 @@ export default function OnboardingPage() {
               /* Premium — show connect form */
               <div>
                 {/* Helper: which broker to pick */}
-                <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)", marginBottom: 16, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.8 }}>
+                <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(94,106,210,0.05)", border: "1px solid rgba(94,106,210,0.15)", marginBottom: 16, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.8 }}>
                   <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6, fontSize: 12 }}>Not sure which to pick?</div>
                   <div>FTMO, IC Markets, Pepperstone, FxFlat → <strong style={{ color: "var(--text)" }}>MT4/MT5</strong></div>
                   <div>Apex, Funded Next, Lucid, TopStep futures → <strong style={{ color: "var(--text)" }}>Tradovate</strong> (CSV import)</div>
@@ -332,7 +332,7 @@ export default function OnboardingPage() {
                         style={{
                           padding: "14px 16px", borderRadius: 10, textAlign: "left",
                           border: `1.5px solid ${selectedBroker === b.id ? "var(--blue)" : "var(--border)"}`,
-                          background: selectedBroker === b.id ? "rgba(79,142,247,0.08)" : "var(--surface2)",
+                          background: selectedBroker === b.id ? "rgba(94,106,210,0.08)" : "var(--surface2)",
                           cursor: isComingSoon ? "not-allowed" : "pointer", opacity: isComingSoon ? 0.4 : 1,
                           display: "flex", alignItems: "center", gap: 10, transition: "all 0.15s",
                         }}>
@@ -351,7 +351,7 @@ export default function OnboardingPage() {
                 </div>
 
                 {selectedBroker === "tradovate" && (
-                  <div className="card" style={{ padding: 20, marginBottom: 16, border: "1px solid rgba(79,142,247,0.2)" }}>
+                  <div className="card" style={{ padding: 20, marginBottom: 16, border: "1px solid rgba(94,106,210,0.2)" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 14 }}>HOW TO EXPORT FROM TRADOVATE</div>
                     <TradovateDemo />
                     {csvResult ? (
@@ -377,7 +377,7 @@ export default function OnboardingPage() {
                 )}
 
                 {selectedBroker && selectedBroker !== "tradovate" && (
-                  <div className="card" style={{ padding: 24, marginBottom: 16, border: "1px solid rgba(79,142,247,0.2)" }}>
+                  <div className="card" style={{ padding: 24, marginBottom: 16, border: "1px solid rgba(94,106,210,0.2)" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 16 }}>
                       {brokerMeta?.name} — API Credentials
                     </div>
@@ -474,7 +474,7 @@ export default function OnboardingPage() {
                           <div style={{ display: "flex", gap: 8 }}>
                             {(["live", "paper"] as const).map((env) => (
                               <button key={env} type="button" onClick={() => setEnvironment(env)}
-                                style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: `1.5px solid ${environment === env ? "var(--blue)" : "var(--border)"}`, background: environment === env ? "rgba(79,142,247,0.1)" : "var(--surface2)", color: environment === env ? "var(--blue)" : "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 700, textTransform: "capitalize" }}>
+                                style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: `1.5px solid ${environment === env ? "var(--blue)" : "var(--border)"}`, background: environment === env ? "rgba(94,106,210,0.1)" : "var(--surface2)", color: environment === env ? "var(--blue)" : "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 700, textTransform: "capitalize" }}>
                                 {env === "live" ? "🔴 Live" : "📄 Paper"}
                               </button>
                             ))}

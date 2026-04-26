@@ -401,7 +401,7 @@ export default function CirclesPage() {
         </div>
 
         {/* Info box */}
-        <div style={{ marginTop: 24, background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)", borderRadius: 12, padding: "16px 18px" }}>
+        <div style={{ marginTop: 24, background: "rgba(94,106,210,0.05)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 12, padding: "16px 18px" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "var(--blue)", marginBottom: 6 }}>How Circles work</div>
           <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: "var(--text-dim)", lineHeight: 1.8 }}>
             <li>Create a circle and share the invite link</li>

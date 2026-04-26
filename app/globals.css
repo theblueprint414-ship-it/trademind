@@ -139,7 +139,7 @@ button[style*="padding: 0"], button[style*="padding:0"] {
   inset: 0;
   border-radius: 16px;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(79,142,247,0.4), rgba(139,92,246,0.4), rgba(79,142,247,0.1));
+  background: linear-gradient(135deg, rgba(94,106,210,0.4), rgba(139,92,246,0.4), rgba(94,106,210,0.1));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -233,7 +233,7 @@ button[style*="padding: 0"], button[style*="padding:0"] {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, rgba(79,142,247,0.3), transparent);
+  background: linear-gradient(90deg, transparent, rgba(94,106,210,0.3), transparent);
   animation: scan 4s linear infinite;
   pointer-events: none;
   z-index: 9999;
@@ -307,8 +307,8 @@ button[style*="padding: 0"], button[style*="padding:0"] {
   100% { transform: scale(1); opacity: 1; }
 }
 @keyframes border-glow {
-  0%, 100% { border-color: rgba(79,142,247,0.2); }
-  50%       { border-color: rgba(79,142,247,0.5); }
+  0%, 100% { border-color: rgba(94,106,210,0.2); }
+  50%       { border-color: rgba(94,106,210,0.5); }
 }
 @keyframes spin {
   to { transform: rotate(360deg); }
@@ -350,8 +350,8 @@ button[style*="padding: 0"], button[style*="padding:0"] {
   border-color: rgba(255,176,32,0.2);
 }
 .card-glow-blue {
-  background: linear-gradient(135deg, rgba(79,142,247,0.06) 0%, var(--surface) 60%);
-  border-color: rgba(79,142,247,0.2);
+  background: linear-gradient(135deg, rgba(94,106,210,0.06) 0%, var(--surface) 60%);
+  border-color: rgba(94,106,210,0.2);
 }
 
 /* ── Gradient text ── */
@@ -461,7 +461,7 @@ input, select, textarea {
 }
 input:focus, select:focus, textarea:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+  box-shadow: 0 0 0 3px rgba(94,106,210,0.15);
 }
 input::placeholder { color: var(--text-muted); }
 
@@ -487,11 +487,11 @@ input[type="range"]::-webkit-slider-thumb {
   background: linear-gradient(135deg, var(--blue), var(--purple));
   border-radius: 50%;
   margin-top: -9px;
-  box-shadow: 0 0 10px rgba(79,142,247,0.6);
+  box-shadow: 0 0 10px rgba(94,106,210,0.6);
   transition: box-shadow 0.2s;
 }
 input[type="range"]::-webkit-slider-thumb:hover {
-  box-shadow: 0 0 16px rgba(79,142,247,0.8);
+  box-shadow: 0 0 16px rgba(94,106,210,0.8);
 }
 
 /* ── Nav ── */
@@ -701,7 +701,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
     align-items: center;
     justify-content: center;
     margin-top: -10px;
-    box-shadow: 0 0 20px rgba(79,142,247,0.4);
+    box-shadow: 0 0 20px rgba(94,106,210,0.4);
     color: #fff;
     padding: 0;
     gap: 0;

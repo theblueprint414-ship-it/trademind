@@ -884,7 +884,7 @@ export default function LandingPage() {
           </div>
 
           {/* Research callout */}
-          <div className="reveal card" style={{ padding: "28px 32px", background: "linear-gradient(135deg, rgba(79,142,247,0.05), var(--surface))", border: "1px solid rgba(79,142,247,0.18)", display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap" }}>
+          <div className="reveal card" style={{ padding: "28px 32px", background: "linear-gradient(135deg, rgba(94,106,210,0.05), var(--surface))", border: "1px solid rgba(94,106,210,0.18)", display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 220 }}>
               <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 10 }}>THE BOTTOM LINE</div>
               <p style={{ fontSize: 16, color: "var(--text)", lineHeight: 1.75, margin: 0 }}>
@@ -993,11 +993,11 @@ export default function LandingPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20, alignItems: "stretch", maxWidth: 800, margin: "0 auto" }}>
 
             {/* Pro */}
-            <div className="card reveal" style={{ padding: 36, border: "1px solid rgba(79,142,247,0.4)", background: "linear-gradient(135deg, rgba(79,142,247,0.06) 0%, var(--surface) 60%)", position: "relative", boxShadow: "0 0 50px rgba(79,142,247,0.12)", display: "flex", flexDirection: "column" }}>
-              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#4F8EF7,#3a6fd8)", color: "white", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", padding: "5px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>MOST POPULAR</div>
+            <div className="card reveal" style={{ padding: 36, border: "1px solid rgba(94,106,210,0.4)", background: "linear-gradient(135deg, rgba(94,106,210,0.06) 0%, var(--surface) 60%)", position: "relative", boxShadow: "0 0 50px rgba(94,106,210,0.12)", display: "flex", flexDirection: "column" }}>
+              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#5e6ad2,#4a5bbd)", color: "white", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", padding: "5px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>MOST POPULAR</div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ fontSize: 11, color: "var(--blue)", letterSpacing: "0.12em", fontWeight: 700 }}>PRO</div>
-                <div style={{ background: "rgba(79,142,247,0.12)", border: "1px solid rgba(79,142,247,0.25)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "var(--blue)", fontWeight: 700 }}>4 DAYS FREE</div>
+                <div style={{ background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.25)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "var(--blue)", fontWeight: 700 }}>4 DAYS FREE</div>
               </div>
               <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 8, fontStyle: "italic" }}>Know when to trade — and when to stay out.</div>
               <div style={{ fontSize: 12, color: "var(--blue)", fontWeight: 600, marginBottom: 16 }}>One avoided bad trade pays for the entire year.</div>
@@ -1017,7 +1017,7 @@ export default function LandingPage() {
               <Link href="/login?callbackUrl=/settings" style={{ display: "block", marginBottom: 12 }}>
                 <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15 }}>Start Pro — 4-Day Free Trial →</button>
               </Link>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", borderTop: "1px solid rgba(79,142,247,0.15)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", borderTop: "1px solid rgba(94,106,210,0.15)" }}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.3 2.8 3.2.4-2.3 2.2.5 3.1L8 8l-2.7 1.5.5-3.1L3.5 4.2l3.2-.4L8 1z" stroke="var(--green)" strokeWidth="1.2" strokeLinejoin="round"/></svg>
                 <span style={{ fontSize: 11, color: "var(--text-muted)" }}>4-day free trial · No charge until day 5 · Cancel anytime</span>
               </div>
@@ -1069,12 +1069,12 @@ export default function LandingPage() {
 
       {/* CTA */}
       <section style={{ background: "var(--bg)", borderTop: "1px solid var(--border)", padding: "100px 24px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(79,142,247,0.08) 1px, transparent 1px)", backgroundSize: "40px 40px", WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)", maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: "20%", left: "10%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(79,142,247,0.06), transparent 70%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(94,106,210,0.08) 1px, transparent 1px)", backgroundSize: "40px 40px", WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)", maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "20%", left: "10%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(94,106,210,0.06), transparent 70%)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: "20%", right: "10%", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.07), transparent 70%)", pointerEvents: "none" }} />
 
         <div style={{ maxWidth: 620, margin: "0 auto", position: "relative" }}>
-          <div className="reveal" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.25)", borderRadius: 20, padding: "6px 16px", marginBottom: 32 }}>
+          <div className="reveal" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", borderRadius: 20, padding: "6px 16px", marginBottom: 32 }}>
             <div style={{ width: 6, height: 6, background: "var(--blue)", borderRadius: "50%", boxShadow: "0 0 6px var(--blue)", animation: "pulse-dot 2s ease-in-out infinite" }} />
             <span style={{ fontSize: 12, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.1em" }}>60 SECONDS THAT CHANGES YOUR NEXT SESSION</span>
           </div>

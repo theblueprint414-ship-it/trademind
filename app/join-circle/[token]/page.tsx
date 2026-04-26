@@ -150,7 +150,7 @@ export default function JoinCirclePage() {
         )}
         {circle && state === "needsLogin" && (
           <>
-            <div style={{ background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 10, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "var(--text-dim)" }}>
+            <div style={{ background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 10, padding: "14px 18px", marginBottom: 20, fontSize: 13, color: "var(--text-dim)" }}>
               You need a TradeMind account to join — free and takes one minute.
             </div>
             <Link href={`/login?callbackUrl=/join-circle/${token}`} style={{ display: "block" }}>

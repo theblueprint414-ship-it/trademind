@@ -81,7 +81,7 @@ export default function PreTradeCheckInScience() {
 
           <p>A consistent pre-market check-in ritual functions in exactly this way: it reduces the anxiety of session opening, creates a psychological "now we trade" signal, and reduces the reactive jumping-in that characterizes sessions without preparation. The ritual&apos;s value is not only in the information it produces — it&apos;s also in the psychological transition it creates.</p>
 
-          <div style={{ background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.15)", borderRadius: 12, padding: "20px 24px", margin: "32px 0" }}>
+          <div style={{ background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 12, padding: "20px 24px", margin: "32px 0" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", marginBottom: 10 }}>THE COMPOUNDING EFFECT</div>
             <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>These five mechanisms compound. A trader who completes 90 days of structured check-ins has reduced their amygdala reactivity at session open, built automatic if-then decision rules, calibrated their personal baseline, accumulated empirical data on their own state-performance relationship, and established a performance ritual. Each mechanism independently improves outcomes; together, they produce a qualitative shift in trading consistency.</p>
           </div>

@@ -135,7 +135,7 @@ export default function VsTradezellaPage() {
 
         {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 80 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.25)", borderRadius: 20, padding: "6px 18px", marginBottom: 28 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", borderRadius: 20, padding: "6px 18px", marginBottom: 28 }}>
             <span style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.12em" }}>IN-DEPTH COMPARISON</span>
           </div>
 
@@ -196,7 +196,7 @@ export default function VsTradezellaPage() {
         </div>
 
         {/* The core gap — visual */}
-        <div style={{ background: "linear-gradient(135deg, rgba(255,59,92,0.04), rgba(79,142,247,0.04))", border: "1px solid var(--border)", borderRadius: 20, padding: "40px 36px", marginBottom: 80, textAlign: "center" }}>
+        <div style={{ background: "linear-gradient(135deg, rgba(255,59,92,0.04), rgba(94,106,210,0.04))", border: "1px solid var(--border)", borderRadius: 20, padding: "40px 36px", marginBottom: 80, textAlign: "center" }}>
           <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 20 }}>THE MISSING LAYER IN EVERY TRADING TOOL</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 20, alignItems: "center", maxWidth: 700, margin: "0 auto 28px" }}>
             <div style={{ background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.2)", borderRadius: 12, padding: "20px 16px" }}>
@@ -289,7 +289,7 @@ export default function VsTradezellaPage() {
                 </div>
               ))}
             </div>
-            <div style={{ background: "rgba(79,142,247,0.04)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 14, padding: "28px 24px" }}>
+            <div style={{ background: "rgba(94,106,210,0.04)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 14, padding: "28px 24px" }}>
               <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 16 }}>USE TRADEZELLA IF...</div>
               {[
                 "You need advanced entry/exit analysis (MAE/MFE)",
@@ -350,7 +350,7 @@ export default function VsTradezellaPage() {
         </div>
 
         {/* Final CTA */}
-        <div style={{ textAlign: "center", background: "linear-gradient(135deg, rgba(79,142,247,0.05), rgba(0,232,122,0.05))", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 20, padding: "56px 32px" }}>
+        <div style={{ textAlign: "center", background: "linear-gradient(135deg, rgba(94,106,210,0.05), rgba(0,232,122,0.05))", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 20, padding: "56px 32px" }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.25)", borderRadius: 20, padding: "6px 16px", marginBottom: 24 }}>
             <div style={{ width: 6, height: 6, background: "var(--green)", borderRadius: "50%", boxShadow: "0 0 6px var(--green)" }} />
             <span style={{ fontSize: 11, color: "var(--green)", fontWeight: 700, letterSpacing: "0.1em" }}>60 SECONDS BEFORE YOUR NEXT SESSION</span>
@@ -362,7 +362,7 @@ export default function VsTradezellaPage() {
             4-day free trial. Works alongside Tradezella or any journal you already use. Takes 60 seconds a day. Cancel before day 5 and you won&apos;t be charged a cent.
           </p>
           <Link href="/login?callbackUrl=/settings">
-            <button className="btn-primary" style={{ fontSize: 16, padding: "18px 48px", borderRadius: 14, boxShadow: "0 8px 32px rgba(79,142,247,0.35)" }}>
+            <button className="btn-primary" style={{ fontSize: 16, padding: "18px 48px", borderRadius: 14, boxShadow: "0 8px 32px rgba(94,106,210,0.35)" }}>
               Start Free — 4 Days On Us →
             </button>
           </Link>

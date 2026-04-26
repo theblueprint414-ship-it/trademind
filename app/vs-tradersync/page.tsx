@@ -82,7 +82,7 @@ export default function VsTraderSyncPage() {
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <style>{`
-        .comp-row-cat { background: rgba(79,142,247,0.04); }
+        .comp-row-cat { background: rgba(94,106,210,0.04); }
         .comp-row:hover { background: rgba(255,255,255,0.02); }
         .pain-card { transition: transform 0.2s ease, border-color 0.2s ease; }
         .pain-card:hover { transform: translateY(-3px); }
@@ -104,7 +104,7 @@ export default function VsTraderSyncPage() {
 
         {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 72 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(79,142,247,0.07)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 24 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(94,106,210,0.07)", border: "1px solid rgba(94,106,210,0.2)", marginBottom: 24 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)" }}>TOOL COMPARISON</span>
           </div>
           <h1 style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, lineHeight: 1.1, marginBottom: 20 }}>
@@ -248,7 +248,7 @@ export default function VsTraderSyncPage() {
               </div>
             </div>
           </div>
-          <div style={{ marginTop: 24, padding: "16px 20px", borderRadius: 10, background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)" }}>
+          <div style={{ marginTop: 24, padding: "16px 20px", borderRadius: 10, background: "rgba(94,106,210,0.05)", border: "1px solid rgba(94,106,210,0.15)" }}>
             <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>
               <strong style={{ color: "var(--text)" }}>The honest recommendation:</strong> most serious traders should use both. TraderSync for post-trade analysis. TradeMind for the pre-trade filter. They operate at different points in your trading day and don't overlap in any meaningful way. Many TradeMind users already use TraderSync or a similar journal alongside it.
             </p>
@@ -256,7 +256,7 @@ export default function VsTraderSyncPage() {
         </div>
 
         {/* CTA */}
-        <div style={{ textAlign: "center", padding: "48px 32px", borderRadius: 20, background: "linear-gradient(135deg, rgba(0,232,122,0.05), rgba(79,142,247,0.05))", border: "1px solid rgba(0,232,122,0.15)" }}>
+        <div style={{ textAlign: "center", padding: "48px 32px", borderRadius: 20, background: "linear-gradient(135deg, rgba(0,232,122,0.05), rgba(94,106,210,0.05))", border: "1px solid rgba(0,232,122,0.15)" }}>
           <h2 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 800, marginBottom: 16 }}>
             Add the layer TraderSync can't provide.
           </h2>

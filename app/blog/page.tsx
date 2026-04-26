@@ -49,7 +49,7 @@ const POSTS = [
     readTime: "7 min read",
     tag: "Behavior",
     tagColor: "var(--blue)",
-    tagBg: "rgba(79,142,247,0.1)",
+    tagBg: "rgba(94,106,210,0.1)",
   },
   {
     slug: "ftmo-challenge-mindset",
@@ -79,7 +79,7 @@ const POSTS = [
     readTime: "7 min read",
     tag: "Journaling",
     tagColor: "var(--blue)",
-    tagBg: "rgba(79,142,247,0.1)",
+    tagBg: "rgba(94,106,210,0.1)",
   },
   {
     slug: "drawdown-recovery",
@@ -149,7 +149,7 @@ const POSTS = [
     readTime: "7 min read",
     tag: "Risk",
     tagColor: "var(--blue)",
-    tagBg: "rgba(79,142,247,0.1)",
+    tagBg: "rgba(94,106,210,0.1)",
   },
   {
     slug: "best-trading-journal",
@@ -159,7 +159,7 @@ const POSTS = [
     readTime: "7 min read",
     tag: "Journaling",
     tagColor: "var(--blue)",
-    tagBg: "rgba(79,142,247,0.1)",
+    tagBg: "rgba(94,106,210,0.1)",
   },
   {
     slug: "emotional-trading-signs",
@@ -179,7 +179,7 @@ const POSTS = [
     readTime: "6 min read",
     tag: "Risk",
     tagColor: "var(--blue)",
-    tagBg: "rgba(79,142,247,0.1)",
+    tagBg: "rgba(94,106,210,0.1)",
   },
   {
     slug: "trading-mindset",
@@ -279,7 +279,7 @@ const POSTS = [
     readTime: "7 min read",
     tag: "Discipline",
     tagColor: "var(--blue)",
-    tagBg: "rgba(79,142,247,0.1)",
+    tagBg: "rgba(94,106,210,0.1)",
   },
   {
     slug: "morning-routine-traders",
@@ -298,7 +298,7 @@ export default function BlogPage() {
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <style>{`
         .blog-card { transition: border-color 0.15s ease, transform 0.15s ease; }
-        .blog-card:hover { border-color: rgba(79,142,247,0.4) !important; transform: translateY(-2px); }
+        .blog-card:hover { border-color: rgba(94,106,210,0.4) !important; transform: translateY(-2px); }
       `}</style>
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "60px 24px 80px" }}>
         <Link href="/" style={{ textDecoration: "none", display: "inline-block", marginBottom: 40 }}>

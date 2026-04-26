@@ -379,7 +379,7 @@ export default function SettingsPage() {
     metaapi: { abbr: "MT4", color: "#FF6B35" },
     alpaca: { abbr: "ALP", color: "#00E87A" }, binance: { abbr: "BNB", color: "#F0B90B" },
     bybit: { abbr: "BYB", color: "#F7A600" }, coinbase: { abbr: "CB", color: "#0052FF" },
-    kraken: { abbr: "KRK", color: "#5741D9" }, tradovate: { abbr: "TRD", color: "#4F8EF7" },
+    kraken: { abbr: "KRK", color: "#5741D9" }, tradovate: { abbr: "TRD", color: "#5e6ad2" },
     tradestation: { abbr: "TS", color: "#FF3B5C" }, ibkr: { abbr: "IB", color: "#CC0000" }, mt4: { abbr: "MT4", color: "#2196F3" },
   };
 
@@ -697,7 +697,7 @@ export default function SettingsPage() {
         {/* Archive modal */}
         {showArchiveModal && (
           <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(7,11,20,0.92)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-            <div className="card" style={{ maxWidth: 420, width: "100%", padding: 28, border: "1px solid rgba(79,142,247,0.25)" }}>
+            <div className="card" style={{ maxWidth: 420, width: "100%", padding: 28, border: "1px solid rgba(94,106,210,0.25)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                 <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>ARCHIVE CHALLENGE</div>
                 <button onClick={() => setShowArchiveModal(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20 }}>×</button>
@@ -765,7 +765,7 @@ export default function SettingsPage() {
           ) : (
             <div>
               <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>No broker connected. Connect one to auto-count your trades and sync your journal automatically.</p>
-              <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)", marginBottom: 16, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.9 }}>
+              <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(94,106,210,0.05)", border: "1px solid rgba(94,106,210,0.15)", marginBottom: 16, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.9 }}>
                 <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Which platform should I connect?</div>
                 <div>🟠 <strong style={{ color: "var(--text)" }}>MT4/MT5</strong> — FTMO, IC Markets, Pepperstone, FxFlat, and any MT4/MT5 broker</div>
                 <div>🟢 <strong style={{ color: "var(--text)" }}>TopstepX</strong> — TopstepX funded accounts only</div>
@@ -862,7 +862,7 @@ export default function SettingsPage() {
 
             {/* Pro upgrade — shown for free users */}
             {!planLoading && !isPro && (
-              <div className="card" style={{ padding: 24, marginBottom: 12, border: "1px solid rgba(79,142,247,0.25)", background: "rgba(79,142,247,0.03)" }}>
+              <div className="card" style={{ padding: 24, marginBottom: 12, border: "1px solid rgba(94,106,210,0.25)", background: "rgba(94,106,210,0.03)" }}>
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
                   <div style={{ fontWeight: 700, fontSize: 16 }}>Pro</div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
@@ -1044,7 +1044,7 @@ export default function SettingsPage() {
         <section className="card" style={{ padding: 28, marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
             <h2 style={{ fontSize: 16, fontWeight: 700 }}>Public Profile</h2>
-            {!isPro && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 6, background: "rgba(79,142,247,0.12)", border: "1px solid rgba(79,142,247,0.25)", color: "var(--blue)" }}>PRO</span>}
+            {!isPro && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 6, background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.25)", color: "var(--blue)" }}>PRO</span>}
           </div>
           <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 20, lineHeight: 1.6 }}>
             Share your streak, mental score history, and verified badge publicly. Your email and trade data are never exposed.
@@ -1090,7 +1090,7 @@ export default function SettingsPage() {
 
         {/* Streak Freeze — Pro only */}
         {isPro && (
-          <section className="card" style={{ padding: 28, marginBottom: 20, border: `1px solid ${freezeAvailable ? "rgba(79,142,247,0.25)" : "var(--border)"}` }}>
+          <section className="card" style={{ padding: 28, marginBottom: 20, border: `1px solid ${freezeAvailable ? "rgba(94,106,210,0.25)" : "var(--border)"}` }}>
             <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4, gap: 12 }}>
               <div>
                 <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Streak Freeze</h2>

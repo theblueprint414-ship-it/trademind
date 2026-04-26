@@ -86,7 +86,7 @@ export default function VsEdgewonkPage() {
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <style>{`
-        .comp-row-cat { background: rgba(79,142,247,0.04); }
+        .comp-row-cat { background: rgba(94,106,210,0.04); }
         .comp-row:hover { background: rgba(255,255,255,0.02); }
         .split-card { transition: transform 0.2s ease, border-color 0.2s ease; }
         .split-card:hover { transform: translateY(-3px); }
@@ -108,7 +108,7 @@ export default function VsEdgewonkPage() {
 
         {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 72 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(79,142,247,0.07)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 24 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(94,106,210,0.07)", border: "1px solid rgba(94,106,210,0.2)", marginBottom: 24 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)" }}>TOOL COMPARISON</span>
           </div>
           <h1 style={{ fontSize: "clamp(32px, 5vw, 56px)", fontWeight: 800, lineHeight: 1.1, marginBottom: 20 }}>
@@ -235,7 +235,7 @@ export default function VsEdgewonkPage() {
               </div>
             </div>
           </div>
-          <div style={{ marginTop: 24, padding: "16px 20px", borderRadius: 10, background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)" }}>
+          <div style={{ marginTop: 24, padding: "16px 20px", borderRadius: 10, background: "rgba(94,106,210,0.05)", border: "1px solid rgba(94,106,210,0.15)" }}>
             <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>
               <strong style={{ color: "var(--text)" }}>The most complete stack:</strong> Use Edgewonk to track whether you followed your rules. Use TradeMind to decide whether you should be following them today at all. They operate at different times in your trading day and serve genuinely different purposes. Several TradeMind users run Edgewonk alongside it for exactly this reason.
             </p>
@@ -272,7 +272,7 @@ export default function VsEdgewonkPage() {
         </div>
 
         {/* CTA */}
-        <div style={{ textAlign: "center", padding: "48px 32px", borderRadius: 20, background: "linear-gradient(135deg, rgba(0,232,122,0.05), rgba(79,142,247,0.05))", border: "1px solid rgba(0,232,122,0.15)" }}>
+        <div style={{ textAlign: "center", padding: "48px 32px", borderRadius: 20, background: "linear-gradient(135deg, rgba(0,232,122,0.05), rgba(94,106,210,0.05))", border: "1px solid rgba(0,232,122,0.15)" }}>
           <h2 style={{ fontSize: "clamp(24px, 4vw, 36px)", fontWeight: 800, marginBottom: 16 }}>
             Your process is only as good as the mind executing it.
           </h2>

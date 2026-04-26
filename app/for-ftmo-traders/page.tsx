@@ -153,7 +153,7 @@ export default function ForFtmoTradersPage() {
         </p>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 36 }}>
-          <div style={{ background: "var(--surface)", border: "1px solid rgba(79,142,247,0.35)", borderRadius: 14, padding: "24px 20px" }}>
+          <div style={{ background: "var(--surface)", border: "1px solid rgba(94,106,210,0.35)", borderRadius: 14, padding: "24px 20px" }}>
             <div style={{ fontSize: 11, color: "var(--blue)", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 8 }}>PRO · $19/mo</div>
             <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
               {["Daily mental score", "GO / CAUTION / NO-TRADE", "Trade limit enforcement", "Trade journal + emotion tracking", "90-day analytics", "Accountability partners & circles"].map((f) => (

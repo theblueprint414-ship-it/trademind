@@ -36,7 +36,7 @@ export default function SleepAndTrading() {
 
         <div style={{ marginBottom: 40 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 16 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 6, padding: "3px 10px" }}>SCIENCE</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 6, padding: "3px 10px" }}>SCIENCE</span>
             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>April 2026 · 8 min read</span>
           </div>
           <h1 style={{ fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 800, lineHeight: 1.15, marginBottom: 20 }}>

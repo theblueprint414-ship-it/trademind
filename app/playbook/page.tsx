@@ -180,7 +180,7 @@ export default function PlaybookPage() {
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "24px 16px" }}>
 
         {/* Intro */}
-        <div className="card" style={{ padding: 20, marginBottom: 20, border: "1px solid rgba(79,142,247,0.15)", background: "rgba(79,142,247,0.03)" }}>
+        <div className="card" style={{ padding: 20, marginBottom: 20, border: "1px solid rgba(94,106,210,0.15)", background: "rgba(94,106,210,0.03)" }}>
           <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
             <div style={{ flexShrink: 0, color: "var(--blue)" }}><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg></div>
             <div>

@@ -25,7 +25,7 @@ const PLANS = [
       monthly: process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID,
       annual:  process.env.NEXT_PUBLIC_PADDLE_PRO_ANNUAL_PRICE_ID || process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID,
     },
-    color: "#4F8EF7",
+    color: "#5e6ad2",
     features: [
       { text: "Daily mental check-in + GO / CAUTION / NO-TRADE", included: true },
       { text: "Daily trade limit enforcement", included: true },
@@ -166,8 +166,8 @@ export default function PricingPage() {
 
         {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 56 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.2)", marginBottom: 20 }}>
-            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#4F8EF7" }}>PRICING</span>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 20, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", marginBottom: 20 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#5e6ad2" }}>PRICING</span>
           </div>
           <h1 className="font-bebas" style={{ fontSize: "clamp(48px, 8vw, 72px)", lineHeight: 1, marginBottom: 16 }}>
             Invest In Your Edge
@@ -206,8 +206,8 @@ export default function PricingPage() {
               key={plan.id}
               style={{
                 borderRadius: 16,
-                border: plan.popular ? `1.5px solid rgba(79,142,247,0.5)` : "1px solid var(--border)",
-                background: plan.popular ? "rgba(79,142,247,0.04)" : "var(--surface)",
+                border: plan.popular ? `1.5px solid rgba(94,106,210,0.5)` : "1px solid var(--border)",
+                background: plan.popular ? "rgba(94,106,210,0.04)" : "var(--surface)",
                 padding: "28px 28px 24px",
                 position: "relative",
                 display: "flex",
@@ -215,7 +215,7 @@ export default function PricingPage() {
               }}
             >
               {plan.popular && (
-                <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", padding: "4px 14px", borderRadius: 20, background: "#4F8EF7", fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", color: "white", whiteSpace: "nowrap" }}>
+                <div style={{ position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)", padding: "4px 14px", borderRadius: 20, background: "#5e6ad2", fontSize: 11, fontWeight: 800, letterSpacing: "0.08em", color: "white", whiteSpace: "nowrap" }}>
                   MOST POPULAR
                 </div>
               )}
@@ -253,7 +253,7 @@ export default function PricingPage() {
                   padding: "13px 0",
                   borderRadius: 10,
                   border: plan.popular ? "none" : "1px solid var(--border)",
-                  background: plan.popular ? "#4F8EF7" : plan.id === "premium" ? "linear-gradient(135deg, #8B5CF6, #6366f1)" : "var(--surface2)",
+                  background: plan.popular ? "#5e6ad2" : plan.id === "premium" ? "linear-gradient(135deg, #8B5CF6, #6366f1)" : "var(--surface2)",
                   color: plan.popular || plan.id === "premium" ? "white" : "var(--text-dim)",
                   fontSize: 14,
                   fontWeight: 700,
@@ -269,7 +269,7 @@ export default function PricingPage() {
                 </p>
               )}
               {"roi" in plan && plan.roi && (
-                <p style={{ fontSize: 11, color: plan.id === "premium" ? "rgba(139,92,246,0.8)" : "rgba(79,142,247,0.8)", textAlign: "center", margin: "6px 0 0", fontStyle: "italic" }}>
+                <p style={{ fontSize: 11, color: plan.id === "premium" ? "rgba(139,92,246,0.8)" : "rgba(94,106,210,0.8)", textAlign: "center", margin: "6px 0 0", fontStyle: "italic" }}>
                   {plan.roi}
                 </p>
               )}

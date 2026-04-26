@@ -36,7 +36,7 @@ export default function Overtrading() {
 
         <div style={{ marginBottom: 40 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 16 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(79,142,247,0.1)", border: "1px solid rgba(79,142,247,0.2)", borderRadius: 6, padding: "3px 10px" }}>BEHAVIOR</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 6, padding: "3px 10px" }}>BEHAVIOR</span>
             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>April 2026 · 7 min read</span>
           </div>
           <h1 style={{ fontSize: "clamp(28px, 5vw, 44px)", fontWeight: 800, lineHeight: 1.15, marginBottom: 20 }}>
@@ -76,7 +76,7 @@ export default function Overtrading() {
 
           <p>The strategy didn't break. The frequency did. This is why traders with proven backtests still blow live accounts: the backtest assumed 3 trades per day, and the live trader takes 10.</p>
 
-          <div style={{ background: "rgba(79,142,247,0.06)", border: "1px solid rgba(79,142,247,0.15)", borderRadius: 12, padding: "20px 24px", margin: "32px 0" }}>
+          <div style={{ background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 12, padding: "20px 24px", margin: "32px 0" }}>
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", marginBottom: 10 }}>THE MATH</div>
             <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>A strategy with a 0.3% edge per trade has a positive expectancy. The same strategy taken 12 times per day in a market with 0.05% spread per trade still nets 0.3% edge × 12 = 3.6% gross. But 12 × 0.05% × 2 (entry + exit) = 1.2% in spread costs. Add commissions. Add slippage. Add the lower-quality entries in trades 7–12. The edge collapses to zero or goes negative.</p>
           </div>
