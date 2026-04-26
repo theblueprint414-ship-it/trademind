@@ -121,17 +121,14 @@ If you cancel your subscription but don't delete your account, your data is pres
 
 export default function HelpPage() {
   return (
-    <div style={{ background: "var(--bg, #070B14)", minHeight: "100vh", color: "var(--text, #E8F0FF)", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <style>{`
-        :root { --bg: #070B14; --surface: #0D1420; --border: #1E2D45; --text: #E8F0FF; --muted: #7A8BA8; --dim: #3D4F6A; --blue: #5e6ad2; --green: #00E87A; --purple: #8B5CF6; }
         .faq-item { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; transition: border-color 0.2s; }
-        .faq-item:hover { border-color: #2E4A6A; }
+        .faq-item:hover { border-color: var(--border-bright); }
         .faq-q { width: 100%; background: none; border: none; color: var(--text); font-size: 15px; font-weight: 600; text-align: left; padding: 22px 24px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; line-height: 1.5; }
         .faq-q:hover { background: rgba(255,255,255,0.02); }
-        .faq-body { padding: 0 24px 22px; color: var(--muted); font-size: 14px; line-height: 1.9; white-space: pre-line; }
-        .faq-icon { color: var(--blue); font-size: 20px; flex-shrink: 0; }
-        details[open] .faq-icon { transform: rotate(45deg); }
-        .faq-icon { transition: transform 0.2s; }
+        .faq-body { padding: 0 24px 22px; color: var(--text-dim); font-size: 14px; line-height: 1.9; white-space: pre-line; }
+        .faq-icon { color: var(--blue); font-size: 20px; flex-shrink: 0; transition: transform 0.2s; }
         details[open] summary .faq-icon { transform: rotate(45deg); }
         .cat-pill { display: inline-block; background: rgba(94,106,210,0.12); border: 1px solid rgba(94,106,210,0.25); color: var(--blue); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; border-radius: 20px; padding: 4px 12px; margin-right: 8px; margin-bottom: 8px; }
         .help-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; text-decoration: none; color: inherit; display: block; transition: border-color 0.2s, transform 0.2s; }
@@ -162,7 +159,7 @@ export default function HelpPage() {
             HELP CENTER
           </div>
           <h1 style={{ fontSize: "clamp(30px, 5vw, 44px)", fontWeight: 800, margin: "0 0 16px", lineHeight: 1.15 }}>How can we help?</h1>
-          <p style={{ fontSize: 17, color: "var(--muted)", margin: "0 auto", maxWidth: 480, lineHeight: 1.7 }}>
+          <p style={{ fontSize: 17, color: "var(--text-dim)", margin: "0 auto", maxWidth: 480, lineHeight: 1.7 }}>
             Everything you need to get the most out of TradeMind — from your first check-in to advanced analytics.
           </p>
         </div>
@@ -172,22 +169,22 @@ export default function HelpPage() {
           <a href="#score" className="help-card">
             <div style={{ fontSize: 24, marginBottom: 10 }}>🚀</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Getting Started</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>Score, verdicts, streaks</div>
+            <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Score, verdicts, streaks</div>
           </a>
           <a href="#journal" className="help-card">
             <div style={{ fontSize: 24, marginBottom: 10 }}>📓</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Trade Journal</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>Logging trades, CSV, sync</div>
+            <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Logging trades, CSV, sync</div>
           </a>
           <a href="#broker" className="help-card">
             <div style={{ fontSize: 24, marginBottom: 10 }}>🔌</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Broker Connection</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>MT4/MT5 via MetaAPI</div>
+            <div style={{ fontSize: 12, color: "var(--text-dim)" }}>MT4/MT5 via MetaAPI</div>
           </a>
           <a href="#pricing" className="help-card">
             <div style={{ fontSize: 24, marginBottom: 10 }}>💳</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Plans &amp; Pricing</div>
-            <div style={{ fontSize: 12, color: "var(--muted)" }}>Free, Pro, Premium</div>
+            <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Free, Pro, Premium</div>
           </a>
         </div>
 
@@ -199,7 +196,7 @@ export default function HelpPage() {
                 {faq.question}
                 <span className="faq-icon" style={{ color: "var(--blue)", fontSize: 20, flexShrink: 0, transition: "transform 0.2s", lineHeight: 1 }}>+</span>
               </summary>
-              <div className="faq-body" style={{ padding: "0 24px 22px", color: "var(--muted)", fontSize: 14, lineHeight: 1.9, whiteSpace: "pre-line" }}>
+              <div className="faq-body" style={{ padding: "0 24px 22px", color: "var(--text-dim)", fontSize: 14, lineHeight: 1.9, whiteSpace: "pre-line" }}>
                 {faq.answer}
               </div>
             </details>
@@ -210,12 +207,12 @@ export default function HelpPage() {
         <div style={{ marginTop: 64, background: "linear-gradient(135deg, rgba(94,106,210,0.08), rgba(139,92,246,0.08))", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 20, padding: "40px 36px", textAlign: "center" }}>
           <div style={{ fontSize: 28, marginBottom: 16 }}>💬</div>
           <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 10px" }}>Still need help?</h2>
-          <p style={{ color: "var(--muted)", fontSize: 14, lineHeight: 1.8, margin: "0 0 24px" }}>
+          <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.8, margin: "0 0 24px" }}>
             We respond to every message, usually within a few hours.
           </p>
           <a
             href="mailto:support@trademindedge.com"
-            style={{ display: "inline-block", background: "linear-gradient(135deg, #5e6ad2, #4a5bbd)", color: "white", textDecoration: "none", borderRadius: 10, padding: "13px 32px", fontSize: 14, fontWeight: 600 }}
+            style={{ display: "inline-block", textDecoration: "none", borderRadius: 10, padding: "13px 32px", fontSize: 14, fontWeight: 600, background: "#e5e5e6", color: "#010102", letterSpacing: "-0.011em" }}
           >
             Email Support →
           </a>
