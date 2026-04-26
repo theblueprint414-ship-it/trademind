@@ -256,13 +256,25 @@ export default function LandingPage() {
         .logos-track { display:flex; gap:48px; animation: scroll-logos 20s linear infinite; align-items:center; }
         .logos-track:hover { animation-play-state: paused; }
         .before-after-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+        /* Desktop dropdown nav */
+        .nav-center { display:flex; align-items:center; gap:2px; }
+        .nav-dd-wrap { position:relative; }
+        .nav-dd-wrap > .nav-dd-trigger { cursor:default; display:flex; align-items:center; gap:4px; }
+        .nav-dd { display:none; position:absolute; top:calc(100% + 10px); left:50%; transform:translateX(-50%); min-width:185px; background:#0D1420; border:1px solid #1E2D45; border-radius:14px; padding:8px; z-index:100; flex-direction:column; gap:2px; box-shadow:0 16px 48px rgba(0,0,0,0.55); }
+        .nav-dd-wrap:hover .nav-dd { display:flex; }
+        .nav-dd-wrap:hover .nav-dd-trigger { color:var(--text); }
+        .nav-dd-item { color:#7A8BA8; text-decoration:none; font-size:13px; padding:9px 14px; border-radius:9px; transition:background 0.13s, color 0.13s; display:block; white-space:nowrap; }
+        .nav-dd-item:hover { background:rgba(255,255,255,0.06); color:#E8F0FF; }
+        .nav-dd-sep { height:1px; background:#1E2D45; margin:4px 0; }
+        @media(max-width:820px) {
+          .nav-center { display:none !important; }
+        }
         @media(max-width:640px) {
           .before-after-row { grid-template-columns:1fr; }
           .hero-text { text-align:center; }
           .hero-buttons { justify-content:center; }
           .hero-section-inner { padding: 40px 20px 40px !important; }
           .hero-mockup { display:none !important; }
-          .nav-link { display:none !important; }
           .nav-btn-ghost { display:none !important; }
           .nav-btn-primary { padding: 9px 14px !important; font-size: 12px !important; white-space: nowrap; }
           .hero-mobile-score { display:flex !important; }
@@ -280,15 +292,63 @@ export default function LandingPage() {
 
       {/* Nav */}
       <nav className="app-header" style={{ position: "sticky" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <img src="/logo.svg" alt="TradeMind" style={{ display: "block", width: 120, height: "auto", flexShrink: 0 }} />
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <a href="#how" className="nav-link">How it works</a>
+        <div style={{ maxWidth: 1100, margin: "0 auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+
+          {/* Logo */}
+          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
+            <img src="/logo.svg" alt="TradeMind" style={{ display: "block", width: 120, height: "auto" }} />
+          </Link>
+
+          {/* Center links — desktop only */}
+          <div className="nav-center">
+            {/* Product dropdown */}
+            <div className="nav-dd-wrap">
+              <span className="nav-link nav-dd-trigger">
+                Product
+                <svg width="10" height="7" viewBox="0 0 10 7" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              <div className="nav-dd">
+                <a href="#how" className="nav-dd-item">How it works</a>
+                <Link href="/for-ftmo-traders" className="nav-dd-item">For Prop Traders</Link>
+                <Link href="/integrations" className="nav-dd-item">Integrations</Link>
+                <div className="nav-dd-sep" />
+                <Link href="/changelog" className="nav-dd-item">Changelog</Link>
+                <Link href="/help" className="nav-dd-item">Help Center</Link>
+              </div>
+            </div>
+
+            {/* Compare dropdown */}
+            <div className="nav-dd-wrap">
+              <span className="nav-link nav-dd-trigger">
+                Compare
+                <svg width="10" height="7" viewBox="0 0 10 7" fill="none" style={{ flexShrink: 0 }}>
+                  <path d="M1 1l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+              <div className="nav-dd">
+                <Link href="/vs-tradezella" className="nav-dd-item">vs Tradezella</Link>
+                <Link href="/vs-tradersync" className="nav-dd-item">vs TraderSync</Link>
+                <Link href="/vs-edgewonk" className="nav-dd-item">vs Edgewonk</Link>
+                <div className="nav-dd-sep" />
+                <Link href="/testimonials" className="nav-dd-item">Trader Stories</Link>
+              </div>
+            </div>
+
             <a href="#pricing" className="nav-link">Pricing</a>
+            <Link href="/blog" className="nav-link">Blog</Link>
             <Link href="/about" className="nav-link">About</Link>
-            <Link href="/login"><button className="btn-ghost nav-btn-ghost" style={{ padding: "8px 18px", fontSize: 13 }}>Log in</button></Link>
-            <Link href="/login?callbackUrl=/settings"><button className="btn-primary nav-btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>Start Free Trial</button></Link>
           </div>
+
+          {/* Auth */}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+            <Link href="/login" className="nav-link nav-btn-ghost" style={{ fontSize: 13 }}>Log in</Link>
+            <Link href="/login?callbackUrl=/settings">
+              <button className="btn-primary nav-btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>Start Free →</button>
+            </Link>
+          </div>
+
         </div>
       </nav>
 

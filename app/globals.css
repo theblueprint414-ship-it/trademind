@@ -543,9 +543,80 @@ input[type="range"]::-webkit-slider-thumb:hover {
   border-radius: 6px;
 }
 
-/* ── Bottom nav (mobile) ── */
+/* ── Bottom nav — mobile bottom bar / desktop top tab bar ── */
 .bottom-nav {
   display: none;
+}
+
+/* Desktop: horizontal secondary nav below app-header */
+@media (min-width: 641px) {
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    top: 57px;
+    bottom: auto;
+    left: 0;
+    right: 0;
+    height: 42px;
+    background: rgba(7,11,20,0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    z-index: 39;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .bottom-nav a {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    padding: 0 15px;
+    height: 42px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    transition: color 0.15s, border-color 0.15s;
+    white-space: nowrap;
+    letter-spacing: 0;
+    min-width: auto;
+  }
+
+  .bottom-nav a.active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+  }
+
+  .bottom-nav a:hover { color: var(--text); }
+
+  .bottom-nav a.nav-primary {
+    color: var(--blue);
+    font-weight: 600;
+  }
+
+  .bottom-nav .nav-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+
+  .bottom-nav .nav-label {
+    font-size: 13px;
+  }
+
+  .has-bottom-nav {
+    padding-top: 42px;
+    padding-bottom: 0 !important;
+  }
 }
 
 /* ── Mobile hero layout ── */
@@ -612,6 +683,26 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
   .bottom-nav a.active { color: var(--blue); }
   .bottom-nav a:hover  { color: var(--text); }
+
+  /* Primary (Check-in) item: circular blue button */
+  .bottom-nav a.nav-primary {
+    background: var(--blue);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: -10px;
+    box-shadow: 0 0 20px rgba(79,142,247,0.4);
+    color: #fff;
+    padding: 0;
+    gap: 0;
+  }
+
+  .bottom-nav a.nav-primary .nav-label { display: none; }
 
   .bottom-nav .nav-icon {
     font-size: 20px;

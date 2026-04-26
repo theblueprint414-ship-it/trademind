@@ -18,9 +18,9 @@ const JournalIcon = () => (
 );
 
 const CheckinIcon = () => (
-  <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-    <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M7 11l2.5 2.5 5.5-5.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M7 10l2 2 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
 
@@ -30,7 +30,6 @@ const AnalyticsIcon = () => (
     <path d="M3 18h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
-
 
 const CoachIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -51,12 +50,12 @@ const CirclesIcon = () => (
 );
 
 const NAV_ITEMS = [
-  { href: "/dashboard",  Icon: HomeIcon,      label: "Home"    },
-  { href: "/journal",    Icon: JournalIcon,   label: "Journal" },
+  { href: "/dashboard",  Icon: HomeIcon,      label: "Home"     },
+  { href: "/journal",    Icon: JournalIcon,   label: "Journal"  },
   { href: "/checkin",    Icon: CheckinIcon,   label: "Check-in", primary: true },
-  { href: "/analytics",  Icon: AnalyticsIcon, label: "Stats"   },
-  { href: "/circles",    Icon: CirclesIcon,   label: "Circles" },
-  { href: "/coach",      Icon: CoachIcon,     label: "Coach"   },
+  { href: "/analytics",  Icon: AnalyticsIcon, label: "Stats"    },
+  { href: "/circles",    Icon: CirclesIcon,   label: "Circles"  },
+  { href: "/coach",      Icon: CoachIcon,     label: "Coach"    },
 ];
 
 export default function BottomNav() {
@@ -64,29 +63,15 @@ export default function BottomNav() {
   return (
     <nav className="bottom-nav" aria-label="Main navigation">
       {NAV_ITEMS.map(({ href, Icon, label, primary }) => {
-        const isActive = pathname === href;
+        const isActive = pathname === href || pathname.startsWith(href + "/");
         return (
           <Link
             key={href}
             href={href}
-            className={isActive ? "active" : ""}
-            style={primary ? {
-              background: "var(--blue)",
-              borderRadius: "50%",
-              width: 44,
-              height: 44,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              marginTop: -10,
-              boxShadow: "0 0 20px rgba(79,142,247,0.4)",
-              color: "#fff",
-              gap: 0,
-            } : undefined}
+            className={[isActive ? "active" : "", primary ? "nav-primary" : ""].filter(Boolean).join(" ")}
           >
             <span className="nav-icon"><Icon /></span>
-            {!primary && label}
+            <span className="nav-label">{label}</span>
           </Link>
         );
       })}
