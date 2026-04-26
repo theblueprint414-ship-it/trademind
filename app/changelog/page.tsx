@@ -5,6 +5,21 @@ export const metadata: Metadata = {
   title: "Changelog — TradeMind",
   description: "Every update, improvement, and new feature shipped to TradeMind. We build in public and ship fast.",
   alternates: { canonical: "https://trademindedge.com/changelog" },
+  openGraph: {
+    title: "Changelog — TradeMind",
+    description: "Every update, improvement, and new feature shipped to TradeMind. We build in public and ship fast.",
+    url: "https://trademindedge.com/changelog",
+    siteName: "TradeMind",
+    type: "website",
+    images: [{ url: "https://trademindedge.com/api/og?score=82", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@trademindedge",
+    title: "Changelog — TradeMind",
+    description: "Every update, improvement, and new feature shipped to TradeMind.",
+    images: ["https://trademindedge.com/api/og?score=82"],
+  },
 };
 
 type Entry = { date: string; tag: "NEW" | "IMPROVED" | "FIX"; title: string; body: string };

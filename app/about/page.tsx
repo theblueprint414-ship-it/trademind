@@ -5,6 +5,21 @@ export const metadata: Metadata = {
   title: "About TradeMind — Built by Traders, for Traders",
   description: "TradeMind was built to solve the problem no trading journal addresses: the trader, not the trade. Our mission is to give every serious trader the mental edge that separates profitable consistency from emotional chaos.",
   alternates: { canonical: "https://trademindedge.com/about" },
+  openGraph: {
+    title: "About TradeMind — Built by Traders, for Traders",
+    description: "Our mission: give every serious trader the mental edge that separates profitable consistency from emotional chaos.",
+    url: "https://trademindedge.com/about",
+    siteName: "TradeMind",
+    type: "website",
+    images: [{ url: "https://trademindedge.com/api/og?score=82", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@trademindedge",
+    title: "About TradeMind — Built by Traders, for Traders",
+    description: "Our mission: give every serious trader the mental edge that separates profitable consistency from emotional chaos.",
+    images: ["https://trademindedge.com/api/og?score=82"],
+  },
 };
 
 const VALUES = [

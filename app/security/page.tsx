@@ -5,6 +5,21 @@ export const metadata: Metadata = {
   title: "Security & Data Privacy — TradeMind",
   description: "How TradeMind protects your trading data, psychology scores, and financial information. No passwords stored, Paddle PCI-DSS payments, Turso encrypted database.",
   alternates: { canonical: "https://trademindedge.com/security" },
+  openGraph: {
+    title: "Security & Data Privacy — TradeMind",
+    description: "No passwords stored. Broker credentials never touch our servers. AES-256 encrypted database. Here's exactly how we protect your data.",
+    url: "https://trademindedge.com/security",
+    siteName: "TradeMind",
+    type: "website",
+    images: [{ url: "https://trademindedge.com/api/og?score=82", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@trademindedge",
+    title: "Security & Data Privacy — TradeMind",
+    description: "No passwords stored. Broker credentials never touch our servers. AES-256 encrypted database.",
+    images: ["https://trademindedge.com/api/og?score=82"],
+  },
 };
 
 const Shield = () => (

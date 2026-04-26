@@ -5,6 +5,21 @@ export const metadata: Metadata = {
   title: "Integrations — TradeMind",
   description: "Connect your broker, import from CSV, or use TradeMind standalone. TradeMind works with MetaTrader 4 & 5 via MetaAPI, plus CSV import from any broker.",
   alternates: { canonical: "https://trademindedge.com/integrations" },
+  openGraph: {
+    title: "Integrations — TradeMind",
+    description: "MT4, MT5, CSV import, and prop firm support. Connect your broker in seconds — credentials never touch TradeMind servers.",
+    url: "https://trademindedge.com/integrations",
+    siteName: "TradeMind",
+    type: "website",
+    images: [{ url: "https://trademindedge.com/api/og?score=82", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@trademindedge",
+    title: "Integrations — TradeMind",
+    description: "MT4, MT5, CSV import, and prop firm support. Credentials never touch TradeMind servers.",
+    images: ["https://trademindedge.com/api/og?score=82"],
+  },
 };
 
 const BROKER_INTEGRATIONS = [

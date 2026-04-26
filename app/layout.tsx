@@ -30,6 +30,7 @@ const bebasNeue = Bebas_Neue({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://trademindedge.com"),
   title: "TradeMind — Mental Edge for Traders",
   description: "Daily mental check-in protocol, trade limit enforcement, and accountability partners for serious traders.",
   manifest: "/manifest.json",

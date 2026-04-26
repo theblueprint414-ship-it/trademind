@@ -2,8 +2,19 @@ User-agent: *
 Allow: /
 Allow: /pricing
 Allow: /blog
+Allow: /blog/
+Allow: /about
+Allow: /security
+Allow: /changelog
+Allow: /integrations
+Allow: /contact
 Allow: /vs-tradezella
+Allow: /vs-tradersync
+Allow: /vs-edgewonk
 Allow: /for-ftmo-traders
+Allow: /partners-program
+Allow: /help
+Allow: /testimonials
 Allow: /terms
 Allow: /privacy
 Allow: /refund
@@ -22,9 +33,11 @@ Disallow: /playbook
 Disallow: /recap
 Disallow: /report
 Disallow: /result
+Disallow: /circles
 Disallow: /accept-invite/
 Disallow: /join-circle/
 Disallow: /login
 Disallow: /unsubscribe
+Disallow: /u/
 
 Sitemap: https://trademindedge.com/sitemap.xml
