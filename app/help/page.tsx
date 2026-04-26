@@ -164,20 +164,26 @@ export default function HelpPage() {
 
         {/* Quick links */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 14, marginBottom: 64 }}>
-          {[
-            { label: "Getting Started", icon: "🚀", href: "#score", desc: "Score, verdicts, streaks" },
-            { label: "Trade Journal", icon: "📓", href: "#journal", desc: "Logging trades, CSV, sync" },
-            { label: "Broker Connection", icon: "🔌", href: "#broker", desc: "MT4/MT5 via MetaAPI" },
-            { label: "Plans & Pricing", icon: "💳", href: "#pricing", desc: "Free, Pro, Premium" },
-          ].map(card => (
-            <a key={card.label} href={card.href} className="help-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 20, textDecoration: "none", color: "inherit", display: "block", transition: "border-color 0.2s, transform 0.2s" }}
-              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--blue)"; (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLElement).style.transform = ""; }}>
-              <div style={{ fontSize: 24, marginBottom: 10 }}>{card.icon}</div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>{card.label}</div>
-              <div style={{ fontSize: 12, color: "var(--muted)" }}>{card.desc}</div>
-            </a>
-          ))}
+          <a href="#score" className="help-card">
+            <div style={{ fontSize: 24, marginBottom: 10 }}>🚀</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Getting Started</div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>Score, verdicts, streaks</div>
+          </a>
+          <a href="#journal" className="help-card">
+            <div style={{ fontSize: 24, marginBottom: 10 }}>📓</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Trade Journal</div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>Logging trades, CSV, sync</div>
+          </a>
+          <a href="#broker" className="help-card">
+            <div style={{ fontSize: 24, marginBottom: 10 }}>🔌</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Broker Connection</div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>MT4/MT5 via MetaAPI</div>
+          </a>
+          <a href="#pricing" className="help-card">
+            <div style={{ fontSize: 24, marginBottom: 10 }}>💳</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Plans &amp; Pricing</div>
+            <div style={{ fontSize: 12, color: "var(--muted)" }}>Free, Pro, Premium</div>
+          </a>
         </div>
 
         {/* FAQ list */}
