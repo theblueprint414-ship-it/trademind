@@ -277,13 +277,14 @@ export default function LandingPage() {
         /* ── Desktop dropdown nav ── */
         .nav-center { display:flex; align-items:center; gap:0; }
         .nav-dd-wrap { position:relative; }
-        .nav-dd-wrap > .nav-dd-trigger { cursor:default; display:flex; align-items:center; gap:5px; }
+        .nav-dd-wrap > .nav-dd-trigger { cursor:pointer; display:flex; align-items:center; gap:5px; }
         .nav-dd {
           display:none; position:absolute; top:calc(100% + 12px); left:50%; transform:translateX(-50%);
           min-width:192px; background:#0f1011; border:1px solid rgba(255,255,255,0.09);
           border-radius:12px; padding:6px; z-index:100; flex-direction:column; gap:1px;
           box-shadow:0 20px 60px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(255,255,255,0.04);
         }
+        .nav-dd::before { content:''; position:absolute; top:-14px; left:0; right:0; height:14px; }
         .nav-dd-wrap:hover .nav-dd { display:flex; }
         .nav-dd-wrap:hover .nav-dd-trigger { color:var(--text); }
         .nav-dd-item { color:var(--text-dim); text-decoration:none; font-size:13px; font-weight:500; letter-spacing:-0.011em; padding:8px 12px; border-radius:7px; transition:background 0.12s, color 0.12s; display:block; white-space:nowrap; }
