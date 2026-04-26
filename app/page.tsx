@@ -617,140 +617,76 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── "Why every journal fails you" — Competitor comparison ── */}
-      <section style={{ background: "var(--bg)", padding: "80px 24px", borderTop: "1px solid var(--border)" }}>
+      {/* ── Category positioning ── */}
+      <section style={{ background: "var(--bg)", padding: "100px 24px", borderTop: "1px solid var(--border)" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 56 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,59,92,0.08)", border: "1px solid rgba(255,59,92,0.2)", borderRadius: 20, padding: "6px 16px", marginBottom: 20 }}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M11 1L1 11M1 1l10 10" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-              <span style={{ fontSize: 12, color: "var(--red)", fontWeight: 700, letterSpacing: "0.1em" }}>THE REAL PROBLEM WITH EVERY OTHER TOOL</span>
+
+          <div className="reveal" style={{ textAlign: "center", marginBottom: 72 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid rgba(255,255,255,0.08)", borderRadius: 9999, padding: "5px 16px", fontSize: 11, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.06em", background: "rgba(255,255,255,0.025)", marginBottom: 28 }}>
+              A NEW CATEGORY
             </div>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 60px)", marginBottom: 16, lineHeight: 1 }}>
-              They all tell you what went wrong.{" "}
-              <span style={{ background: "linear-gradient(135deg, var(--red), var(--amber))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>After.</span>
+            <h2 className="font-bebas" style={{ fontSize: "clamp(40px, 6vw, 72px)", marginBottom: 24, lineHeight: 1.05 }}>
+              Built for one moment:<br />
+              <span className="hero-gradient-text">the 60 seconds before you trade.</span>
             </h2>
-            <p style={{ color: "var(--text-dim)", fontSize: 17, maxWidth: 620, margin: "0 auto", lineHeight: 1.7 }}>
-              Every journal on the market is a rearview mirror. Beautiful charts of money you already lost. Tradezella, TraderSync, Edgewonk — all retrospective. TradeMind is the only tool built to work <em>before</em> you click buy.
+            <p style={{ fontSize: "clamp(16px, 2vw, 18px)", color: "var(--text-dim)", maxWidth: 540, margin: "0 auto", lineHeight: 1.75, letterSpacing: "-0.011em" }}>
+              Every other tool was designed to analyze what happened. TradeMind was designed to change what happens next — before you click, before you risk, before the damage is done.
             </p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 32 }}>
-            {/* Tradezella */}
-            <div className="comp-card reveal">
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 12l3.5-5 3 3 4-7 2 3.5" stroke="var(--red)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Tradezella</span>
+          {/* 4 pillars — Linear-style grid with 1px gap dividers */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", marginBottom: 80 }}>
+            {[
+              {
+                color: "var(--blue)",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--blue)" strokeWidth="1.5"/><path d="M12 7v5l3 3" stroke="var(--blue)" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+                tag: "PRE-TRADE VERDICT",
+                title: "A verdict before the first click.",
+                desc: "GO. CAUTION. NO-TRADE. A science-grounded decision in 60 seconds — not a gut feeling, not a hunch. A number you can act on before your charts ever open.",
+              },
+              {
+                color: "var(--green)",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="var(--green)" strokeWidth="1.5"/><path d="M7 16l3-5 3 4 3-7 3 5" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                tag: "BEHAVIORAL SCIENCE",
+                title: "Thirty years of research. Sixty seconds of your morning.",
+                desc: "Sleep quality, emotional state, cognitive load, stress, decision fatigue. Five peer-reviewed dimensions synthesized into one actionable score. Not folklore — published science.",
+              },
+              {
+                color: "var(--amber)",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 20l5-8 4 4 4-9 5 7" stroke="var(--amber)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 22h18" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+                tag: "YOUR BEHAVIORAL FINGERPRINT",
+                title: "Your worst trades have a pattern. We find it.",
+                desc: "Over weeks and months, TradeMind identifies the precise mental conditions that precede your most costly sessions — then surfaces them before the pattern repeats.",
+              },
+              {
+                color: "var(--purple)",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.5" stroke="var(--purple)" strokeWidth="1.5"/><circle cx="17" cy="8" r="3.5" stroke="var(--purple)" strokeWidth="1.5"/><path d="M3 19c0-2.761 2.239-5 5-5h8c2.761 0 5 2.239 5 5" stroke="var(--purple)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+                tag: "ACCOUNTABILITY LAYER",
+                title: "Discipline compounds when it's visible.",
+                desc: "Your trading circle sees your morning score. When the people you respect can see your readiness level, the standard you hold yourself to rises — automatically.",
+              },
+            ].map((item, i) => (
+              <div key={i} className={`card-lift reveal reveal-delay-${i + 1}`} style={{ background: "var(--surface)", padding: "36px 32px" }}>
+                <div style={{ marginBottom: 20, width: 48, height: 48, borderRadius: 12, background: `${item.color}12`, border: `1px solid ${item.color}22`, display: "flex", alignItems: "center", justifyContent: "center" }}>{item.icon}</div>
+                <div style={{ fontSize: 10, color: item.color, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 12 }}>{item.tag}</div>
+                <h3 style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.025em", color: "var(--text)", marginBottom: 12, lineHeight: 1.35 }}>{item.title}</h3>
+                <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.8 }}>{item.desc}</p>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  Beautiful P&L charts and trade replay
-                </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  Broker import (when it works)
-                </div>
-              </div>
-              <div style={{ height: 1, background: "var(--border)", marginBottom: 14 }} />
-              <div style={{ display: "flex", flex: 1, gap: 8, alignItems: "flex-start", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                <span>Zero psychology. Emotion tracking is a text box. Import breaks silently. Shows you what you already know — you lost.</span>
-              </div>
-            </div>
-
-            {/* TraderSync */}
-            <div className="comp-card reveal reveal-delay-1">
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="6" r="3" stroke="var(--red)" strokeWidth="1.3"/><path d="M2 14c0-2.761 2.686-5 6-5s6 2.239 6 5" stroke="var(--red)" strokeWidth="1.3" strokeLinecap="round"/></svg>
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>TraderSync</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  Widest broker & asset class support
-                </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  Claims an &quot;AI coach&quot;
-                </div>
-              </div>
-              <div style={{ height: 1, background: "var(--border)", marginBottom: 14 }} />
-              <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                <span>AI coach widely mocked as shallow — tells you &ldquo;you have losses&rdquo;. $80/month for features that don&rsquo;t deliver. No pre-trade protocol. Retrospective by design.</span>
-              </div>
-            </div>
-
-            {/* Edgewonk */}
-            <div className="comp-card reveal reveal-delay-2">
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="3" y="3" width="10" height="10" rx="2" stroke="var(--red)" strokeWidth="1.3"/><path d="M6 8h4M8 6v4" stroke="var(--red)" strokeWidth="1.3" strokeLinecap="round"/></svg>
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Edgewonk</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  Deep statistical analytics (MAE/MFE)
-                </div>
-                <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  One-time purchase, no subscription
-                </div>
-              </div>
-              <div style={{ height: 1, background: "var(--border)", marginBottom: 14 }} />
-              <div style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                <span>Looks like it was built in 2018. Desktop-only. Manual CSV import. Steep learning curve. &ldquo;Tiltmeter&rdquo; is a 5-point emoji — not actual psychology. No mobile. No intervention.</span>
-              </div>
-            </div>
-
-            {/* TradeMind */}
-            <div className="comp-card comp-card-winner reveal reveal-delay-3">
-              <div style={{ position: "absolute", top: -1, right: 20, background: "linear-gradient(135deg, var(--green), #00b84a)", color: "#000", fontSize: 10, fontWeight: 800, letterSpacing: "0.1em", padding: "4px 12px", borderRadius: "0 0 8px 8px" }}>THE SOLUTION</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(0,232,122,0.15)", border: "1px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8l4 4 8-8" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                </div>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--green)" }}>TradeMind</span>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
-                {[
-                  "GO / CAUTION / NO-TRADE before you open charts",
-                  "Behavioral patterns detected in your own data",
-                  "Prop firm challenge tracker + daily limit enforcement",
-                  "Accountability groups with real-time mental scores",
-                  "AI coach that reads your actual history",
-                ].map((item) => (
-                  <div key={item} style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text-dim)" }}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M2 7l3.5 3.5 7-7" stroke="var(--green)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                    {item}
-                  </div>
-                ))}
-              </div>
-              <div style={{ height: 1, background: "rgba(0,232,122,0.15)", marginBottom: 14 }} />
-              <div style={{ fontSize: 12, color: "var(--green)", fontWeight: 700, lineHeight: 1.6 }}>
-                The only tool built to stop you before you make the mistake — not just document it afterwards.
-              </div>
-            </div>
+            ))}
           </div>
 
-          {/* Bottom CTA quote */}
-          <div className="reveal" style={{ background: "linear-gradient(135deg, rgba(79,142,247,0.06), rgba(139,92,246,0.06))", border: "1px solid rgba(79,142,247,0.15)", borderRadius: 14, padding: "28px 32px", textAlign: "center" }}>
-            <p style={{ fontSize: "clamp(15px, 2vw, 18px)", color: "var(--text)", lineHeight: 1.7, margin: "0 auto 20px", maxWidth: 680 }}>
-              &ldquo;The industry has spent 10 years building better rearview mirrors. We built the windshield.&rdquo;
+          {/* Manifesto */}
+          <div className="reveal" style={{ textAlign: "center" }}>
+            <p style={{ fontSize: "clamp(22px, 3.5vw, 34px)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.2, color: "var(--text)", maxWidth: 680, margin: "0 auto 40px" }}>
+              The industry built better rearview mirrors.{" "}
+              <span className="hero-gradient-text">We built the windshield.</span>
             </p>
-            <Link href="/login?callbackUrl=/settings">
-              <button className="btn-primary" style={{ padding: "14px 32px", fontSize: 15 }}>
-                Start your first check-in →
-              </button>
+            <Link href="/login?callbackUrl=/settings" className="hero-cta-primary">
+              Start your first check-in
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </Link>
           </div>
+
         </div>
       </section>
 
