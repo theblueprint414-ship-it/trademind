@@ -1,0 +1,30 @@
+User-agent: *
+Allow: /
+Allow: /pricing
+Allow: /blog
+Allow: /vs-tradezella
+Allow: /for-ftmo-traders
+Allow: /terms
+Allow: /privacy
+Allow: /refund
+
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /checkin
+Disallow: /journal
+Disallow: /analytics
+Disallow: /coach
+Disallow: /settings
+Disallow: /onboarding
+Disallow: /partners
+Disallow: /leaderboard
+Disallow: /playbook
+Disallow: /recap
+Disallow: /report
+Disallow: /result
+Disallow: /accept-invite/
+Disallow: /join-circle/
+Disallow: /login
+Disallow: /unsubscribe
+
+Sitemap: https://trademindedge.com/sitemap.xml

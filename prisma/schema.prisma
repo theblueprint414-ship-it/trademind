@@ -1,0 +1,275 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─── Auth (NextAuth v5) ────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  plan           String    @default("free")
+  tradeLimit     Int       @default(5)
+  emailReminders Boolean   @default(true)
+  traderType     String?
+  streakFreezeUsedAt String?  // ISO date of last freeze use (YYYY-MM)
+  publicProfile  Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+
+  // Prop Firm Challenge Mode
+  challengeEnabled          Boolean   @default(false)
+  challengeFirm             String?
+  challengeAccountSize      Float?
+  challengeDailyLimit       Float?
+  challengeMaxDrawdown      Float?
+  challengeStartDate        String?
+  challengeEndDate          String?
+  challengeProfitTarget     Float?    // e.g. 10 (percent)
+  challengeTradingDaysTarget Int?     // e.g. 4 (minimum days required)
+
+  challengeAttempts     ChallengeAttempt[]
+
+  accounts          Account[]
+  sessions          Session[]
+  checkins          Checkin[]
+  trades            Trade[]
+  tradeEntries      TradeEntry[]
+  playbook          Playbook?
+  partnersAsA       Partnership[]    @relation("PartnerA")
+  partnersAsB       Partnership[]    @relation("PartnerB")
+  invitesSent       PartnerInvite[]
+  brokerConnection  BrokerConnection?
+  circlesCreated    Circle[]
+  circleMembers     CircleMember[]
+  dailyRecaps       DailyRecap[]
+  referral          Referral?
+  pushSubscriptions PushSubscription[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── App Models ───────────────────────────────────────────────────────────
+
+model Checkin {
+  id        String   @id @default(cuid())
+  userId    String
+  date      String
+  score     Int
+  verdict   String
+  answers   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}
+
+model Trade {
+  id       String   @id @default(cuid())
+  userId   String
+  date     String
+  loggedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model Partnership {
+  id        String   @id @default(cuid())
+  userAId   String
+  userBId   String
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+
+  userA User @relation("PartnerA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB User @relation("PartnerB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@unique([userAId, userBId])
+}
+
+model BrokerConnection {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  broker      String   // "alpaca" | "binance" | "ibkr" | "bybit"
+  apiKey      String
+  apiSecret   String?
+  environment String   @default("live") // "live" | "paper"
+  status      String   @default("active") // "active" | "error"
+  lastSyncAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PartnerInvite {
+  id        String   @id @default(cuid())
+  fromId    String
+  toEmail   String
+  token     String   @unique @default(cuid())
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+
+  from User @relation(fields: [fromId], references: [id], onDelete: Cascade)
+}
+
+model TradeEntry {
+  id            String   @id @default(cuid())
+  userId        String
+  date          String   // YYYY-MM-DD
+  symbol        String?  // "AAPL", "BTC/USDT"
+  side          String?  // "long" | "short"
+  pnl           Float?   // profit/loss in $
+  setup         String?  // trade thesis
+  emotionBefore Int?     // 1-5
+  emotionAfter  Int?     // 1-5
+  mistake       String?  // what went wrong
+  notes         String?
+  checkinScore  Int?     // mental score that day
+  tags          String?
+  reflection    String?
+  chartUrl      String?  // Vercel Blob URL of uploaded chart screenshot
+  isPublic      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, date])
+}
+
+model Circle {
+  id        String   @id @default(cuid())
+  name      String
+  createdBy String
+  token     String   @unique @default(cuid())
+  createdAt DateTime @default(now())
+
+  creator User           @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  members CircleMember[]
+}
+
+model CircleMember {
+  id       String   @id @default(cuid())
+  circleId String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([circleId, userId])
+}
+
+model Playbook {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  rules     String   // JSON array of {id, text, category, enabled}
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Referral {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  code      String   @unique
+  usedCount Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ChallengeAttempt {
+  id           String   @id @default(cuid())
+  userId       String
+  firm         String?
+  accountSize  Float
+  profitTarget Float?
+  dailyLimit   Float
+  maxDrawdown  Float
+  tradingDaysTarget Int?
+  startDate    String
+  endDate      String?
+  outcome      String?  // "passed" | "failed" | "active"
+  finalPnl     Float?
+  tradingDays  Int?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model DailyRecap {
+  id            String   @id @default(cuid())
+  userId        String
+  date          String   // YYYY-MM-DD
+  mood          Int?     // 0=Rough 1=Okay 2=Good 3=Great
+  pnl           Float?
+  playbookScore Int?     // 0=Ignored 1=Mostly 2=Followed
+  lesson        String?
+  tradesCount   Int?
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+}
