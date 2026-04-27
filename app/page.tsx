@@ -371,7 +371,7 @@ export default function LandingPage() {
           {/* Auth */}
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
             <Link href="/login" className="nav-link nav-btn-ghost" style={{ fontSize: 13 }}>Log in</Link>
-            <Link href="/login?callbackUrl=/settings">
+            <Link href="/login?callbackUrl=/checkin">
               <button className="btn-primary nav-btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>Get your score →</button>
             </Link>
           </div>
@@ -409,7 +409,7 @@ export default function LandingPage() {
             </p>
 
             <div style={{ display: "flex", gap: 10, justifyContent: "center", alignItems: "center", flexWrap: "wrap", marginBottom: 48 }}>
-              <Link href="/login?callbackUrl=/settings" className="hero-cta-primary">
+              <Link href="/login?callbackUrl=/checkin" className="hero-cta-primary">
                 Get your Mental Score now →
               </Link>
               <a href="#how" className="hero-cta-ghost">
@@ -686,7 +686,7 @@ export default function LandingPage() {
               The industry built better rearview mirrors.{" "}
               <span className="hero-gradient-text">We built the windshield.</span>
             </p>
-            <Link href="/login?callbackUrl=/settings" className="hero-cta-primary">
+            <Link href="/login?callbackUrl=/checkin" className="hero-cta-primary">
               Take your first check-in — 60 seconds →
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </Link>
@@ -1144,7 +1144,7 @@ export default function LandingPage() {
                 ))}
               </ul>
               <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "stretch" }}>
-                <Link href="/login?callbackUrl=/settings" style={{ display: "block", flex: 1 }}>
+                <Link href="/login?callbackUrl=/checkin" style={{ display: "block", flex: 1 }}>
                   <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15 }}>Start Pro — Find out if you should trade today →</button>
                 </Link>
               </div>
@@ -1237,7 +1237,7 @@ export default function LandingPage() {
             </span>
           </div>
           <div className="reveal reveal-delay-2">
-            <Link href="/login?callbackUrl=/settings">
+            <Link href="/login?callbackUrl=/checkin">
               <button className="btn-primary" style={{ fontSize: 17, padding: "20px 56px", borderRadius: 14, boxShadow: "0 8px 32px rgba(255,255,255,0.07)" }}>
                 Get your Mental Score now →
               </button>

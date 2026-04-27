@@ -190,7 +190,7 @@ export default function PricingPage() {
                 {b === "monthly" ? "Monthly" : (
                   <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     Annual
-                    <span style={{ fontSize: 10, background: "rgba(0,232,122,0.2)", color: "var(--green)", padding: "1px 6px", borderRadius: 4, fontWeight: 800 }}>SAVE 21%</span>
+                    <span style={{ fontSize: 10, background: "rgba(0,232,122,0.2)", color: "var(--green)", padding: "1px 6px", borderRadius: 4, fontWeight: 800 }}>SAVE 15%</span>
                   </span>
                 )}
               </button>
