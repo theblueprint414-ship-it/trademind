@@ -34,7 +34,7 @@ const PUBLIC_PATHS = [
   "/testimonials",
   "/admin",
 ];
-const GATE_PATHS = ["/dashboard", "/partners", "/settings"];
+const GATE_PATHS = ["/dashboard", "/partners", "/settings", "/checkin", "/journal", "/analytics", "/coach", "/recap", "/playbook", "/leaderboard", "/circles"];
 
 export default auth((req: NextAuthRequest) => {
   const { pathname } = req.nextUrl;

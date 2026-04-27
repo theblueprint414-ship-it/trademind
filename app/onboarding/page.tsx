@@ -386,49 +386,49 @@ export default function OnboardingPage() {
 
                       {selectedBroker === "topstepx" && (
                         <div style={{ padding: "14px", borderRadius: 10, background: "rgba(0,200,150,0.04)", border: "1px solid rgba(0,200,150,0.2)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>איך לקבל את מפתח ה-API שלך ב-TopstepX</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>HOW TO GET YOUR TOPSTEPX API KEY</div>
                           <TopstepXDemo />
                         </div>
                       )}
 
                       {selectedBroker === "metaapi" && (
                         <div style={{ padding: "14px", borderRadius: 10, background: "rgba(255,107,53,0.04)", border: "1px solid rgba(255,107,53,0.2)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>איך למצוא את פרטי ה-MT4/MT5 שלך</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>HOW TO FIND YOUR MT4/MT5 CREDENTIALS</div>
                           <MT4Demo />
                         </div>
                       )}
 
                       {selectedBroker === "binance" && (
                         <div style={{ padding: "14px", borderRadius: 10, background: "rgba(240,185,11,0.04)", border: "1px solid rgba(240,185,11,0.2)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>איך ליצור מפתח API ב-Binance</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>HOW TO CREATE A BINANCE API KEY</div>
                           <BinanceGuide />
                         </div>
                       )}
 
                       {selectedBroker === "bybit" && (
                         <div style={{ padding: "14px", borderRadius: 10, background: "rgba(247,166,0,0.04)", border: "1px solid rgba(247,166,0,0.2)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>איך ליצור מפתח API ב-Bybit</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>HOW TO CREATE A BYBIT API KEY</div>
                           <BybitGuide />
                         </div>
                       )}
 
                       {selectedBroker === "coinbase" && (
                         <div style={{ padding: "14px", borderRadius: 10, background: "rgba(0,82,255,0.04)", border: "1px solid rgba(0,82,255,0.2)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>איך ליצור מפתח API ב-Coinbase</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>HOW TO CREATE A COINBASE API KEY</div>
                           <CoinbaseGuide />
                         </div>
                       )}
 
                       {selectedBroker === "kraken" && (
                         <div style={{ padding: "14px", borderRadius: 10, background: "rgba(87,65,217,0.04)", border: "1px solid rgba(87,65,217,0.2)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>איך ליצור מפתח API ב-Kraken</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>HOW TO CREATE A KRAKEN API KEY</div>
                           <KrakenGuide />
                         </div>
                       )}
 
                       {selectedBroker === "alpaca" && (
                         <div style={{ padding: "14px", borderRadius: 10, background: "rgba(0,232,122,0.04)", border: "1px solid rgba(0,232,122,0.2)" }}>
-                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>איך למצוא את מפתחות ה-API ב-Alpaca</div>
+                          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 12 }}>HOW TO FIND YOUR ALPACA API KEYS</div>
                           <AlpacaGuide />
                         </div>
                       )}
