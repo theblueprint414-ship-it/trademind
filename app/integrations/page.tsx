@@ -25,6 +25,7 @@ export const metadata: Metadata = {
 const BROKER_INTEGRATIONS = [
   { name: "MetaTrader 4", tag: "LIVE", note: "Auto-sync daily P&L via MetaAPI", color: "var(--green)" },
   { name: "MetaTrader 5", tag: "LIVE", note: "Auto-sync daily P&L via MetaAPI", color: "var(--green)" },
+  { name: "TopstepX / ProjectX", tag: "LIVE", note: "Direct API — auto-sync daily trades & P&L", color: "var(--green)" },
   { name: "Any Broker (CSV)", tag: "LIVE", note: "Import trades from any broker that exports CSV", color: "var(--green)" },
   { name: "cTrader", tag: "PLANNED", note: "MetaAPI roadmap — coming soon", color: "var(--amber)" },
   { name: "Interactive Brokers", tag: "PLANNED", note: "Planned via CSV and direct API", color: "var(--amber)" },

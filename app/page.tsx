@@ -1184,7 +1184,7 @@ export default function LandingPage() {
               </div>
 
               <ul style={{ listStyle: "none", marginBottom: 24, flex: 1, display: "flex", flexDirection: "column", gap: 0 }}>
-                {["Alex AI Coach — daily briefing & chat", "Broker auto-connect (6 brokers)", "Prop firm challenge tracker (FTMO, TopStep & more)", "Deep behavioral pattern detection (revenge, FOMO, overtrading)", "Trading Playbook & rules engine", "Custom check-in questions", "Unlimited history", "Priority support & onboarding"].map((f) => (
+                {["Alex AI Coach — daily briefing & chat", "Broker auto-connect (MT4/MT5, TopstepX + CSV)", "Prop firm challenge tracker (FTMO, TopStep & more)", "Deep behavioral pattern detection (revenge, FOMO, overtrading)", "Trading Playbook & rules engine", "Custom check-in questions", "Unlimited history", "Priority support & onboarding"].map((f) => (
                   <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)" }}>
                     <CheckIcon color="#8B5CF6" />{f}
                   </li>

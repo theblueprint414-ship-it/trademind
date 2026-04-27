@@ -56,7 +56,7 @@ const PLANS = [
     features: [
       { text: "Everything in Pro", included: true },
       { text: "AI coach Alex — daily briefing & chat", included: true },
-      { text: "Broker auto-connect (6 brokers)", included: true },
+      { text: "Broker auto-connect (MT4/MT5, TopstepX + CSV import)", included: true },
       { text: "Prop firm challenge tracker (FTMO, TopStep & more)", included: true },
       { text: "Deep behavioral pattern detection (revenge, FOMO, overtrading)", included: true },
       { text: "Trading Playbook & rules engine", included: true },
