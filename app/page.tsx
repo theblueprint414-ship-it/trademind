@@ -1155,7 +1155,7 @@ export default function LandingPage() {
               <div style={{ background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.18)", borderRadius: 8, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                 <div>
                   <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.06em", marginBottom: 2 }}>ANNUAL PLAN</div>
-                  <div style={{ fontSize: 13, color: "var(--text-dim)" }}>$149/year — save $79 vs monthly</div>
+                  <div style={{ fontSize: 13, color: "var(--text-dim)" }}>$192/year — save $36 vs monthly (15% off)</div>
                 </div>
                 <Link href="/pricing" style={{ fontSize: 12, color: "var(--blue)", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>Get annual →</Link>
               </div>

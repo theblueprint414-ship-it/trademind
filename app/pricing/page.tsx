@@ -9,7 +9,7 @@ const FAQ_ITEMS = [
   { q: "What's included in Pro?", a: "Pro includes unlimited trade journal with emotion tracking, 90-day analytics, accountability partners, circle groups, and daily email reminders. Everything you need to build discipline and show up consistently." },
   { q: "What's the difference between Pro and Premium?", a: "Premium adds AI Coach Alex, broker auto-connect, deep behavioral pattern detection, the Trading Playbook & rules engine, prop firm challenge tracker, unlimited history, and priority support. It's for traders who want to know exactly why they keep losing — and fix it." },
   { q: "Can I switch plans?", a: "Yes, upgrade or downgrade at any time. Downgrades take effect at the end of your billing period." },
-  { q: "Is billing monthly or annual?", a: "Both options are available. Annual billing saves you ~20%." },
+  { q: "Is billing monthly or annual?", a: "Both options are available. Annual billing saves you 15%." },
   { q: "How do I cancel?", a: "Cancel anytime from your dashboard or email support@trademindedge.com. You keep access until the end of your billing period — no questions asked." },
   { q: "Is my trading data private?", a: "Yes. Your journal, check-ins, and scores are private by default. Broker connections use read-only API keys — we never have permission to trade or withdraw." },
 ];
@@ -19,8 +19,8 @@ const PLANS = [
     id: "pro",
     name: "Pro",
     tagline: "Accountability that makes you show up.",
-    price: { monthly: 19, annual: 15 },
-    annualTotal: 180,
+    price: { monthly: 19, annual: 16 },
+    annualTotal: 192,
     priceId: {
       monthly: process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID,
       annual:  process.env.NEXT_PUBLIC_PADDLE_PRO_ANNUAL_PRICE_ID || process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID,
@@ -46,8 +46,8 @@ const PLANS = [
     id: "premium",
     name: "Premium",
     tagline: "Know exactly why you keep losing — and fix it.",
-    price: { monthly: 45, annual: 36 },
-    annualTotal: 432,
+    price: { monthly: 45, annual: 38 },
+    annualTotal: 456,
     priceId: {
       monthly: process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID,
       annual:  process.env.NEXT_PUBLIC_PADDLE_PREMIUM_ANNUAL_PRICE_ID || process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID,
