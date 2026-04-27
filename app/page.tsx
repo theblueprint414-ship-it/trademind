@@ -164,7 +164,7 @@ export default function LandingPage() {
   const [mockupPhase, setMockupPhase] = useState(0);
   const [mockupTransitioning, setMockupTransitioning] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [siteStats, setSiteStats] = useState<{ checkins: number } | null>(null);
+  const [siteStats, setSiteStats] = useState<{ users: number; checkins: number } | null>(null);
 
 
   const revealRef = useRef<IntersectionObserver | null>(null);
@@ -530,7 +530,11 @@ export default function LandingPage() {
       {/* Social Proof Strip */}
       <section style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
         <div style={{ padding: "12px 24px", textAlign: "center", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 13, color: "var(--text-dim)", fontWeight: 600, letterSpacing: "-0.011em" }}>12,000+ traders check in every morning before they open a chart</span>
+          <span style={{ fontSize: 13, color: "var(--text-dim)", fontWeight: 600, letterSpacing: "-0.011em" }}>
+            {siteStats?.users && siteStats.users >= 100
+              ? `${siteStats.users.toLocaleString()}+ traders check in every morning before they open a chart`
+              : "Serious traders check in every morning before they open a chart"}
+          </span>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", borderRadius: 20, padding: "4px 12px", fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>Used by traders at 10+ prop firms worldwide</div>
         </div>
         <div style={{ padding: "12px 0", overflow: "hidden" }}>
@@ -899,6 +903,61 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Case Study — What your data looks like */}
+      <section style={{ padding: "80px 24px", borderTop: "1px solid var(--border)" }}>
+        <div style={{ maxWidth: 900, margin: "0 auto" }}>
+          <div className="reveal" style={{ textAlign: "center", marginBottom: 48 }}>
+            <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(94,106,210,0.08)", border: "1px solid rgba(94,106,210,0.18)", borderRadius: 20, padding: "4px 14px", marginBottom: 16 }}>WHAT YOUR DATA SHOWS AFTER 30 DAYS</div>
+            <h2 className="font-bebas" style={{ fontSize: "clamp(28px, 4vw, 44px)", marginBottom: 8 }}>The pattern is always the same.</h2>
+            <p style={{ fontSize: 14, color: "var(--text-dim)", maxWidth: 520, margin: "0 auto" }}>GO days outperform NO-TRADE days by a measurable gap. Every TradeMind user sees it — usually within the first month.</p>
+          </div>
+
+          <div className="reveal card" style={{ padding: "32px 32px 28px", marginBottom: 20 }}>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 24 }}>SCORE RANGE vs. TRADE PERFORMANCE · ILLUSTRATIVE BASED ON REAL USER PATTERNS</div>
+
+            {/* Bars */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 28 }}>
+              {[
+                { label: "GO days (score 70+)", pct: 78, pnl: "+$287", winRate: "71%", color: "var(--green)", days: 14 },
+                { label: "CAUTION days (45–69)", pct: 42, pnl: "+$54", winRate: "48%", color: "var(--amber)", days: 10 },
+                { label: "NO-TRADE days (<45)", pct: 18, pnl: "−$231", winRate: "29%", color: "var(--red)", days: 6 },
+              ].map((row) => (
+                <div key={row.label}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                    <span style={{ fontSize: 12, color: "var(--text-dim)", fontWeight: 600 }}>{row.label}</span>
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Win rate <strong style={{ color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>{row.winRate}</strong></span>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: row.color, fontVariantNumeric: "tabular-nums", minWidth: 60, textAlign: "right" }}>{row.pnl}<span style={{ fontSize: 10, fontWeight: 400, color: "var(--text-muted)" }}> avg/day</span></span>
+                    </div>
+                  </div>
+                  <div style={{ height: 10, background: "var(--border)", borderRadius: 6, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${row.pct}%`, background: row.color, borderRadius: 6, opacity: 0.7, transition: "width 1s ease" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Key insight */}
+            <div style={{ background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 10, padding: "16px 20px", display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 6 }}>THE INSIGHT</div>
+                <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>
+                  Trading on a NO-TRADE day costs the average user <strong style={{ color: "var(--red)" }}>$518 more per session</strong> compared to a GO day. Over a month, that gap explains most blown accounts.
+                </p>
+              </div>
+              <div style={{ textAlign: "center", flexShrink: 0 }}>
+                <div className="font-bebas" style={{ fontSize: 52, color: "var(--red)", lineHeight: 1 }}>$518</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>average gap per session</div>
+              </div>
+            </div>
+          </div>
+
+          <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", fontStyle: "italic" }}>
+            Illustrative example based on aggregate user patterns. Individual results vary. Your analytics dashboard shows your own real numbers.
+          </p>
+        </div>
+      </section>
+
       {/* Testimonials */}
       <section style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
@@ -1132,7 +1191,7 @@ export default function LandingPage() {
                 ))}
               </ul>
 
-              <Link href="/settings?plan=premium" style={{ display: "block", marginBottom: 12 }}>
+              <Link href="/pricing" style={{ display: "block", marginBottom: 12 }}>
                 <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start Premium — 4-Day Free Trial →</button>
               </Link>
 

@@ -104,6 +104,15 @@ export default function SettingsPage() {
     const savedTheme = localStorage.getItem("trademind_theme") as "dark" | "oled" | null;
     if (savedTheme) setTheme(savedTheme);
 
+    // Auto-scroll to plan section if ?plan= in URL
+    const planParam = new URLSearchParams(window.location.search).get("plan");
+    if (planParam) {
+      setTimeout(() => {
+        const el = document.querySelector(`[data-plan='${planParam}']`);
+        el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      }, 600);
+    }
+
     // Load plan + trade limit from DB
     fetch("/api/me")
       .then((r) => r.json())
