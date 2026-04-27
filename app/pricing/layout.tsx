@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Pricing — TradeMind",
-  description: "Start free. Upgrade when you're ready. Pro from $19/month — unlimited journal, analytics, accountability partners. Premium from $45/month adds AI Coach and broker sync. 7-day trial, cancel anytime.",
+  description: "Start free. Upgrade when you're ready. Pro from $19/month — unlimited journal, analytics, accountability partners. Premium from $45/month adds AI Coach and broker sync. 4-day trial, cancel anytime.",
   openGraph: {
     title: "Pricing — TradeMind",
     description: "Start free. Pro from $19/month. Premium from $45/month. 7-day free trial, cancel anytime.",

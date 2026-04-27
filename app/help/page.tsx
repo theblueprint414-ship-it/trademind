@@ -62,7 +62,7 @@ Once connected, trade data is pulled automatically and linked to your morning sc
     question: "Do I have to log trades manually?",
     answer: `No — if you connect your broker via MetaAPI, trades are imported automatically.
 
-If you prefer not to connect, or trade on a platform we don't yet support (cTrader, IBKR, Tradovate — all coming soon), CSV import is available under Journal → Import.
+If you prefer not to connect, or trade on a platform without direct API support (cTrader, IBKR — coming soon), CSV import is available under Journal → Import. Tradovate traders can export their Trade History as CSV and import it directly.
 
 Manual trade entry is also supported for traders who want to add only selective trades, or who trade on platforms without API access.
 
@@ -75,7 +75,7 @@ The most valuable field to fill in is P&L. Once you have at least 10 trades with
 
 Every session, Alex looks at your recent check-in history, streak, verdict distribution, and logged trades, then gives you one precise action for the day. Not "sleep more." More like: "Your last four losing days all followed sleep scores under 45. Your streak suggests you're currently consistent, but your sleep score has dropped three days in a row. Today I'd reduce size by 30% regardless of your verdict."
 
-Alex is available on Premium. During your 7-day trial, you have full access to try it.`,
+Alex is available on Premium. During your 4-day trial, you have full access to try it.`,
   },
   {
     id: "accountability",
