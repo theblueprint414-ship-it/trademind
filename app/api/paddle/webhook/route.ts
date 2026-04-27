@@ -1,5 +1,6 @@
 import { Paddle, Environment, EventName } from "@paddle/paddle-node-sdk";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
 type SubData = {
@@ -59,7 +60,7 @@ export async function POST(request: NextRequest) {
         } else if (sub.customerEmail) {
           await db.user.update({ where: { email: sub.customerEmail }, data: { plan } });
         } else {
-          console.error("Paddle webhook: cannot identify user — no userId or email", { eventType: event.eventType });
+          logger.error("Paddle webhook: cannot identify user — no userId or email", { eventType: event.eventType });
           return Response.json({ error: "Cannot identify user" }, { status: 400 });
         }
         break;
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
         } else if (sub.customerEmail) {
           await db.user.update({ where: { email: sub.customerEmail }, data: { plan } });
         } else {
-          console.error("Paddle webhook: cannot identify user for update", { eventType: event.eventType });
+          logger.error("Paddle webhook: cannot identify user for update", { eventType: event.eventType });
           return Response.json({ error: "Cannot identify user" }, { status: 400 });
         }
         break;
@@ -89,7 +90,7 @@ export async function POST(request: NextRequest) {
         } else if (sub.customerEmail) {
           await db.user.update({ where: { email: sub.customerEmail }, data: { plan: "free" } });
         } else {
-          console.error("Paddle webhook: cannot identify user for cancellation", { eventType: event.eventType });
+          logger.error("Paddle webhook: cannot identify user for cancellation", { eventType: event.eventType });
         }
         break;
       }
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
       }
     }
   } catch (err) {
-    console.error("Webhook DB update failed:", err);
+    logger.error("Webhook DB update failed", err);
     return Response.json({ error: "DB update failed" }, { status: 500 });
   }
 

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requireAuth, requirePlan } from "@/lib/planGuard";
 import { rateLimit } from "@/lib/ratelimit";
+import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
 const MAX_TEXT = 1000;
@@ -30,13 +31,17 @@ export async function GET(request: NextRequest) {
       ? { userId: auth.userId }
       : { userId: auth.userId, date: { gte: new Date(Date.now() - 7 * 86400000).toISOString().split("T")[0] } };
 
-  const entries = await db.tradeEntry.findMany({
-    where,
-    orderBy: { createdAt: "desc" },
-    take: limit,
-  });
-
-  return Response.json({ entries, plan: user?.plan ?? "free" });
+  try {
+    const entries = await db.tradeEntry.findMany({
+      where,
+      orderBy: { createdAt: "desc" },
+      take: limit,
+    });
+    return Response.json({ entries, plan: user?.plan ?? "free" });
+  } catch (err) {
+    logger.error("Journal GET failed", err, { userId: auth.userId });
+    return Response.json({ error: "Failed to fetch journal" }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -91,26 +96,30 @@ export async function POST(request: NextRequest) {
     tagsJson = JSON.stringify(filtered);
   }
 
-  const entry = await db.tradeEntry.create({
-    data: {
-      userId: guard.userId,
-      date,
-      symbol: symbol ? String(symbol).slice(0, 20).trim() : null,
-      side: side || null,
-      pnl: pnl ?? null,
-      setup: setup ? String(setup).slice(0, MAX_TEXT).trim() : null,
-      emotionBefore: emotionBefore ?? null,
-      emotionAfter: emotionAfter ?? null,
-      mistake: mistake ? String(mistake).slice(0, MAX_TEXT).trim() : null,
-      notes: notes ? String(notes).slice(0, MAX_TEXT).trim() : null,
-      checkinScore: checkinScore ?? null,
-      tags: tagsJson,
-      reflection: reflection ? String(reflection).slice(0, MAX_TEXT).trim() : null,
-      chartUrl: typeof chartUrl === "string" && chartUrl.startsWith("https://") ? chartUrl : null,
-    },
-  });
-
-  return Response.json({ ok: true, entry });
+  try {
+    const entry = await db.tradeEntry.create({
+      data: {
+        userId: guard.userId,
+        date,
+        symbol: symbol ? String(symbol).slice(0, 20).trim() : null,
+        side: side || null,
+        pnl: pnl ?? null,
+        setup: setup ? String(setup).slice(0, MAX_TEXT).trim() : null,
+        emotionBefore: emotionBefore ?? null,
+        emotionAfter: emotionAfter ?? null,
+        mistake: mistake ? String(mistake).slice(0, MAX_TEXT).trim() : null,
+        notes: notes ? String(notes).slice(0, MAX_TEXT).trim() : null,
+        checkinScore: checkinScore ?? null,
+        tags: tagsJson,
+        reflection: reflection ? String(reflection).slice(0, MAX_TEXT).trim() : null,
+        chartUrl: typeof chartUrl === "string" && chartUrl.startsWith("https://") ? chartUrl : null,
+      },
+    });
+    return Response.json({ ok: true, entry });
+  } catch (err) {
+    logger.error("Journal POST failed", err, { userId: guard.userId });
+    return Response.json({ error: "Failed to save trade" }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: NextRequest) {
@@ -173,8 +182,13 @@ export async function PATCH(request: NextRequest) {
   if (reflection !== undefined) updateData.reflection = reflection ? String(reflection).slice(0, MAX_TEXT).trim() : null;
   if (chartUrl !== undefined) updateData.chartUrl = typeof chartUrl === "string" && chartUrl.startsWith("https://") ? chartUrl : null;
 
-  const updated = await db.tradeEntry.update({ where: { id }, data: updateData });
-  return Response.json({ ok: true, entry: updated });
+  try {
+    const updated = await db.tradeEntry.update({ where: { id }, data: updateData });
+    return Response.json({ ok: true, entry: updated });
+  } catch (err) {
+    logger.error("Journal PATCH failed", err, { userId: guard.userId, id });
+    return Response.json({ error: "Failed to update trade" }, { status: 500 });
+  }
 }
 
 export async function DELETE(request: NextRequest) {
@@ -193,6 +207,11 @@ export async function DELETE(request: NextRequest) {
     return Response.json({ error: "Not found" }, { status: 404 });
   }
 
-  await db.tradeEntry.delete({ where: { id } });
-  return Response.json({ ok: true });
+  try {
+    await db.tradeEntry.delete({ where: { id } });
+    return Response.json({ ok: true });
+  } catch (err) {
+    logger.error("Journal DELETE failed", err, { userId: guard.userId, id });
+    return Response.json({ error: "Failed to delete trade" }, { status: 500 });
+  }
 }

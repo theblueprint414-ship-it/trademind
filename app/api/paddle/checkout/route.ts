@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { rateLimit } from "@/lib/ratelimit";
+import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
 // Returns config needed by the frontend to open Paddle Overlay Checkout
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
   const environment = process.env.PADDLE_ENVIRONMENT ?? "sandbox";
 
   if (!process.env.PADDLE_ENVIRONMENT) {
-    console.warn("PADDLE_ENVIRONMENT is not set — defaulting to sandbox. Set to 'production' for live payments.");
+    logger.warn("PADDLE_ENVIRONMENT is not set — defaulting to sandbox");
   }
 
   if (!clientToken || !priceId) {

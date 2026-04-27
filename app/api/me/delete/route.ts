@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
 export async function DELETE(req: NextRequest) {
@@ -15,8 +16,12 @@ export async function DELETE(req: NextRequest) {
 
   const userId = session.user.id;
 
-  // Cascade deletes all related data (onDelete: Cascade in schema)
-  await db.user.delete({ where: { id: userId } });
-
-  return Response.json({ ok: true, message: "Account and all data permanently deleted." });
+  try {
+    // Cascade deletes all related data (onDelete: Cascade in schema)
+    await db.user.delete({ where: { id: userId } });
+    return Response.json({ ok: true, message: "Account and all data permanently deleted." });
+  } catch (err) {
+    logger.error("Account delete failed", err, { userId });
+    return Response.json({ error: "Failed to delete account" }, { status: 500 });
+  }
 }

@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { requirePlan } from "@/lib/planGuard";
+import { logger } from "@/lib/logger";
 
 // GET /api/partners — list accepted partners with latest checkin
 export async function GET() {
@@ -11,46 +12,51 @@ export async function GET() {
   }
   const userId = guard.userId;
 
-  const partnerships = await db.partnership.findMany({
-    where: {
-      status: "active",
-      OR: [{ userAId: userId }, { userBId: userId }],
-    },
-    include: {
-      userA: { select: { id: true, name: true, email: true, image: true } },
-      userB: { select: { id: true, name: true, email: true, image: true } },
-    },
-  });
+  try {
+    const partnerships = await db.partnership.findMany({
+      where: {
+        status: "active",
+        OR: [{ userAId: userId }, { userBId: userId }],
+      },
+      include: {
+        userA: { select: { id: true, name: true, email: true, image: true } },
+        userB: { select: { id: true, name: true, email: true, image: true } },
+      },
+    });
 
-  const today = new Date().toISOString().split("T")[0];
+    const today = new Date().toISOString().split("T")[0];
 
-  const partners = await Promise.all(
-    partnerships.map(async (p) => {
-      const partner = p.userAId === userId ? p.userB : p.userA;
-      const latestCheckin = await db.checkin.findFirst({
-        where: { userId: partner.id },
-        orderBy: { date: "desc" },
-      });
-      const streak = await getStreak(partner.id);
+    const partners = await Promise.all(
+      partnerships.map(async (p) => {
+        const partner = p.userAId === userId ? p.userB : p.userA;
+        const latestCheckin = await db.checkin.findFirst({
+          where: { userId: partner.id },
+          orderBy: { date: "desc" },
+        });
+        const streak = await getStreak(partner.id);
 
-      return {
-        id: partner.id,
-        name: partner.name ?? partner.email,
-        email: partner.email,
-        avatar: getAvatar(partner.name ?? partner.email ?? ""),
-        score: latestCheckin?.score ?? null,
-        verdict: latestCheckin?.verdict ?? null,
-        streak,
-        lastCheckin: latestCheckin
-          ? latestCheckin.date === today
-            ? "Today"
-            : formatRelative(latestCheckin.date)
-          : "Never",
-      };
-    })
-  );
+        return {
+          id: partner.id,
+          name: partner.name ?? partner.email,
+          email: partner.email,
+          avatar: getAvatar(partner.name ?? partner.email ?? ""),
+          score: latestCheckin?.score ?? null,
+          verdict: latestCheckin?.verdict ?? null,
+          streak,
+          lastCheckin: latestCheckin
+            ? latestCheckin.date === today
+              ? "Today"
+              : formatRelative(latestCheckin.date)
+            : "Never",
+        };
+      })
+    );
 
-  return Response.json({ partners });
+    return Response.json({ partners });
+  } catch (err) {
+    logger.error("Partners GET failed", err, { userId });
+    return Response.json({ error: "Failed to fetch partners" }, { status: 500 });
+  }
 }
 
 // DELETE /api/partners?partnerId=xxx — remove a partnership
@@ -61,16 +67,20 @@ export async function DELETE(request: Request) {
   const partnerId = searchParams.get("partnerId");
   if (!partnerId) return Response.json({ error: "Missing partnerId" }, { status: 400 });
 
-  await db.partnership.deleteMany({
-    where: {
-      OR: [
-        { userAId: guard.userId, userBId: partnerId },
-        { userAId: partnerId, userBId: guard.userId },
-      ],
-    },
-  });
-
-  return Response.json({ ok: true });
+  try {
+    await db.partnership.deleteMany({
+      where: {
+        OR: [
+          { userAId: guard.userId, userBId: partnerId },
+          { userAId: partnerId, userBId: guard.userId },
+        ],
+      },
+    });
+    return Response.json({ ok: true });
+  } catch (err) {
+    logger.error("Partners DELETE failed", err, { userId: guard.userId });
+    return Response.json({ error: "Failed to remove partner" }, { status: 500 });
+  }
 }
 
 async function getStreak(userId: string): Promise<number> {

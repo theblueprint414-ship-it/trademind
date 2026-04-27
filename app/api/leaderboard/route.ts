@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { auth } from "@/auth";
+import { logger } from "@/lib/logger";
 import { NextResponse } from "next/server";
 
 function consistencyScore(streak: number, checkins30: number, avgScore30: number): number {
@@ -25,6 +26,7 @@ export async function GET() {
 
   const session = await auth();
 
+  try {
   const users = await db.user.findMany({
     where: { publicProfile: true },
     select: {
@@ -123,22 +125,30 @@ export async function GET() {
   }
 
   return NextResponse.json({ entries, currentUserEntry });
+  } catch (err) {
+    logger.error("Leaderboard GET failed", err);
+    return NextResponse.json({ error: "Failed to fetch leaderboard" }, { status: 500 });
+  }
 }
 
 export async function PATCH() {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await db.user.findUnique({
-    where: { id: session.user.id },
-    select: { publicProfile: true },
-  });
-  if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  try {
+    const user = await db.user.findUnique({
+      where: { id: session.user.id },
+      select: { publicProfile: true },
+    });
+    if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  await db.user.update({
-    where: { id: session.user.id },
-    data: { publicProfile: !user.publicProfile },
-  });
-
-  return NextResponse.json({ publicProfile: !user.publicProfile });
+    await db.user.update({
+      where: { id: session.user.id },
+      data: { publicProfile: !user.publicProfile },
+    });
+    return NextResponse.json({ publicProfile: !user.publicProfile });
+  } catch (err) {
+    logger.error("Leaderboard PATCH failed", err, { userId: session.user.id });
+    return NextResponse.json({ error: "Failed to update profile" }, { status: 500 });
+  }
 }

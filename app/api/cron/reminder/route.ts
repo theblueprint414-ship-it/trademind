@@ -5,6 +5,7 @@ import { Resend } from "resend";
 import { createHmac } from "crypto";
 import { NextRequest } from "next/server";
 import { sendPushToUser } from "@/lib/push";
+import { logger } from "@/lib/logger";
 
 const resend = new Resend(process.env.AUTH_RESEND_KEY);
 
@@ -111,7 +112,7 @@ export async function GET(req: NextRequest) {
       });
       sent++;
     } catch (err) {
-      console.error(`Reminder email failed for ${user.email}:`, err);
+      logger.error(`Reminder email failed for ${user.email}`, err);
     }
   }
 

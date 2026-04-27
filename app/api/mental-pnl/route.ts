@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requirePlan } from "@/lib/planGuard";
 import { rateLimit } from "@/lib/ratelimit";
+import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -12,6 +13,7 @@ export async function GET(request: NextRequest) {
 
   const userId = guard.userId;
 
+  try {
   const [checkins, trades] = await Promise.all([
     db.checkin.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 180 }),
     db.tradeEntry.findMany({ where: { userId, pnl: { not: null } }, orderBy: { date: "desc" }, take: 2000 }),
@@ -92,4 +94,8 @@ export async function GET(request: NextRequest) {
     timeline,
     hasData: checkins.length > 0 && trades.length > 0,
   });
+  } catch (err) {
+    logger.error("MentalPnl GET failed", err, { userId });
+    return Response.json({ error: "Failed to fetch mental P&L data" }, { status: 500 });
+  }
 }

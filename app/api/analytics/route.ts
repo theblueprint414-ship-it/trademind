@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requirePlan } from "@/lib/planGuard";
 import { rateLimit } from "@/lib/ratelimit";
+import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -12,6 +13,7 @@ export async function GET(request: NextRequest) {
 
   const userId = guard.userId;
 
+  try {
   const [checkins, tradeEntries, user, recaps] = await Promise.all([
     db.checkin.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 90 }),
     db.tradeEntry.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 500 }),
@@ -257,4 +259,8 @@ export async function GET(request: NextRequest) {
     playbookCompliance,
     recapPnlTrend,
   });
+  } catch (err) {
+    logger.error("Analytics GET failed", err, { userId });
+    return Response.json({ error: "Failed to fetch analytics" }, { status: 500 });
+  }
 }

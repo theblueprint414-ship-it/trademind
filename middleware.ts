@@ -32,6 +32,7 @@ const PUBLIC_PATHS = [
   "/u/",
   "/help",
   "/testimonials",
+  "/admin",
 ];
 const GATE_PATHS = ["/dashboard", "/partners", "/settings"];
 

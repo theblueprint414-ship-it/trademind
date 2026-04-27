@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { requirePlan } from "@/lib/planGuard";
+import { logger } from "@/lib/logger";
 
 // POST — use streak freeze for today (Pro only)
 export async function POST() {
@@ -26,19 +27,22 @@ export async function POST() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Insert a synthetic checkin with score 50 (CAUTION) marked as a freeze day
-  await db.checkin.upsert({
-    where: { userId_date: { userId: guard.userId, date: today } },
-    update: { score: 50, verdict: "CAUTION", answers: JSON.stringify({ freeze: true }) },
-    create: { userId: guard.userId, date: today, score: 50, verdict: "CAUTION", answers: JSON.stringify({ freeze: true }) },
-  });
-
-  await db.user.update({
-    where: { id: guard.userId },
-    data: { streakFreezeUsedAt: currentMonth },
-  });
-
-  return Response.json({ ok: true, message: "Streak protected for today." });
+  try {
+    // Insert a synthetic checkin with score 50 (CAUTION) marked as a freeze day
+    await db.checkin.upsert({
+      where: { userId_date: { userId: guard.userId, date: today } },
+      update: { score: 50, verdict: "CAUTION", answers: JSON.stringify({ freeze: true }) },
+      create: { userId: guard.userId, date: today, score: 50, verdict: "CAUTION", answers: JSON.stringify({ freeze: true }) },
+    });
+    await db.user.update({
+      where: { id: guard.userId },
+      data: { streakFreezeUsedAt: currentMonth },
+    });
+    return Response.json({ ok: true, message: "Streak protected for today." });
+  } catch (err) {
+    logger.error("StreakFreeze POST failed", err, { userId: guard.userId });
+    return Response.json({ error: "Failed to apply streak freeze" }, { status: 500 });
+  }
 }
 
 // GET — check freeze availability

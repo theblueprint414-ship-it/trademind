@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requirePlan, requireAuth } from "@/lib/planGuard";
 import { rateLimit } from "@/lib/ratelimit";
+import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -17,9 +18,14 @@ export async function GET(request: NextRequest) {
     return Response.json({ rules: [], premium: false });
   }
 
-  const playbook = await db.playbook.findUnique({ where: { userId: auth.userId } });
-  const rules = playbook ? JSON.parse(playbook.rules) : [];
-  return Response.json({ rules, premium: true });
+  try {
+    const playbook = await db.playbook.findUnique({ where: { userId: auth.userId } });
+    const rules = playbook ? JSON.parse(playbook.rules) : [];
+    return Response.json({ rules, premium: true });
+  } catch (err) {
+    logger.error("Playbook GET failed", err, { userId: auth.userId });
+    return Response.json({ error: "Failed to fetch playbook" }, { status: 500 });
+  }
 }
 
 export async function PUT(request: NextRequest) {
@@ -46,11 +52,15 @@ export async function PUT(request: NextRequest) {
     enabled: r.enabled !== false,
   })).filter((r: { text: string }) => r.text.length > 0);
 
-  await db.playbook.upsert({
-    where: { userId: guard.userId },
-    update: { rules: JSON.stringify(rules) },
-    create: { userId: guard.userId, rules: JSON.stringify(rules) },
-  });
-
-  return Response.json({ ok: true, rules });
+  try {
+    await db.playbook.upsert({
+      where: { userId: guard.userId },
+      update: { rules: JSON.stringify(rules) },
+      create: { userId: guard.userId, rules: JSON.stringify(rules) },
+    });
+    return Response.json({ ok: true, rules });
+  } catch (err) {
+    logger.error("Playbook PUT failed", err, { userId: guard.userId });
+    return Response.json({ error: "Failed to save playbook" }, { status: 500 });
+  }
 }

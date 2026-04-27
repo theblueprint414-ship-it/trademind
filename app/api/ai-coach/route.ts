@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { requirePlan } from "@/lib/planGuard";
 import { rateLimit } from "@/lib/ratelimit";
 import { NextRequest } from "next/server";
+import { logger } from "@/lib/logger";
 
 const SYSTEM_PROMPT = `You are Alex, an elite trading psychology coach with 20+ years coaching professional traders at top hedge funds. You specialize in behavioral finance and performance under pressure.
 
@@ -257,7 +258,7 @@ export async function POST(request: NextRequest) {
           }
           controller.close();
         } catch (err) {
-          console.error("AI Coach stream error:", err);
+          logger.error("AI Coach stream error", err);
           controller.error(err);
         }
       },

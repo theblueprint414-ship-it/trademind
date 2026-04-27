@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/ratelimit";
+import { logger } from "@/lib/logger";
 
 export async function POST(request: NextRequest) {
   const rl = await rateLimit(request, "normal");
@@ -36,11 +37,16 @@ export async function POST(request: NextRequest) {
   else if (score >= 45) verdict = "CAUTION";
   else verdict = "NO-TRADE";
 
-  await db.checkin.upsert({
-    where: { userId_date: { userId: session.user.id, date } },
-    update: { score, verdict, answers: JSON.stringify(answers) },
-    create: { userId: session.user.id, date, score, verdict, answers: JSON.stringify(answers) },
-  });
+  try {
+    await db.checkin.upsert({
+      where: { userId_date: { userId: session.user.id, date } },
+      update: { score, verdict, answers: JSON.stringify(answers) },
+      create: { userId: session.user.id, date, score, verdict, answers: JSON.stringify(answers) },
+    });
+  } catch (err) {
+    logger.error("Checkin DB upsert failed", err, { userId: session.user.id, date });
+    return Response.json({ error: "Failed to save check-in" }, { status: 500 });
+  }
 
   return Response.json({ ok: true, score, verdict, date });
 }
@@ -56,23 +62,28 @@ export async function GET(request: NextRequest) {
   const date = searchParams.get("date") || new Date().toISOString().split("T")[0];
   const limit = Math.min(Number(searchParams.get("limit") || 7), 90);
 
-  if (date === "history") {
-    const history = await db.checkin.findMany({
-      where: { userId: session.user.id },
-      orderBy: { date: "desc" },
-      take: limit,
-      select: { date: true, score: true, verdict: true },
+  try {
+    if (date === "history") {
+      const history = await db.checkin.findMany({
+        where: { userId: session.user.id },
+        orderBy: { date: "desc" },
+        take: limit,
+        select: { date: true, score: true, verdict: true },
+      });
+      return Response.json({ history });
+    }
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return Response.json({ error: "Invalid date format" }, { status: 400 });
+    }
+
+    const checkin = await db.checkin.findUnique({
+      where: { userId_date: { userId: session.user.id, date } },
     });
-    return Response.json({ history });
+
+    return Response.json({ date, score: checkin?.score ?? null, verdict: checkin?.verdict ?? null });
+  } catch (err) {
+    logger.error("Checkin GET failed", err, { userId: session.user.id });
+    return Response.json({ error: "Failed to fetch check-in" }, { status: 500 });
   }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return Response.json({ error: "Invalid date format" }, { status: 400 });
-  }
-
-  const checkin = await db.checkin.findUnique({
-    where: { userId_date: { userId: session.user.id, date } },
-  });
-
-  return Response.json({ date, score: checkin?.score ?? null, verdict: checkin?.verdict ?? null });
 }

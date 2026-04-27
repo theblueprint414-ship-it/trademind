@@ -273,3 +273,17 @@ model DailyRecap {
   @@unique([userId, date])
   @@index([userId])
 }
+
+model AppError {
+  id        String   @id @default(cuid())
+  message   String
+  stack     String?
+  route     String?
+  userId    String?
+  context   String?  // JSON
+  level     String   @default("error") // "error" | "warn"
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([level])
+}
