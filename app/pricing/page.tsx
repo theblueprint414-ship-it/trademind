@@ -46,8 +46,8 @@ const PLANS = [
     id: "premium",
     name: "Premium",
     tagline: "Know exactly why you keep losing — and fix it.",
-    price: { monthly: 45, annual: 38 },
-    annualTotal: 456,
+    price: { monthly: 45, annual: 37 },
+    annualTotal: 445,
     priceId: {
       monthly: process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID,
       annual:  process.env.NEXT_PUBLIC_PADDLE_PREMIUM_ANNUAL_PRICE_ID || process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID,

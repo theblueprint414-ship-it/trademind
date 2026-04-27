@@ -1,51 +1,43 @@
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/ratelimit";
+import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
-// GET /api/partners/feed — recent activity from all partners
 export async function GET(request: NextRequest) {
   const rl = await rateLimit(request, "normal");
   if (!rl.ok) return rl.response!;
 
   const session = await auth();
-  if (!session?.user?.id) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
 
-  const partnerships = await db.partnership.findMany({
-    where: {
-      status: "active",
-      OR: [{ userAId: userId }, { userBId: userId }],
-    },
-  });
-
-  const partnerIds = partnerships.map((p) =>
-    p.userAId === userId ? p.userBId : p.userAId
-  );
-
-  // Include self in feed
-  const allIds = [userId, ...partnerIds];
-
-  const checkins = await db.checkin.findMany({
-    where: { userId: { in: allIds } },
-    orderBy: { createdAt: "desc" },
-    take: 20,
-    include: { user: { select: { id: true, name: true, email: true } } },
-  });
-
-  const feed = checkins.map((c) => ({
-    userId: c.userId,
-    name: c.userId === userId ? "You" : (c.user.name ?? c.user.email),
-    score: c.score,
-    verdict: c.verdict,
-    date: c.date,
-    time: formatRelative(c.createdAt),
-    isSelf: c.userId === userId,
-  }));
-
-  return Response.json({ feed });
+  try {
+    const partnerships = await db.partnership.findMany({
+      where: { status: "active", OR: [{ userAId: userId }, { userBId: userId }] },
+    });
+    const partnerIds = partnerships.map((p) => p.userAId === userId ? p.userBId : p.userAId);
+    const allIds = [userId, ...partnerIds];
+    const checkins = await db.checkin.findMany({
+      where: { userId: { in: allIds } },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+    const feed = checkins.map((c) => ({
+      userId: c.userId,
+      name: c.userId === userId ? "You" : (c.user.name ?? c.user.email),
+      score: c.score,
+      verdict: c.verdict,
+      date: c.date,
+      time: formatRelative(c.createdAt),
+      isSelf: c.userId === userId,
+    }));
+    return Response.json({ feed });
+  } catch (err) {
+    logger.error("Partners feed GET failed", err, { userId });
+    return Response.json({ error: "Failed to fetch feed" }, { status: 500 });
+  }
 }
 
 function formatRelative(date: Date): string {
