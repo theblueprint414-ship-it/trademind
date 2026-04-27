@@ -95,7 +95,7 @@ export default function AboutPage() {
           </Link>
           <div style={{ display: "flex", gap: 8 }}>
             <Link href="/login"><button className="btn-ghost" style={{ padding: "8px 16px", fontSize: 13 }}>Log in</button></Link>
-            <Link href="/login?callbackUrl=/settings"><button className="btn-primary" style={{ padding: "9px 20px", fontSize: 13 }}>Start Free</button></Link>
+            <Link href="/login?callbackUrl=/checkin"><button className="btn-primary" style={{ padding: "9px 20px", fontSize: 13 }}>Start Free</button></Link>
           </div>
         </div>
       </nav>

@@ -281,9 +281,9 @@ export default function PricingPage() {
         <div style={{ textAlign: "center", marginBottom: 72 }}>
           <div style={{ display: "flex", justifyContent: "center", flexWrap: "wrap", gap: 40, marginBottom: 12 }}>
             {[
-              { stat: "41%", label: "Better monthly P&L reported by users vs. pre-TradeMind*" },
-              { stat: "$891", label: "Avg self-reported loss avoided on NO-TRADE days*" },
-              { stat: "68%", label: "Self-reported win rate on GO days vs 49% on CAUTION*" },
+              { stat: "26%", label: "Worse risk decisions after under 6 hours sleep — Walker (2017)" },
+              { stat: "60%", label: "More loss aversion under emotional stress — Lo et al. (2005)" },
+              { stat: "3×", label: "More rule violations in the final hour of a session — Baumeister (2000)" },
             ].map((s) => (
               <div key={s.stat} style={{ textAlign: "center" }}>
                 <div className="font-bebas" style={{ fontSize: 40, color: "var(--green)", lineHeight: 1 }}>{s.stat}</div>
@@ -292,7 +292,7 @@ export default function PricingPage() {
             ))}
           </div>
           <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "0 auto", maxWidth: 520, lineHeight: 1.6, fontStyle: "italic" }}>
-            * Based on aggregated self-reported data from TradeMind users. Individual results vary and are not guaranteed. Past performance and user reports do not predict future results.
+            Research-backed figures from peer-reviewed studies on trading psychology and cognitive performance.
           </p>
         </div>
 

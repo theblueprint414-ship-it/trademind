@@ -964,13 +964,7 @@ export default function LandingPage() {
           <div className="reveal" style={{ textAlign: "center", marginBottom: 48 }}>
             <h2 className="font-bebas" style={{ fontSize: "clamp(32px, 4vw, 48px)", marginBottom: 8 }}>From traders who stopped losing on the wrong days.</h2>
             <p style={{ fontSize: 14, color: "var(--text-dim)", marginBottom: 4 }}>Futures, prop firm, crypto, forex — same mental patterns, same solution.</p>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 12 }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(0,232,122,0.08)", border: "1px solid rgba(0,232,122,0.2)", borderRadius: 20, padding: "4px 12px", fontSize: 11, color: "var(--green)", fontWeight: 700 }}>
-                <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5l2 2 4-4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Verified users — screenshots available
-              </div>
-            </div>
-            <p style={{ fontSize: 11, color: "var(--text-muted)", fontStyle: "italic", marginTop: 8 }}>Individual results vary. Testimonials reflect personal experiences and are not a guarantee of similar outcomes.</p>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", fontStyle: "italic", marginTop: 8 }}>Names abbreviated for privacy. Individual results vary and are not a guarantee of similar outcomes.</p>
           </div>
 
           {/* Featured */}

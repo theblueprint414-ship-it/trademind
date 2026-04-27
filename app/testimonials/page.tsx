@@ -120,7 +120,7 @@ export default function TestimonialsPage() {
           </Link>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <Link href="/login" className="nav-link" style={{ fontSize: 13 }}>Log in</Link>
-            <Link href="/login?callbackUrl=/settings">
+            <Link href="/login?callbackUrl=/checkin">
               <button className="btn-primary" style={{ padding: "9px 20px", fontSize: 13 }}>Start Free →</button>
             </Link>
           </div>

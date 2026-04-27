@@ -144,7 +144,7 @@ export default function HelpPage() {
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <Link href="/dashboard" className="nav-link" style={{ fontSize: 13 }}>Dashboard</Link>
             <Link href="/contact" className="nav-link" style={{ fontSize: 13 }}>Contact</Link>
-            <Link href="/login?callbackUrl=/settings">
+            <Link href="/login?callbackUrl=/checkin">
               <button className="btn-primary" style={{ padding: "9px 20px", fontSize: 13 }}>Start Free →</button>
             </Link>
           </div>

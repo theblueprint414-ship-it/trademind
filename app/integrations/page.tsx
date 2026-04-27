@@ -209,7 +209,7 @@ export default function IntegrationsPage() {
           <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 12 }}>Ready to connect your broker?</h2>
           <p style={{ fontSize: 15, color: "var(--text-dim)", marginBottom: 28 }}>Start free. Broker sync available on Pro and Premium plans.</p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-            <Link href="/login?callbackUrl=/settings">
+            <Link href="/login?callbackUrl=/checkin">
               <button className="btn-primary" style={{ padding: "14px 32px", fontSize: 14 }}>Start Free Trial →</button>
             </Link>
             <Link href="/security">

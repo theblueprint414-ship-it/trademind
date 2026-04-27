@@ -124,7 +124,7 @@ export default function VsTradezellaPage() {
           </Link>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <Link href="/pricing" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>Pricing</Link>
-            <Link href="/login?callbackUrl=/settings">
+            <Link href="/login?callbackUrl=/checkin">
               <button className="btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>Start Free Trial</button>
             </Link>
           </div>
@@ -361,7 +361,7 @@ export default function VsTradezellaPage() {
           <p style={{ fontSize: 16, color: "var(--text-dim)", marginBottom: 32, maxWidth: 520, margin: "0 auto 32px", lineHeight: 1.7 }}>
             4-day free trial. Works alongside Tradezella or any journal you already use. Takes 60 seconds a day. Cancel before day 5 and you won&apos;t be charged a cent.
           </p>
-          <Link href="/login?callbackUrl=/settings">
+          <Link href="/login?callbackUrl=/checkin">
             <button className="btn-primary" style={{ fontSize: 16, padding: "18px 48px", borderRadius: 14, boxShadow: "0 8px 32px rgba(94,106,210,0.35)" }}>
               Start Free — 4 Days On Us →
             </button>

@@ -135,7 +135,7 @@ export default function SecurityPage() {
           <Link href="/" style={{ textDecoration: "none" }}>
             <img src="/logo.svg" alt="TradeMind" style={{ display: "block", width: 120, height: "auto" }} />
           </Link>
-          <Link href="/login?callbackUrl=/settings">
+          <Link href="/login?callbackUrl=/checkin">
             <button className="btn-primary" style={{ padding: "9px 20px", fontSize: 13 }}>Start Free Trial</button>
           </Link>
         </div>

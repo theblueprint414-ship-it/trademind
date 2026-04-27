@@ -24,7 +24,7 @@ export default function ForFtmoTradersPage() {
           <Link href="/" style={{ textDecoration: "none" }}>
             <img src="/logo.svg" alt="TradeMind" style={{ height: 22, display: "block" }} />
           </Link>
-          <Link href="/login?callbackUrl=/settings">
+          <Link href="/login?callbackUrl=/checkin">
             <button className="btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>Start Free Trial</button>
           </Link>
         </div>
@@ -45,7 +45,7 @@ export default function ForFtmoTradersPage() {
         <p style={{ fontSize: 18, color: "var(--text-dim)", lineHeight: 1.8, marginBottom: 40, maxWidth: 580, margin: "0 auto 40px" }}>
           You know the rules. Max daily loss: 5%. Max drawdown: 10%. One revenge trade on a stressed morning wipes your challenge. TradeMind tells you — before you open your charts — whether today is safe to trade.
         </p>
-        <Link href="/login?callbackUrl=/settings">
+        <Link href="/login?callbackUrl=/checkin">
           <button className="btn-primary" style={{ fontSize: 16, padding: "18px 44px", borderRadius: 12 }}>
             Protect My Funded Account — Free Trial →
           </button>
@@ -175,7 +175,7 @@ export default function ForFtmoTradersPage() {
           </div>
         </div>
 
-        <Link href="/login?callbackUrl=/settings">
+        <Link href="/login?callbackUrl=/checkin">
           <button className="btn-primary" style={{ fontSize: 16, padding: "18px 44px", borderRadius: 12, width: "100%" }}>
             Start Free Trial — 4 Days →
           </button>
