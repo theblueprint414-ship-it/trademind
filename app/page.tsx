@@ -421,7 +421,7 @@ export default function LandingPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, flexWrap: "wrap" }} className="hero-stat-row">
               {[
                 { icon: "✓", text: "4-day free trial — cancel before day 5, pay nothing" },
-                { icon: "✓", text: "Used by FTMO, TopStep, Apex & funded traders" },
+                { icon: "✓", text: "Popular with FTMO, TopStep, Apex & other funded traders" },
               ].map((item) => (
                 <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-muted)", letterSpacing: "-0.011em" }}>
                   <span style={{ color: "var(--green)", fontWeight: 700 }}>{item.icon}</span>
@@ -1081,8 +1081,8 @@ export default function LandingPage() {
           <div className="reveal" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 32 }}>
             {[
               { amount: "$550", label: "Average FTMO challenge fee", color: "var(--red)", note: "per failed attempt" },
-              { amount: "$800", label: "Typical blown session loss", color: "var(--amber)", note: "on a bad mental day" },
-              { amount: "$1,200", label: "Avg monthly loss from overtrading", color: "var(--purple)", note: "on compromised days" },
+              { amount: "$800", label: "Estimated blown session loss", color: "var(--amber)", note: "on a bad mental day" },
+              { amount: "$1,200", label: "Est. monthly loss from overtrading", color: "var(--purple)", note: "on compromised days" },
               { amount: "$19", label: "TradeMind Pro, per month", color: "var(--green)", note: "one avoidable loss covered" },
             ].map((item, i) => (
               <div key={i} className={`card reveal reveal-delay-${i + 1}`} style={{ padding: "24px 20px", textAlign: "center", borderColor: `${item.color}25` }}>
