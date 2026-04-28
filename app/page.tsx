@@ -748,9 +748,6 @@ export default function LandingPage() {
           <div className="how-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
             {STEPS.map((item, idx) => (
               <div key={item.step} className={`card reveal reveal-delay-${Math.min(idx + 1, 4)}`} style={{ padding: 28, borderColor: `${item.color}20`, position: "relative" }}>
-                {item.badge && (
-                  <div style={{ position: "absolute", top: 16, right: 16, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", padding: "3px 8px", borderRadius: 6 }}>{item.badge}</div>
-                )}
                 <div style={{ marginBottom: 16 }}>{item.icon}</div>
                 <div className="font-bebas" style={{ fontSize: 36, color: item.color, lineHeight: 1, marginBottom: 8, textShadow: `0 0 20px ${item.color}40` }}>{item.step}</div>
                 <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, color: "var(--text)" }}>{item.title}</h3>
