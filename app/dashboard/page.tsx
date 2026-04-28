@@ -373,24 +373,17 @@ export default function DashboardPage() {
         <div style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(7,11,20,0.94)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={() => setShowUpgradeWelcome(false)}>
           <div style={{ maxWidth: 400, width: "100%", textAlign: "center", background: "var(--surface)", border: `1px solid ${isPremium ? "rgba(139,92,246,0.3)" : "rgba(94,106,210,0.3)"}`, borderRadius: 20, padding: "48px 32px", boxShadow: `0 0 80px ${isPremium ? "rgba(139,92,246,0.1)" : "rgba(94,106,210,0.08)"}` }} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
-            <div className="font-bebas" style={{ fontSize: 52, lineHeight: 1, marginBottom: 12, background: isPremium ? "linear-gradient(135deg,#8B5CF6,#6366f1)" : "linear-gradient(135deg,#5e6ad2,#4a5bbd)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-              {isPremium ? "Welcome to Premium" : "Welcome to Pro"}
+            <div className="font-bebas" style={{ fontSize: 52, lineHeight: 1, marginBottom: 12, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+              Welcome to TradeMind
             </div>
             <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 28 }}>
-              {isPremium ? "Everything in Pro plus AI Coach Alex, broker auto-connect, deep behavioral pattern detection, Trading Playbook, and prop firm challenge tracker." : "Unlimited trade journal with emotion tracking, 90-day analytics, and accountability partners are now unlocked."}
+              Your full pre-flight protocol is unlocked — trade journal, AI Coach Alex, broker sync, behavioral pattern detection, Trading Playbook, and everything else.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {isPremium ? (
-                <>
-                  <Link href="/journal" style={{ display: "block" }}><button className="btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} onClick={() => setShowUpgradeWelcome(false)}>Open Trade Journal →</button></Link>
-                  <Link href="/coach" style={{ display: "block" }}><button className="btn-ghost" style={{ width: "100%", padding: 14, fontSize: 14 }} onClick={() => setShowUpgradeWelcome(false)}>Meet Your AI Coach →</button></Link>
-                </>
-              ) : (
-                <>
-                  <Link href="/journal" style={{ display: "block" }}><button className="btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} onClick={() => setShowUpgradeWelcome(false)}>Open Trade Journal →</button></Link>
-                  <Link href="/partners" style={{ display: "block" }}><button className="btn-ghost" style={{ width: "100%", padding: 14, fontSize: 14 }} onClick={() => setShowUpgradeWelcome(false)}>Invite a Partner →</button></Link>
-                </>
-              )}
+              <>
+                <Link href="/journal" style={{ display: "block" }}><button className="btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} onClick={() => setShowUpgradeWelcome(false)}>Open Trade Journal →</button></Link>
+                <Link href="/coach" style={{ display: "block" }}><button className="btn-ghost" style={{ width: "100%", padding: 14, fontSize: 14 }} onClick={() => setShowUpgradeWelcome(false)}>Meet AI Coach Alex →</button></Link>
+              </>
               <button onClick={() => setShowUpgradeWelcome(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 13, cursor: "pointer", padding: 8 }}>I&apos;ll explore on my own</button>
             </div>
           </div>
@@ -699,7 +692,7 @@ export default function DashboardPage() {
                 You&apos;ve done {monthlyCount} check-ins — unlock what the data is hiding
               </div>
               <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, lineHeight: 1.5 }}>
-                Pro unlocks your full 90-day history, psychology vs P&L correlation, and accountability partners.
+                TradeMind unlocks your full 90-day history, P&L vs. psychology correlation, AI Coach, and accountability partners.
               </p>
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
@@ -955,7 +948,7 @@ export default function DashboardPage() {
               { href: "/analytics", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17l4.5-6 3.5 3.5 4.5-8L19 11" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><rect x="3" y="3" width="16" height="14" rx="2" stroke="var(--amber)" strokeWidth="1.5"/></svg>, label: "Analytics", sub: "Patterns", color: "var(--amber)" },
               { href: "/playbook", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="3" width="14" height="16" rx="2.5" stroke="var(--purple)" strokeWidth="1.5"/><path d="M7 8h8M7 11h5M13 14l2-2 1.2 1.2" stroke="var(--purple)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>, label: "Playbook", sub: "Your rules", color: "var(--purple)" },
               { href: "/partners", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="8" r="3.5" stroke="var(--text-dim)" strokeWidth="1.5"/><circle cx="15" cy="8" r="3.5" stroke="var(--text-dim)" strokeWidth="1.5"/><path d="M2 19c0-2.76 2.686-5 6-5M13 14c3.314 0 6 2.24 6 5" stroke="var(--text-dim)" strokeWidth="1.5" strokeLinecap="round"/></svg>, label: "Partners", sub: "Accountability", color: "var(--text-dim)" },
-              { href: "/coach", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8" r="4" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M3 19c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/><path d="M17 4.5l1.5-1.5M18.5 7h1.5M17 9.5l1.5 1.5" stroke="#8B5CF6" strokeWidth="1.2" strokeLinecap="round"/></svg>, label: "AI Coach", sub: "Premium", color: "#8B5CF6", premium: !isPremium },
+              { href: "/coach", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8" r="4" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M3 19c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/><path d="M17 4.5l1.5-1.5M18.5 7h1.5M17 9.5l1.5 1.5" stroke="#8B5CF6" strokeWidth="1.2" strokeLinecap="round"/></svg>, label: "AI Coach", sub: "Alex", color: "#8B5CF6", premium: !isPro },
               { href: "/leaderboard", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="12" width="4" height="7" rx="1" stroke="var(--amber)" strokeWidth="1.5"/><rect x="9" y="7" width="4" height="12" rx="1" stroke="var(--amber)" strokeWidth="1.5"/><rect x="15" y="4" width="4" height="15" rx="1" stroke="var(--amber)" strokeWidth="1.5"/></svg>, label: "Leaderboard", sub: "Discipline rank", color: "var(--amber)" },
             ].map((item) => (
               <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
@@ -966,7 +959,7 @@ export default function DashboardPage() {
                     <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{item.sub}</div>
                   </div>
                   {item.premium && (
-                    <div style={{ position: "absolute", top: 6, right: 6, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 7, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 5px", borderRadius: 4 }}>PREMIUM</div>
+                    <div style={{ position: "absolute", top: 6, right: 6, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 7, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 5px", borderRadius: 4 }}>UPGRADE</div>
                   )}
                 </div>
               </Link>

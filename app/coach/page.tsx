@@ -108,10 +108,10 @@ export default function CoachPage() {
                 <span style={{ color: "#8B5CF6", flexShrink: 0 }}>✓</span>{f}
               </div>
             ))}
-            <div style={{ marginTop: 16, fontSize: 13, color: "var(--text-muted)" }}>Included in Premium · $45/mo · 4-day free trial</div>
+            <div style={{ marginTop: 16, fontSize: 13, color: "var(--text-muted)" }}>Included in TradeMind · $39/mo · 7-day free trial</div>
           </div>
           <Link href="/settings" style={{ display: "block" }}>
-            <button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 16, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start Premium — 4-Day Free Trial →</button>
+            <button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 16, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start Free Trial — 7 Days Free →</button>
           </Link>
         </div>
         <BottomNav />

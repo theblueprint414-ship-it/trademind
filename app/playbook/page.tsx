@@ -47,17 +47,17 @@ function PremiumUpsell() {
         </p>
         <div className="card" style={{ padding: 28, marginBottom: 24, border: "1px solid rgba(139,92,246,0.25)", background: "rgba(139,92,246,0.04)" }}>
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#8B5CF6", marginBottom: 16 }}>PREMIUM FEATURES INCLUDED</div>
-          {["Trading rules by category (Entry/Exit/Risk/Mindset)", "Shown before every check-in as a reminder", "8 starter rules to get you going", "Trade journal with emotion tracking & reflection", "Deep behavioral pattern detection", "Priority support & early feature access"].map((f) => (
+          {["Trading rules by category (Entry/Exit/Risk/Mindset)", "Shown before every check-in as a reminder", "8 starter rules to get you going", "Broker auto-connect (MT4/MT5 via MetaAPI)", "Deep behavioral pattern detection", "Priority support & early feature access"].map((f) => (
             <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 14, color: "var(--text-dim)", textAlign: "left" }}>
               <span style={{ color: "var(--green)", flexShrink: 0 }}>✓</span>{f}
             </div>
           ))}
           <div style={{ marginTop: 20, display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span className="font-bebas" style={{ fontSize: 48 }}>$45</span>
-            <span style={{ fontSize: 14, color: "var(--text-muted)" }}>/month • Cancel anytime</span>
+            <span className="font-bebas" style={{ fontSize: 48 }}>$39</span>
+            <span style={{ fontSize: 14, color: "var(--text-muted)" }}>/month • 7-day trial • Cancel anytime</span>
           </div>
         </div>
-        <Link href="/settings"><button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 16 }}>Upgrade to Premium →</button></Link>
+        <Link href="/settings"><button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 16 }}>Start 7-Day Free Trial →</button></Link>
       </div>
       <BottomNav />
     </div>

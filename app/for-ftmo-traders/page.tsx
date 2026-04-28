@@ -50,7 +50,7 @@ export default function ForFtmoTradersPage() {
             Protect My Funded Account — Free Trial →
           </button>
         </Link>
-        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 12 }}>4-day free trial. Cancel before day 5 — you won&apos;t be charged.</p>
+        <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 12 }}>7-day free trial. Cancel before day 8 — you won&apos;t be charged.</p>
       </section>
 
       {/* The math */}
@@ -149,35 +149,23 @@ export default function ForFtmoTradersPage() {
       <section style={{ maxWidth: 600, margin: "0 auto", padding: "64px 24px", textAlign: "center" }}>
         <h2 className="font-bebas" style={{ fontSize: 44, marginBottom: 12 }}>Less than one bad trade</h2>
         <p style={{ fontSize: 16, color: "var(--text-dim)", marginBottom: 36, lineHeight: 1.7 }}>
-          Pro plan: $19/month. Premium: $45/month. A single emotional trade on a funded $100K account can cost $1,000–$5,000. The math isn&apos;t even close.
+          TradeMind: $39/month. A single emotional trade on a funded $100K account can cost $1,000–$5,000. The math isn&apos;t even close.
         </p>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 36 }}>
-          <div style={{ background: "var(--surface)", border: "1px solid rgba(94,106,210,0.35)", borderRadius: 14, padding: "24px 20px" }}>
-            <div style={{ fontSize: 11, color: "var(--blue)", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 8 }}>PRO · $19/mo</div>
-            <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
-              {["Daily mental score", "GO / CAUTION / NO-TRADE", "Trade limit enforcement", "Trade journal + emotion tracking", "90-day analytics", "Accountability partners & circles"].map((f) => (
-                <li key={f} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>{f}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div style={{ background: "var(--surface)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 14, padding: "24px 20px" }}>
-            <div style={{ fontSize: 11, color: "#8B5CF6", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 8 }}>PREMIUM · $45/mo</div>
-            <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
-              {["Everything in Pro", "AI Coach Alex — daily briefing", "Broker auto-connect", "Behavioral pattern detection", "Trading Playbook & rules", "Challenge tracker (FTMO, TopStep & more)"].map((f) => (
-                <li key={f} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>{f}
-                </li>
-              ))}
-            </ul>
-          </div>
+        <div style={{ background: "var(--surface)", border: "1px solid rgba(139,92,246,0.35)", borderRadius: 14, padding: "28px 24px", marginBottom: 36 }}>
+          <div style={{ fontSize: 11, color: "#8B5CF6", letterSpacing: "0.1em", fontWeight: 700, marginBottom: 16 }}>TRADEMIND · $39/mo · everything included</div>
+          <ul style={{ listStyle: "none", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            {["Daily mental score + GO/CAUTION/NO-TRADE", "Trade journal + emotion tracking", "90-day analytics + P&L correlation", "AI Coach Alex — daily briefing", "Broker auto-connect (MT4/MT5)", "Behavioral pattern detection", "Trading Playbook & rules engine", "Challenge tracker (FTMO, TopStep & more)"].map((f) => (
+              <li key={f} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 13, color: "var(--text-dim)" }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>{f}
+              </li>
+            ))}
+          </ul>
         </div>
 
         <Link href="/login?callbackUrl=/checkin">
           <button className="btn-primary" style={{ fontSize: 16, padding: "18px 44px", borderRadius: 12, width: "100%" }}>
-            Start Free Trial — 4 Days →
+            Start Free Trial — 7 Days →
           </button>
         </Link>
       </section>

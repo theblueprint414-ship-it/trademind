@@ -166,12 +166,12 @@ export default function CirclesPage() {
     <div style={{ background: "var(--bg)", minHeight: "100vh", padding: "60px 20px" }}>
       <div style={{ maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
         <div style={{ fontSize: 40, marginBottom: 16 }}>👥</div>
-        <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Circles is a Pro feature</div>
+        <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Circles is a TradeMind feature</div>
         <p style={{ color: "var(--text-dim)", fontSize: 14, marginBottom: 24, lineHeight: 1.7 }}>
           Create accountability groups with your trading partners. See each other&apos;s mental state every morning — the most effective way to stay consistent.
         </p>
-        <Link href="/pricing" style={{ display: "inline-block", background: "var(--blue)", color: "#fff", padding: "12px 28px", borderRadius: 12, fontWeight: 700, textDecoration: "none" }}>
-          Upgrade to Pro →
+        <Link href="/pricing" style={{ display: "inline-block", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "#fff", padding: "12px 28px", borderRadius: 12, fontWeight: 700, textDecoration: "none" }}>
+          Start 7-Day Free Trial →
         </Link>
       </div>
       <BottomNav />

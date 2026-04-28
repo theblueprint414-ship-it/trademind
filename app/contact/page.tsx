@@ -41,7 +41,7 @@ export default function ContactPage() {
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 16 }}>COMMON ANSWERS</div>
           {[
             { q: "How do I cancel?", a: "Settings → Billing → Cancel plan. You keep access until the end of your paid period." },
-            { q: "How do I request a refund?", a: "We offer a 4-day free trial — no refunds after a payment processes. See our Refund Policy for details.", link: "/refund" },
+            { q: "How do I request a refund?", a: "We offer a 7-day free trial — no refunds after a payment processes. See our Refund Policy for details.", link: "/refund" },
             { q: "How do I delete my account?", a: "Settings → Account → Delete account. All your data is permanently removed." },
             { q: "How do I unsubscribe from emails?", a: "Click the unsubscribe link at the bottom of any TradeMind email, or go to Settings → Notifications." },
           ].map((item) => (

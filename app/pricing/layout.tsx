@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Pricing — TradeMind",
-  description: "Start free. Upgrade when you're ready. Pro from $19/month — unlimited journal, analytics, accountability partners. Premium from $45/month adds AI Coach and broker sync. 4-day trial, cancel anytime.",
+  description: "Start free. TradeMind from $39/month — full pre-flight protocol: check-in, AI Coach, broker sync, analytics, behavioral pattern detection, and everything else. 7-day trial, cancel anytime.",
   openGraph: {
     title: "Pricing — TradeMind",
-    description: "Start free. Pro from $19/month. Premium from $45/month. 7-day free trial, cancel anytime.",
+    description: "Start free. TradeMind $39/month — everything included. 7-day free trial, cancel anytime.",
     url: "https://trademindedge.com/pricing",
     siteName: "TradeMind",
     type: "website",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@trademindedge",
     title: "Pricing — TradeMind",
-    description: "Start free. Pro from $19/month. Premium from $45/month. 7-day free trial, cancel anytime.",
+    description: "Start free. TradeMind $39/month — everything included. 7-day free trial, cancel anytime.",
     images: ["https://trademindedge.com/api/og?score=82"],
   },
   alternates: { canonical: "https://trademindedge.com/pricing" },

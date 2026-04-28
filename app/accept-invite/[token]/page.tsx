@@ -183,14 +183,14 @@ export default function AcceptInvitePage() {
           <>
             <InviteHeader invite={invite} />
             <div style={{ background: "rgba(255,176,32,0.06)", border: "1px solid rgba(255,176,32,0.2)", borderRadius: 10, padding: "16px 18px", marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--amber)", marginBottom: 6 }}>Pro plan required</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--amber)", marginBottom: 6 }}>TradeMind subscription required</div>
               <p style={{ fontSize: 13, color: "var(--text-dim)", margin: 0, lineHeight: 1.6 }}>
-                Accountability partners require a Pro subscription. You&apos;ll be connected automatically after upgrading.
+                Accountability partners require a TradeMind subscription. You&apos;ll be connected automatically after upgrading.
               </p>
             </div>
             <div style={{ marginBottom: 16, padding: "20px", background: "var(--surface2)", borderRadius: 12, textAlign: "center" }}>
-              <div className="font-bebas" style={{ fontSize: 40, lineHeight: 1 }}>$29</div>
-              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>/month · Cancel anytime</div>
+              <div className="font-bebas" style={{ fontSize: 40, lineHeight: 1 }}>$39</div>
+              <div style={{ fontSize: 12, color: "var(--text-muted)" }}>/month · 7-day free trial</div>
             </div>
             <button
               className="btn-primary"
@@ -198,7 +198,7 @@ export default function AcceptInvitePage() {
               onClick={openCheckout}
               disabled={checkoutLoading || !paddle}
             >
-              {checkoutLoading ? "Loading..." : !paddle ? "Loading payment..." : "Upgrade to Pro & join →"}
+              {checkoutLoading ? "Loading..." : !paddle ? "Loading payment..." : "Start Free Trial & join →"}
             </button>
             <button className="btn-ghost" style={{ width: "100%", padding: 10, fontSize: 13 }} onClick={handleDecline}>
               Decline invite

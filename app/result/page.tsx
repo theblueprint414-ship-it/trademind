@@ -264,6 +264,9 @@ function launchConfetti() {
   requestAnimationFrame(draw);
 }
 
+const SCAN_LABELS = ["Sleep Quality", "Emotional State", "Focus Level", "Financial Stress", "Recent Performance"];
+const SCAN_TOTAL_MS = SCAN_LABELS.length * 240 + 500; // ~1700ms
+
 function ResultContent() {
   const params = useSearchParams();
   const score = Number(params.get("score") ?? 0);
@@ -281,6 +284,8 @@ function ResultContent() {
   const [revealPhase, setRevealPhase] = useState(0); // 0=hidden, 1=ring, 2=verdict, 3=rest
   const [typedCoach, setTypedCoach] = useState("");
   const typingRef = useRef<NodeJS.Timeout | null>(null);
+  const [scanStep, setScanStep] = useState(0);
+  const [scanDone, setScanDone] = useState(false);
 
   // Lifestyle quick-add
   const [lifestyleSubmitted, setLifestyleSubmitted] = useState(false);
@@ -314,10 +319,16 @@ function ResultContent() {
   const [satOutSaving, setSatOutSaving] = useState(false);
 
   useEffect(() => {
-    // Staggered reveal
-    setTimeout(() => { setVisible(true); setRevealPhase(1); }, 80);
-    setTimeout(() => setRevealPhase(2), 600);
-    setTimeout(() => setRevealPhase(3), 1000);
+    // Pre-flight scan: check each dimension then reveal result
+    SCAN_LABELS.forEach((_, i) => {
+      setTimeout(() => setScanStep(i + 1), (i + 1) * 240);
+    });
+    setTimeout(() => setScanDone(true), SCAN_TOTAL_MS);
+
+    // Staggered reveal — offset by scan duration
+    setTimeout(() => { setVisible(true); setRevealPhase(1); }, SCAN_TOTAL_MS + 80);
+    setTimeout(() => setRevealPhase(2), SCAN_TOTAL_MS + 600);
+    setTimeout(() => setRevealPhase(3), SCAN_TOTAL_MS + 1000);
 
     try {
       const limit = Number(localStorage.getItem("trademind_trade_limit") || 5);
@@ -402,7 +413,70 @@ function ResultContent() {
         .card-stagger-4 { animation: card-in 0.5s ease 0.9s both; }
         .tip-row { transition: background 0.15s ease, padding-left 0.15s ease; border-radius: 8px; }
         .tip-row:hover { background: var(--surface2); padding-left: 8px; }
+        @keyframes scan-line { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
+        @keyframes scan-fade-out { 0%{opacity:1} 100%{opacity:0;pointer-events:none} }
       `}</style>
+
+      {/* Pre-flight scan overlay */}
+      {!scanDone && (
+        <div style={{
+          position: "fixed", inset: 0, zIndex: 9000, background: "var(--bg)",
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          padding: 40,
+        }}>
+          <div style={{ width: "100%", maxWidth: 340 }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", color: verdict.color, marginBottom: 28, textAlign: "center" }}>
+              PRE-FLIGHT ANALYSIS
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {SCAN_LABELS.map((label, i) => {
+                const done = scanStep > i;
+                const active = scanStep === i;
+                return (
+                  <div key={label} style={{ display: "flex", alignItems: "center", gap: 14, opacity: done || active ? 1 : 0.25, transition: "opacity 0.2s ease" }}>
+                    <div style={{
+                      width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
+                      border: `1.5px solid ${done ? verdict.color : "var(--border)"}`,
+                      background: done ? `${verdict.color}20` : "transparent",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "all 0.2s ease",
+                    }}>
+                      {done && (
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <path d="M2 5l2.5 2.5 4-4" stroke={verdict.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                      {active && (
+                        <div style={{ width: 6, height: 6, borderRadius: "50%", background: verdict.color, animation: "glow-pulse 0.8s ease-in-out infinite" }} />
+                      )}
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, color: done ? "var(--text)" : "var(--text-muted)", fontWeight: done ? 600 : 400, transition: "color 0.2s" }}>
+                        {label}
+                      </div>
+                      {/* Scan bar for active item */}
+                      {active && (
+                        <div style={{ marginTop: 4, height: 2, background: "var(--surface3)", borderRadius: 1, overflow: "hidden" }}>
+                          <div style={{ height: "100%", background: verdict.color, width: "100%", transformOrigin: "left", animation: "scan-line 0.22s linear forwards" }} />
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ fontSize: 11, color: done ? verdict.color : "transparent", fontWeight: 700, transition: "color 0.2s", letterSpacing: "0.06em" }}>
+                      {done ? "OK" : ""}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {scanStep >= SCAN_LABELS.length && (
+              <div style={{ marginTop: 32, textAlign: "center", fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: verdict.color, animation: "card-in 0.3s ease both" }}>
+                ANALYSIS COMPLETE — GENERATING VERDICT
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
 
       {/* Milestone overlay */}
       {showMilestone && milestone && (

@@ -695,18 +695,18 @@ function PremiumUpsell() {
           See your mental score trend, P&L correlation, 90-day calendar, and estimated losses you avoided — the data no other tool shows.
         </p>
         <div className="card" style={{ padding: 28, marginBottom: 24, border: "1px solid rgba(94,106,210,0.25)", background: "rgba(94,106,210,0.04)" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", marginBottom: 16 }}>PRO PLAN INCLUDES</div>
-          {["Mental score trend (30/90 day)", "Psychology vs P&L correlation chart", "90-day calendar heatmap", "Estimated saved losses counter", "Discipline % and streak tracking", "Trade journal, partners & email reminders"].map((f) => (
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#8B5CF6", marginBottom: 16 }}>TRADEMIND INCLUDES</div>
+          {["Mental score trend (30/90 day)", "Psychology vs P&L correlation chart", "90-day calendar heatmap", "Estimated saved losses counter", "Discipline % and streak tracking", "AI Coach Alex, broker sync & behavioral pattern detection"].map((f) => (
             <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 14, color: "var(--text-dim)", textAlign: "left" }}>
               <span style={{ color: "var(--green)", flexShrink: 0 }}>✓</span>{f}
             </div>
           ))}
           <div style={{ marginTop: 20, display: "flex", alignItems: "baseline", gap: 6 }}>
-            <span className="font-bebas" style={{ fontSize: 48 }}>$19</span>
-            <span style={{ fontSize: 14, color: "var(--text-muted)" }}>/month • 4-day trial • Cancel anytime</span>
+            <span className="font-bebas" style={{ fontSize: 48 }}>$39</span>
+            <span style={{ fontSize: 14, color: "var(--text-muted)" }}>/month • 7-day trial • Cancel anytime</span>
           </div>
         </div>
-        <Link href="/settings"><button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 16 }}>Start Pro — 4-Day Free Trial →</button></Link>
+        <Link href="/settings"><button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 16 }}>Start Free Trial — 7 Days Free →</button></Link>
       </div>
       <BottomNav />
     </div>

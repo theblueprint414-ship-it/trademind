@@ -50,13 +50,13 @@ const STEPS = [
   {
     step: "05", color: "#8B5CF6",
     icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="10" r="5" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M9 22c0-2.761 2.239-5 5-5s5 2.239 5 5" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/><path d="M20 8l2-2M22 12h2M20 16l2 2" stroke="#8B5CF6" strokeWidth="1.2" strokeLinecap="round"/></svg>,
-    title: "AI Coach", badge: "PREMIUM",
+    title: "AI Coach",
     desc: "Alex analyzes your check-in history, journal, and P&L to find the specific patterns costing you money — then gives you one concrete thing to fix. Not generic advice. Your data.",
   },
   {
     step: "06", color: "#8B5CF6",
     icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 20l5-7 4 4 4-8 5 6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="4" width="20" height="16" rx="2" stroke="#8B5CF6" strokeWidth="1.5"/></svg>,
-    title: "Deep Analytics", badge: "PRO",
+    title: "Deep Analytics",
     desc: "See your psychology vs P&L correlation, 90-day heatmap, and estimated losses you avoided. When you see the number, you stop skipping your check-in.",
   },
 ];
@@ -146,7 +146,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "Can I cancel anytime?",
-    a: "Yes. Cancel in one click from settings. Your 4-day trial is completely free — no charge until day 5. If you cancel before then, you pay nothing. If you're a paying subscriber, you'll retain access until the end of your billing period.",
+    a: "Yes. Cancel in one click from settings. Your 7-day trial is completely free — no charge until day 8. If you cancel before then, you pay nothing. If you're a paying subscriber, you'll retain access until the end of your billing period.",
   },
 ];
 
@@ -420,7 +420,7 @@ export default function LandingPage() {
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, flexWrap: "wrap" }} className="hero-stat-row">
               {[
-                { icon: "✓", text: "4-day free trial — cancel before day 5, pay nothing" },
+                { icon: "✓", text: "7-day free trial — cancel before day 8, pay nothing" },
                 { icon: "✓", text: "Popular with FTMO, TopStep, Apex & other funded traders" },
               ].map((item) => (
                 <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-muted)", letterSpacing: "-0.011em" }}>
@@ -727,7 +727,7 @@ export default function LandingPage() {
               color: "var(--green)",
             },
             { value: "5", label: "questions, 60 seconds", color: "var(--blue)" },
-            { value: "3×", label: "more losses on sub-45 days", color: "var(--amber)" },
+            { value: "3×", label: "more rule violations in the final session hour", color: "var(--amber)" },
             { value: "Free", label: "to start — no card needed", color: "var(--text-dim)" },
           ].map((s) => (
             <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1083,7 +1083,7 @@ export default function LandingPage() {
               { amount: "$550", label: "Average FTMO challenge fee", color: "var(--red)", note: "per failed attempt" },
               { amount: "$800", label: "Estimated blown session loss", color: "var(--amber)", note: "on a bad mental day" },
               { amount: "$1,200", label: "Est. monthly loss from overtrading", color: "var(--purple)", note: "on compromised days" },
-              { amount: "$19", label: "TradeMind Pro, per month", color: "var(--green)", note: "one avoidable loss covered" },
+              { amount: "$39", label: "TradeMind, per month", color: "var(--green)", note: "one avoidable loss covered" },
             ].map((item, i) => (
               <div key={i} className={`card reveal reveal-delay-${i + 1}`} style={{ padding: "24px 20px", textAlign: "center", borderColor: `${item.color}25` }}>
                 <div className="font-bebas" style={{ fontSize: 44, color: item.color, lineHeight: 1, marginBottom: 8 }}>{item.amount}</div>
@@ -1105,97 +1105,56 @@ export default function LandingPage() {
       <section id="pricing" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="reveal" style={{ textAlign: "center", marginBottom: 40 }}>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>Two levels of edge</h2>
-            <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>4-day free trial on every plan. Cancel before day 5 and you won&apos;t be charged a cent.</p>
+            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>One plan. Everything included.</h2>
+            <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>7-day free trial. Cancel before day 8 and you won&apos;t be charged a cent.</p>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,176,32,0.08)", border: "1px solid rgba(255,176,32,0.25)", borderRadius: 20, padding: "8px 20px", fontSize: 13, color: "var(--amber)", fontWeight: 600 }}>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.3 3 3.2.5-2.3 2.2.5 3.1L7 8.4 4.3 9.8l.5-3.1L2.5 4.5l3.2-.5L7 1z" fill="var(--amber)" opacity="0.8"/></svg>
               Founding member pricing — locked forever for early signups
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20, alignItems: "stretch", maxWidth: 800, margin: "0 auto" }}>
-
-            {/* Pro */}
-            <div className="card reveal" style={{ padding: 36, border: "1px solid rgba(94,106,210,0.4)", background: "linear-gradient(135deg, rgba(94,106,210,0.06) 0%, var(--surface) 60%)", position: "relative", boxShadow: "0 0 50px rgba(94,106,210,0.12)", display: "flex", flexDirection: "column" }}>
-              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#5e6ad2,#4a5bbd)", color: "white", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", padding: "5px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>Most traders choose this</div>
+          <div style={{ maxWidth: 520, margin: "0 auto" }}>
+            <div className="card reveal" style={{ padding: 40, border: "1px solid rgba(139,92,246,0.4)", background: "linear-gradient(135deg, rgba(139,92,246,0.06) 0%, var(--surface) 60%)", position: "relative", boxShadow: "0 0 60px rgba(139,92,246,0.12)", display: "flex", flexDirection: "column" }}>
+              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", padding: "5px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>The complete pre-flight protocol</div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <div style={{ fontSize: 11, color: "var(--blue)", letterSpacing: "0.12em", fontWeight: 700 }}>PRO</div>
-                <div style={{ background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.25)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "var(--blue)", fontWeight: 700 }}>4 DAYS FREE</div>
+                <div style={{ fontSize: 11, color: "#8B5CF6", letterSpacing: "0.12em", fontWeight: 700 }}>TRADEMIND</div>
+                <div style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "#8B5CF6", fontWeight: 700 }}>7 DAYS FREE</div>
               </div>
-              <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 8, fontStyle: "italic" }}>Know when to trade — and when to stay out.</div>
-              <div style={{ fontSize: 12, color: "var(--blue)", fontWeight: 600, marginBottom: 16 }}>One avoided bad trade pays for the entire year.</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
-                <div className="font-bebas" style={{ fontSize: 56, lineHeight: 1 }}>$19</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 14 }}>/month</div>
-              </div>
-              <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>Cancel before day 5 — you won&apos;t be charged.</div>
-
-              <ul style={{ listStyle: "none", marginBottom: 28, flex: 1, display: "flex", flexDirection: "column", gap: 0 }}>
-                {["Daily mental check-in + GO / CAUTION / NO-TRADE score", "Daily trade limit enforcement", "Trade Journal + emotion tracking", "90-day analytics & performance insights", "Accountability Partners", "Circle groups (team accountability)", "Email reminders & re-engagement", "Streak freeze (1× per month)"].map((f) => (
-                  <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)" }}>
-                    <CheckIcon color="var(--blue)" />{f}
-                  </li>
-                ))}
-              </ul>
-              <div style={{ display: "flex", gap: 8, marginBottom: 12, alignItems: "stretch" }}>
-                <Link href="/login?callbackUrl=/checkin" style={{ display: "block", flex: 1 }}>
-                  <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15 }}>Start Pro — Find out if you should trade today →</button>
-                </Link>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,176,32,0.06)", border: "1px solid rgba(255,176,32,0.18)", borderRadius: 8, padding: "8px 14px", marginBottom: 12 }}>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ flexShrink: 0 }}><path d="M6 1l1 2.5 2.5.4-1.8 1.7.4 2.5L6 6.8l-2.1 1.3.4-2.5L2.5 3.9 5 3.5z" fill="var(--amber)" opacity="0.8"/></svg>
-                <span style={{ fontSize: 11, color: "var(--amber)", fontWeight: 600 }}>Early Adopter price — will increase soon</span>
-              </div>
-              <div style={{ background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.18)", borderRadius: 8, padding: "10px 14px", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                <div>
-                  <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.06em", marginBottom: 2 }}>ANNUAL PLAN</div>
-                  <div style={{ fontSize: 13, color: "var(--text-dim)" }}>$192/year — save $36 vs monthly (15% off)</div>
-                </div>
-                <Link href="/pricing" style={{ fontSize: 12, color: "var(--blue)", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>Get annual →</Link>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", borderTop: "1px solid rgba(94,106,210,0.15)" }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.3 2.8 3.2.4-2.3 2.2.5 3.1L8 8l-2.7 1.5.5-3.1L3.5 4.2l3.2-.4L8 1z" stroke="var(--green)" strokeWidth="1.2" strokeLinejoin="round"/></svg>
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>4-day free trial · No charge until day 5 · Cancel anytime</span>
-              </div>
-            </div>
-
-            {/* Premium */}
-            <div className="card reveal reveal-delay-1" style={{ padding: 36, border: "1px solid rgba(139,92,246,0.3)", background: "linear-gradient(135deg, rgba(139,92,246,0.06) 0%, var(--surface) 60%)", display: "flex", flexDirection: "column" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <div style={{ fontSize: 11, color: "#8B5CF6", letterSpacing: "0.12em", fontWeight: 700 }}>PREMIUM</div>
-                <div style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "#8B5CF6", fontWeight: 700 }}>4 DAYS FREE</div>
-              </div>
-              <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 8, fontStyle: "italic" }}>Know exactly why you keep losing — and fix it.</div>
+              <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 8, fontStyle: "italic" }}>The pre-flight checklist for serious traders.</div>
               <div style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 600, marginBottom: 16 }}>Less than the cost of one failed FTMO challenge retry.</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
-                <div className="font-bebas" style={{ fontSize: 56, lineHeight: 1 }}>$45</div>
+                <div className="font-bebas" style={{ fontSize: 56, lineHeight: 1 }}>$39</div>
                 <div style={{ color: "var(--text-muted)", fontSize: 14 }}>/month</div>
               </div>
-              <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 16 }}>Less than one bad trade. Cancel before day 5 — you won&apos;t be charged.</div>
+              <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>Cancel before day 8 — you won&apos;t be charged.</div>
 
-              <div style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", borderRadius: 8, padding: "8px 12px", marginBottom: 16, fontSize: 12, color: "#8B5CF6", fontWeight: 600 }}>
-                ✓ Everything in Pro, plus:
-              </div>
-
-              <ul style={{ listStyle: "none", marginBottom: 24, flex: 1, display: "flex", flexDirection: "column", gap: 0 }}>
-                {["Alex AI Coach — daily briefing & chat", "Broker auto-connect (MT4/MT5, TopstepX + CSV)", "Prop firm challenge tracker (FTMO, TopStep & more)", "Deep behavioral pattern detection (revenge, FOMO, overtrading)", "Trading Playbook & rules engine", "Custom check-in questions", "Unlimited history", "Priority support & onboarding"].map((f) => (
+              <ul style={{ listStyle: "none", marginBottom: 28, flex: 1, display: "flex", flexDirection: "column", gap: 0 }}>
+                {["Daily mental check-in + GO / CAUTION / NO-TRADE verdict", "Trade Journal + emotion tracking, tags & reflection", "90-day analytics + P&L vs. psychology correlation", "Accountability partners + circle groups", "AI Coach Alex — daily briefing & personalized insights", "Broker auto-connect (MT4/MT5, TopstepX + CSV)", "Deep behavioral pattern detection (revenge, FOMO, overtrading)", "Trading Playbook & rules engine", "Prop firm challenge tracker (FTMO, TopStep & more)", "Mental P&L — see what psychology costs you in dollars", "Unlimited history + priority support"].map((f) => (
                   <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)" }}>
                     <CheckIcon color="#8B5CF6" />{f}
                   </li>
                 ))}
               </ul>
 
-              <Link href="/pricing" style={{ display: "block", marginBottom: 12 }}>
-                <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start Premium — 4-Day Free Trial →</button>
+              <Link href="/login?callbackUrl=/checkin" style={{ display: "block", marginBottom: 12 }}>
+                <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start Pre-Flight — 7-Day Free Trial →</button>
               </Link>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.18)", borderRadius: 8, padding: "10px 14px", marginBottom: 12, justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontSize: 11, color: "#8B5CF6", fontWeight: 700, letterSpacing: "0.06em", marginBottom: 2 }}>ANNUAL PLAN</div>
+                  <div style={{ fontSize: 13, color: "var(--text-dim)" }}>$348/year — save $120 vs monthly (26% off)</div>
+                </div>
+                <Link href="/pricing" style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>Get annual →</Link>
+              </div>
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", borderTop: "1px solid rgba(139,92,246,0.15)" }}>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.3 2.8 3.2.4-2.3 2.2.5 3.1L8 8l-2.7 1.5.5-3.1L3.5 4.2l3.2-.4L8 1z" stroke="var(--green)" strokeWidth="1.2" strokeLinejoin="round"/></svg>
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>4-day free trial · No charge until day 5 · Cancel anytime</span>
+                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>7-day free trial · No charge until day 8 · Cancel anytime</span>
               </div>
             </div>
-
           </div>
+
           <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", marginTop: 32 }}>
             Already have an account?{" "}
             <Link href="/login" style={{ color: "var(--blue)", textDecoration: "none", fontWeight: 600 }}>Log in here</Link>
@@ -1227,7 +1186,7 @@ export default function LandingPage() {
           <div className="reveal reveal-delay-2" style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.15)", borderRadius: 10, padding: "12px 20px", marginBottom: 36 }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><path d="M7 1l1.3 3 3.2.5-2.3 2.2.5 3.1L7 8.4 4.3 9.8l.5-3.1L2.5 4.5l3.2-.5L7 1z" fill="var(--red)" opacity="0.8"/></svg>
             <span style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.5 }}>
-              <strong style={{ color: "var(--text)" }}>95% of prop traders fail their first challenge.</strong> The ones who pass know exactly when not to trade.
+              <strong style={{ color: "var(--text)" }}>The majority of prop traders fail their first challenge.</strong> The ones who pass know exactly when not to trade.
             </span>
           </div>
           <div className="reveal reveal-delay-2">
@@ -1237,7 +1196,7 @@ export default function LandingPage() {
               </button>
             </Link>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, marginTop: 20, flexWrap: "wrap" }}>
-              {["4 days free", "No charge until day 5", "Cancel in one click"].map((t) => (
+              {["7 days free", "No charge until day 8", "Cancel in one click"].map((t) => (
                 <div key={t} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{t}</span>

@@ -75,7 +75,7 @@ The most valuable field to fill in is P&L. Once you have at least 10 trades with
 
 Every session, Alex looks at your recent check-in history, streak, verdict distribution, and logged trades, then gives you one precise action for the day. Not "sleep more." More like: "Your last four losing days all followed sleep scores under 45. Your streak suggests you're currently consistent, but your sleep score has dropped three days in a row. Today I'd reduce size by 30% regardless of your verdict."
 
-Alex is available on Premium. During your 4-day trial, you have full access to try it.`,
+Alex is available on TradeMind. During your 7-day trial, you have full access to try it.`,
   },
   {
     id: "accountability",
@@ -97,14 +97,14 @@ You can export all your data or delete your account at any time under Settings. 
   },
   {
     id: "pricing",
-    question: "What's the difference between Free, Pro, and Premium?",
+    question: "What's the difference between Free and TradeMind?",
     answer: `Free: Daily check-in, score + verdict, 7-day history. No credit card required, forever.
 
-Pro ($19/month): Unlimited check-in history, trade journal, full analytics (P&L vs. psychology correlation, verdict breakdown, best/worst day analysis), broker sync via MetaAPI, CSV import, accountability partners.
+TradeMind ($39/month): Everything. Unlimited check-in history, trade journal with emotion tracking, full analytics (P&L vs. psychology correlation, verdict breakdown, 90-day calendar), CSV import, accountability partners, circle groups, AI Coach (Alex), broker auto-connect (MT4/MT5, TopstepX), prop firm challenge tracker, behavioral pattern detection, Trading Playbook, lifestyle correlation, weekly performance reports, and priority support.
 
-Premium ($45/month): Everything in Pro, plus AI Coach (Alex), lifestyle correlation (exercise, sleep depth impact on score), trading circles, weekly performance reports emailed to you, and priority support.
+Annual plan: $29/month ($348/year) — saves $120 vs monthly.
 
-All paid plans start with a 7-day free trial. No charge until day 8 — cancel anytime in Settings before then.`,
+Starts with a 7-day free trial. No charge until day 8 — cancel anytime in Settings before then.`,
   },
   {
     id: "data-delete",

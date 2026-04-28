@@ -359,7 +359,7 @@ export default function VsTradezellaPage() {
             The windshield costs less than one blown trade.
           </h2>
           <p style={{ fontSize: 16, color: "var(--text-dim)", marginBottom: 32, maxWidth: 520, margin: "0 auto 32px", lineHeight: 1.7 }}>
-            4-day free trial. Works alongside Tradezella or any journal you already use. Takes 60 seconds a day. Cancel before day 5 and you won&apos;t be charged a cent.
+            7-day free trial. Works alongside Tradezella or any journal you already use. Takes 60 seconds a day. Cancel before day 8 and you won&apos;t be charged a cent.
           </p>
           <Link href="/login?callbackUrl=/checkin">
             <button className="btn-primary" style={{ fontSize: 16, padding: "18px 48px", borderRadius: 14, boxShadow: "0 8px 32px rgba(94,106,210,0.35)" }}>
@@ -367,7 +367,7 @@ export default function VsTradezellaPage() {
             </button>
           </Link>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, marginTop: 20, flexWrap: "wrap" }}>
-            {["4 days free", "No charge until day 5", "Works alongside Tradezella"].map((t) => (
+            {["7 days free", "No charge until day 8", "Works alongside Tradezella"].map((t) => (
               <div key={t} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <GreenCheck />
                 <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{t}</span>

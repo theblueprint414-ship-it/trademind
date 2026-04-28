@@ -456,11 +456,11 @@ export default function SettingsPage() {
           </div>
           {!isPremium ? (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
-              <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>Upgrade to Premium to unlock Challenge Mode.</p>
+              <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>Upgrade to TradeMind to unlock Challenge Mode.</p>
               <button className="btn-primary" style={{ fontSize: 14, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }} onClick={() => {
                 const el = document.querySelector("[data-plan='premium']");
                 el?.scrollIntoView({ behavior: "smooth" });
-              }}>Upgrade to Premium →</button>
+              }}>Start 7-Day Free Trial →</button>
             </div>
           ) : (
             <>
@@ -839,21 +839,12 @@ export default function SettingsPage() {
             <h2 style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 14 }}>YOUR PLAN</h2>
 
             {/* Current plan badge */}
-            {isPremium && (
+            {isPro && (
               <div className="card" style={{ padding: 20, marginBottom: 8, border: "1px solid rgba(139,92,246,0.3)", background: "rgba(139,92,246,0.05)", display: "flex", alignItems: "center", gap: 12 }}>
                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>✓</div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>TradeMind Premium — Active</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>TradeMind — Active</div>
                   <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Full access to every feature in TradeMind</div>
-                </div>
-              </div>
-            )}
-            {isPro && !isPremium && (
-              <div className="card" style={{ padding: 20, marginBottom: 8, border: "1px solid rgba(0,232,122,0.2)", background: "rgba(0,232,122,0.04)", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(0,232,122,0.15)", border: "1px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>✓</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>TradeMind Pro — Active</div>
-                  <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Trade journal, 90-day analytics, accountability partners & circles</div>
                 </div>
               </div>
             )}
@@ -869,44 +860,27 @@ export default function SettingsPage() {
               </div>
             )}
 
-            {/* Pro upgrade — shown for free users */}
+            {/* TradeMind upgrade — shown for free users */}
             {!planLoading && !isPro && (
-              <div className="card" style={{ padding: 24, marginBottom: 12, border: "1px solid rgba(94,106,210,0.25)", background: "rgba(94,106,210,0.03)" }}>
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
-                  <div style={{ fontWeight: 700, fontSize: 16 }}>Pro</div>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                    <span className="font-bebas" style={{ fontSize: 32, color: "var(--blue)" }}>$19</span>
-                    <span style={{ fontSize: 13, color: "var(--text-muted)" }}>/mo</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>Unlimited trade journal, 90-day analytics, accountability partners & circles.</p>
-                <button className="btn-primary" style={{ width: "100%", fontSize: 14, padding: "12px" }} onClick={handleUpgrade} disabled={checkoutLoading}>
-                  {checkoutLoading ? "Loading..." : "Upgrade to Pro — $19/month"}
-                </button>
-              </div>
-            )}
-
-            {/* Premium upgrade — shown for free and pro users */}
-            {!planLoading && !isPremium && (
-              <div className="card" style={{ padding: 24, border: "1px solid rgba(139,92,246,0.3)", background: "rgba(139,92,246,0.04)" }}>
+              <div className="card" data-plan="premium" style={{ padding: 24, border: "1px solid rgba(139,92,246,0.3)", background: "rgba(139,92,246,0.04)" }}>
                 <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: 16 }}>Premium</div>
-                    <div style={{ display: "inline-block", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 6, marginTop: 4 }}>BEST VALUE</div>
+                    <div style={{ fontWeight: 700, fontSize: 16 }}>TradeMind</div>
+                    <div style={{ display: "inline-block", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 6, marginTop: 4 }}>EVERYTHING INCLUDED</div>
                   </div>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                    <span className="font-bebas" style={{ fontSize: 32, color: "#8B5CF6" }}>$45</span>
+                    <span className="font-bebas" style={{ fontSize: 32, color: "#8B5CF6" }}>$39</span>
                     <span style={{ fontSize: 13, color: "var(--text-muted)" }}>/mo</span>
                   </div>
                 </div>
-                <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>Everything in Pro, plus AI Coach Alex, broker auto-connect, deep behavioral pattern detection, Trading Playbook, prop firm challenge tracker, and unlimited history.</p>
+                <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>AI Coach Alex, broker auto-connect, trade journal, 90-day analytics, accountability partners, Trading Playbook, prop firm challenge tracker, and more.</p>
                 <button
                   className="btn-primary"
                   style={{ width: "100%", fontSize: 14, padding: "12px", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}
                   onClick={() => {
                     if (!paddle) { alert("Payment loading. Try again."); return; }
                     const priceId = process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID;
-                    if (!priceId) { alert("Premium not configured yet."); return; }
+                    if (!priceId) { alert("Billing not configured yet."); return; }
                     setCheckoutLoading(true);
                     fetch("/api/me").then((r) => r.json()).then((me) => {
                       paddle.Checkout.open({
@@ -919,7 +893,7 @@ export default function SettingsPage() {
                   }}
                   disabled={checkoutLoading}
                 >
-                  {checkoutLoading ? "Loading..." : "Upgrade to Premium — $45/month"}
+                  {checkoutLoading ? "Loading..." : "Start 7-Day Free Trial — $39/month"}
                 </button>
               </div>
             )}

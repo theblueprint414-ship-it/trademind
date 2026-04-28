@@ -8,8 +8,8 @@ export default function RefundPage() {
 
         {[
           {
-            title: "4-Day Free Trial",
-            body: "TradeMind paid plans include a 4-day free trial. You will not be charged during the trial period. Cancel any time before day 5 and you will never be billed."
+            title: "7-Day Free Trial",
+            body: "TradeMind includes a 7-day free trial. You will not be charged during the trial period. Cancel any time before day 8 and you will never be billed."
           },
           {
             title: "No Refunds Policy",
@@ -17,7 +17,7 @@ export default function RefundPage() {
           },
           {
             title: "How to Cancel",
-            body: "You can cancel your subscription at any time from your Paddle billing portal. After cancellation, you will retain Pro access until the end of your paid period, then revert to the free plan. No future charges will apply."
+            body: "You can cancel your subscription at any time from your Paddle billing portal. After cancellation, you will retain access to your paid plan until the end of your current billing period, then revert to the free plan. No future charges will apply."
           },
           {
             title: "Contact",

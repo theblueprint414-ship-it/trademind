@@ -150,7 +150,7 @@ function FreeBanner({ todayCount }: { todayCount: number }) {
           <div style={{ fontSize: 12, fontWeight: 700, color: "#8B5CF6", marginBottom: 2 }}>
             Free Plan · {todayCount}/3 trades logged today · Last 7 days
           </div>
-          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Upgrade to Pro for unlimited journal history, analytics &amp; emotion tracking</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Upgrade to TradeMind for unlimited journal history, analytics &amp; emotion tracking</div>
         </div>
         <span style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 700, whiteSpace: "nowrap", flexShrink: 0 }}>Upgrade →</span>
       </div>
@@ -518,12 +518,12 @@ export default function JournalPage() {
           {isFree && (
             <Link href="/settings" style={{ textDecoration: "none" }}>
               <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(139,92,246,0.05)", border: "1px dashed rgba(139,92,246,0.25)", fontSize: 12, color: "var(--text-muted)" }}>
-                🔒 <strong style={{ color: "var(--blue)" }}>Upgrade to Pro</strong> for unlimited journal history, 90-day analytics, and emotion tracking
+                🔒 <strong style={{ color: "var(--blue)" }}>Upgrade to TradeMind</strong> for unlimited journal history, 90-day analytics, and emotion tracking
               </div>
             </Link>
           )}
 
-          {isPremium && (
+          {isPro && (
             <div>
               <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
                 EMOTION BEFORE {f.emotionBefore ? `— ${EMOTION_LABELS[f.emotionBefore - 1]}` : ""}
@@ -532,7 +532,7 @@ export default function JournalPage() {
             </div>
           )}
 
-          {isPremium && (
+          {isPro && (
             <div>
               <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
                 EMOTION AFTER {f.emotionAfter ? `— ${EMOTION_LABELS[f.emotionAfter - 1]}` : ""}
@@ -541,7 +541,7 @@ export default function JournalPage() {
             </div>
           )}
 
-          {isPremium && (
+          {isPro && (
             <div>
               <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>TAGS (max 3)</label>
               <TagPicker selected={f.tags} onChange={(tags) => setF({ ...f, tags })} />
@@ -558,7 +558,7 @@ export default function JournalPage() {
             <textarea placeholder="Anything else..." value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} rows={2} style={{ resize: "vertical", fontSize: 14 }} />
           </div>
 
-          {isPremium && (
+          {isPro && (
             <div>
               <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>REFLECTION (optional)</label>
               <textarea
