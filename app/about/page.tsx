@@ -171,7 +171,7 @@ export default function AboutPage() {
             {[
               { ref: "Walker, 2017", finding: "Sleep deprivation of even 2 hours reduces cognitive performance by 26% and increases emotional reactivity — directly affecting trading judgment." },
               { ref: "Lo et al., 2005", finding: "Emotions are not the enemy of good trading — but unregulated emotions are. Traders who track emotional states make systematically better position-sizing decisions." },
-              { ref: "Baumeister, 2000", finding: "Decision fatigue is real and measurable. Traders who check in after their peak hours make 40% more rule violations than those who trade in their optimal window." },
+              { ref: "Baumeister, 2000", finding: "Decision fatigue is real and measurable. Traders make 3× more rule violations in the final hour of a session compared to their first — judgment degrades with each decision made." },
             ].map((r) => (
               <div key={r.ref} style={{ display: "flex", gap: 14, alignItems: "flex-start", padding: "12px 16px", borderRadius: 10, background: "rgba(94,106,210,0.04)", border: "1px solid rgba(94,106,210,0.1)" }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: "var(--blue)", whiteSpace: "nowrap", marginTop: 1 }}>{r.ref}</span>

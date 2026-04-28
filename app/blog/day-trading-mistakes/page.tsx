@@ -118,7 +118,7 @@ export default function DayTradingMistakes() {
           <div style={{ background: "rgba(0,232,122,0.06)", border: "1px solid rgba(0,232,122,0.2)", borderRadius: 12, padding: "20px 24px", margin: "40px 0 0" }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--green)", marginBottom: 8 }}>See Which Mistakes Appear in Your Data</div>
             <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, margin: "0 0 14px" }}>TradeMind&apos;s AI coach detects these specific behavioral patterns in your trading data. Revenge trading, overtrading, post-target overstaying — they all leave measurable signatures. See them before your next session.</p>
-            <Link href="/register" style={{ display: "inline-block", background: "var(--green)", color: "#000", padding: "10px 22px", borderRadius: 10, fontSize: 13, fontWeight: 700, textDecoration: "none" }}>Start Free →</Link>
+            <Link href="/login?callbackUrl=/checkin" style={{ display: "inline-block", background: "var(--green)", color: "#000", padding: "10px 22px", borderRadius: 10, fontSize: 13, fontWeight: 700, textDecoration: "none" }}>Start Free →</Link>
           </div>
         </div>
       </div>

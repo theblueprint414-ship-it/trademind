@@ -96,7 +96,7 @@ export default function BestTradingJournal() {
           <div style={{ background: "rgba(0,232,122,0.06)", border: "1px solid rgba(0,232,122,0.2)", borderRadius: 12, padding: "20px 24px", margin: "40px 0 0" }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--green)", marginBottom: 8 }}>A Journal That Does the Analysis For You</div>
             <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, margin: "0 0 14px" }}>TradeMind combines the pre-session mental check-in with the trade journal and automatically surfaces your behavioral patterns. The AI coach reads your data every week and tells you exactly what it sees.</p>
-            <Link href="/register" style={{ display: "inline-block", background: "var(--green)", color: "#000", padding: "10px 22px", borderRadius: 10, fontSize: 13, fontWeight: 700, textDecoration: "none" }}>Start Free →</Link>
+            <Link href="/login?callbackUrl=/checkin" style={{ display: "inline-block", background: "var(--green)", color: "#000", padding: "10px 22px", borderRadius: 10, fontSize: 13, fontWeight: 700, textDecoration: "none" }}>Start Free →</Link>
           </div>
         </div>
       </div>

@@ -342,7 +342,7 @@ export default function BlogPage() {
 
         <div style={{ marginTop: 64, paddingTop: 32, borderTop: "1px solid var(--border)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <Link href="/" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>← Back to TradeMind</Link>
-          <Link href="/checkin" style={{ fontSize: 13, color: "var(--blue)", textDecoration: "none", fontWeight: 600 }}>Try it free →</Link>
+          <Link href="/login?callbackUrl=/checkin" style={{ fontSize: 13, color: "var(--blue)", textDecoration: "none", fontWeight: 600 }}>Try it free →</Link>
         </div>
       </div>
     </div>

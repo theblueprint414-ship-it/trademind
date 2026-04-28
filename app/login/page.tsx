@@ -97,7 +97,8 @@ function LoginInner() {
             </form>
 
             <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", marginTop: 20, lineHeight: 1.6 }}>
-              By signing in you agree to our Terms of Service.
+              By signing in you agree to our{" "}
+              <Link href="/terms" style={{ color: "var(--text-muted)", textDecoration: "underline" }}>Terms of Service</Link>.
               <br />No spam, ever.
             </p>
 

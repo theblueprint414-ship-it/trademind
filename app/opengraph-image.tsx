@@ -33,7 +33,7 @@ export default function OGImage() {
         </div>
         <div style={{ display: "flex", gap: 40 }}>
           {[
-            { val: "73%", label: "less overtrading", color: "#00E87A" },
+            { val: "3×", label: "more rule violations on bad mental days", color: "#00E87A" },
             { val: "5", label: "questions only", color: "#4F8EF7" },
             { val: "60s", label: "check-in time", color: "#FFB020" },
           ].map((s) => (

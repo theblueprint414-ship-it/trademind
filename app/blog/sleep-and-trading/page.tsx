@@ -143,7 +143,7 @@ export default function SleepAndTrading() {
               ))}
             </div>
             <div style={{ marginTop: 24 }}>
-              <Link href="/checkin" style={{ textDecoration: "none" }}>
+              <Link href="/login?callbackUrl=/checkin" style={{ textDecoration: "none" }}>
                 <div style={{ display: "inline-block", background: "var(--green)", color: "#070B14", padding: "12px 24px", borderRadius: 10, fontSize: 14, fontWeight: 800 }}>
                   Take your first check-in →
                 </div>

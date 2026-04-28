@@ -195,7 +195,7 @@ export default function TestimonialsPage() {
         <div style={{ marginTop: 64, textAlign: "center" }}>
           <h2 style={{ fontSize: 28, fontWeight: 800, margin: "0 0 12px" }}>Start your first check-in today.</h2>
           <p style={{ color: "var(--text-dim)", fontSize: 15, margin: "0 0 32px", lineHeight: 1.7 }}>Free forever. No credit card. 60 seconds a morning.</p>
-          <Link href="/login" style={{ display: "inline-block", background: "linear-gradient(135deg, #5e6ad2, #4a5bbd)", color: "white", textDecoration: "none", borderRadius: 12, padding: "16px 40px", fontSize: 16, fontWeight: 700 }}>
+          <Link href="/login?callbackUrl=/checkin" style={{ display: "inline-block", background: "linear-gradient(135deg, #5e6ad2, #4a5bbd)", color: "white", textDecoration: "none", borderRadius: 12, padding: "16px 40px", fontSize: 16, fontWeight: 700 }}>
             Get Started Free →
           </Link>
         </div>

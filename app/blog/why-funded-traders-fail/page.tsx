@@ -50,7 +50,7 @@ export default function WhyFundedTradersFailPage() {
           </Link>
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             <Link href="/for-ftmo-traders" style={{ color: "var(--text-muted)", fontSize: 14, textDecoration: "none" }}>FTMO Traders</Link>
-            <Link href="/dashboard" style={{ background: "var(--blue)", color: "white", borderRadius: 8, padding: "8px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>Try Free</Link>
+            <Link href="/login?callbackUrl=/checkin" style={{ background: "var(--blue)", color: "white", borderRadius: 8, padding: "8px 18px", fontSize: 14, fontWeight: 600, textDecoration: "none" }}>Try Free</Link>
           </div>
         </nav>
 
@@ -214,9 +214,9 @@ export default function WhyFundedTradersFailPage() {
               Your next funded account starts here
             </div>
             <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 28, maxWidth: 480, margin: "0 auto 28px" }}>
-              TradeMind gives you a daily GO / CAUTION / NO-TRADE score in 60 seconds. Free forever. 8 questions. The last thing you open before the market, and the first line of defense for your drawdown limit.
+              TradeMind gives you a daily GO / CAUTION / NO-TRADE score in 60 seconds. Free forever. 5 questions. The last thing you open before the market, and the first line of defense for your drawdown limit.
             </p>
-            <Link href="/dashboard" style={{ display: "inline-block", background: "var(--blue)", color: "white", textDecoration: "none", borderRadius: 10, padding: "14px 36px", fontSize: 16, fontWeight: 700 }}>
+            <Link href="/login?callbackUrl=/checkin" style={{ display: "inline-block", background: "var(--blue)", color: "white", textDecoration: "none", borderRadius: 10, padding: "14px 36px", fontSize: 16, fontWeight: 700 }}>
               Start Your First Check-in — Free →
             </Link>
           </div>
@@ -240,7 +240,7 @@ export default function WhyFundedTradersFailPage() {
 
         <footer style={{ borderTop: "1px solid var(--border)", padding: "24px", textAlign: "center" }}>
           <p style={{ color: "var(--text-muted)", fontSize: 13, margin: 0 }}>
-            © 2025 TradeMind ·{" "}
+            © 2026 TradeMind ·{" "}
             <Link href="/privacy" style={{ color: "var(--blue)", textDecoration: "none" }}>Privacy</Link>{" "}·{" "}
             <Link href="/terms" style={{ color: "var(--blue)", textDecoration: "none" }}>Terms</Link>
           </p>

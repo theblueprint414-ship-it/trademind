@@ -112,7 +112,7 @@ export default function RevengeTrading() {
             <p style={{ fontSize: 16, color: "var(--text)", lineHeight: 1.8, margin: "0 0 20px" }}>
               Revenge trading isn't a character flaw. It's a predictable biological response to loss — one that every trader will experience. The difference between traders who survive it and those who don't isn't discipline. It's whether they had a system in place before the loss happened.
             </p>
-            <Link href="/checkin" style={{ textDecoration: "none" }}>
+            <Link href="/login?callbackUrl=/checkin" style={{ textDecoration: "none" }}>
               <div style={{ display: "inline-block", background: "var(--blue)", color: "white", padding: "12px 24px", borderRadius: 10, fontSize: 14, fontWeight: 700 }}>
                 Start your daily mental check-in →
               </div>
