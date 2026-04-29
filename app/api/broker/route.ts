@@ -34,10 +34,10 @@ export async function POST(request: NextRequest) {
   if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const userId = session.user.id;
 
-  // Pro-only feature
   const user = await db.user.findUnique({ where: { id: userId }, select: { plan: true } });
-  if (user?.plan !== "premium") {
-    return Response.json({ error: "Broker Connect is a Premium feature. Upgrade to Premium to connect your broker." }, { status: 403 });
+  const isPaid = user?.plan === "pro" || user?.plan === "premium";
+  if (!isPaid) {
+    return Response.json({ error: "Broker Connect requires a TradeMind subscription." }, { status: 403 });
   }
 
   const body = await request.json().catch(() => null);

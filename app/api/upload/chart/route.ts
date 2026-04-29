@@ -19,10 +19,10 @@ export async function POST(request: NextRequest) {
   });
   if (!user) return Response.json({ error: "Not found" }, { status: 404 });
 
-  const isPremium = user.plan === "premium";
+  const isPaid = user.plan === "pro" || user.plan === "premium";
 
-  // Rate-limit uploads for free/pro users
-  if (!isPremium) {
+  // Rate-limit uploads for free users
+  if (!isPaid) {
     const startOfMonth = new Date();
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     if (uploadCount >= FREE_MONTHLY_LIMIT) {
       return Response.json(
-        { error: `Free plan is limited to ${FREE_MONTHLY_LIMIT} chart uploads per month. Upgrade to Premium for unlimited uploads.` },
+        { error: `Free plan is limited to ${FREE_MONTHLY_LIMIT} chart uploads per month. Upgrade to TradeMind for unlimited uploads.` },
         { status: 403 }
       );
     }

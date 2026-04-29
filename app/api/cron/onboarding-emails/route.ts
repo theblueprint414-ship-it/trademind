@@ -192,7 +192,7 @@ const EMAILS: Record<number, (firstName: string, email: string) => { subject: st
   }),
 
   7: (firstName, email) => ({
-    subject: `${firstName ? `${firstName}, your` : "Your"} 4-day trial ends tomorrow — here's what you've built`,
+    subject: `${firstName ? `${firstName}, your` : "Your"} 7-day trial ends tomorrow — here's what you've built`,
     html: wrap(`
       <h1 style="color:#E8F0FF;font-size:22px;font-weight:700;text-align:center;margin:0 0 8px;">
         Your trial ends tomorrow
@@ -317,7 +317,7 @@ function buildDay4PersonalizedEmail(
   }
 
   return {
-    subject: `${name !== "Trader" ? `${name}, ` : ""}your trial ends tomorrow — here's what 4 days of your data shows`,
+    subject: `${name !== "Trader" ? `${name}, ` : ""}your trial ends tomorrow — here's what 7 days of your data shows`,
     html: wrap(`
       <h1 style="color:#E8F0FF;font-size:22px;font-weight:700;text-align:center;margin:0 0 8px;">
         Tomorrow you'll be charged.

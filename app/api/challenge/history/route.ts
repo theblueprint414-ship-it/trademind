@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const user = await db.user.findUnique({ where: { id: session.user.id }, select: { plan: true } });
-    if (!user || user.plan !== "premium") return Response.json({ error: "Premium feature" }, { status: 403 });
+    if (!user || (user.plan !== "pro" && user.plan !== "premium")) return Response.json({ error: "TradeMind subscription required" }, { status: 403 });
 
     const body = await request.json().catch(() => null);
     if (!body) return Response.json({ error: "Invalid body" }, { status: 400 });

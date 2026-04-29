@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const today = new Date().toISOString().split("T")[0];
     const todayCount = await db.tradeEntry.count({ where: { userId: auth.userId, date: today } });
     if (todayCount >= FREE_DAILY_LIMIT) {
-      return Response.json({ error: "Free plan limit: 3 trades/day. Upgrade to Pro for unlimited journaling.", limitReached: true }, { status: 403 });
+      return Response.json({ error: "Free plan limit: 3 trades/day. Upgrade to TradeMind for unlimited journaling.", limitReached: true }, { status: 403 });
     }
   }
 

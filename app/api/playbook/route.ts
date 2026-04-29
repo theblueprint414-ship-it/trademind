@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   if (!auth.ok) return auth.response;
 
   const user = await db.user.findUnique({ where: { id: auth.userId }, select: { plan: true } });
-  if (user?.plan !== "premium") {
+  if (user?.plan !== "pro" && user?.plan !== "premium") {
     return Response.json({ rules: [], premium: false });
   }
 
