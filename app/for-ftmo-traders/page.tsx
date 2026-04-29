@@ -98,7 +98,7 @@ export default function ForFtmoTradersPage() {
             {
               step: "04", color: "#8B5CF6",
               title: "Pattern recognition after 30 days",
-              desc: "The AI Coach (Premium) shows you which mental states precede your worst sessions. You'll see your specific warning signs — not generic advice, your actual behavioral data.",
+              desc: "The AI Coach shows you which mental states precede your worst sessions. You'll see your specific warning signs — not generic advice, your actual behavioral data.",
             },
           ].map((item) => (
             <div key={item.step} style={{ display: "flex", gap: 20, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "24px 20px", alignItems: "flex-start" }}>

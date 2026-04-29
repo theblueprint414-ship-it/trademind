@@ -25,7 +25,7 @@ export default function CoachPage() {
     fetch("/api/me")
       .then((r) => r.json())
       .then((d) => {
-        const premium = d.plan === "premium";
+        const premium = d.plan === "pro" || d.plan === "premium";
         setIsPremium(premium);
         if (!premium) { setReady(true); return; }
         return fetch("/api/ai-coach", {

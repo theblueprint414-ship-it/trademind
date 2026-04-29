@@ -46,7 +46,7 @@ function PremiumUpsell() {
           Write your trading rules once. TradeMind shows them to you before every check-in — so you never forget your own plan.
         </p>
         <div className="card" style={{ padding: 28, marginBottom: 24, border: "1px solid rgba(139,92,246,0.25)", background: "rgba(139,92,246,0.04)" }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#8B5CF6", marginBottom: 16 }}>PREMIUM FEATURES INCLUDED</div>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#8B5CF6", marginBottom: 16 }}>TRADEMIND INCLUDES</div>
           {["Trading rules by category (Entry/Exit/Risk/Mindset)", "Shown before every check-in as a reminder", "8 starter rules to get you going", "Broker auto-connect (MT4/MT5 via MetaAPI)", "Deep behavioral pattern detection", "Priority support & early feature access"].map((f) => (
             <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 14, color: "var(--text-dim)", textAlign: "left" }}>
               <span style={{ color: "var(--green)", flexShrink: 0 }}>✓</span>{f}

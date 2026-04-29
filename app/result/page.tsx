@@ -286,6 +286,7 @@ function ResultContent() {
   const typingRef = useRef<NodeJS.Timeout | null>(null);
   const [scanStep, setScanStep] = useState(0);
   const [scanDone, setScanDone] = useState(false);
+  const [scanVisible, setScanVisible] = useState(true);
 
   // Lifestyle quick-add
   const [lifestyleSubmitted, setLifestyleSubmitted] = useState(false);
@@ -323,7 +324,7 @@ function ResultContent() {
     SCAN_LABELS.forEach((_, i) => {
       setTimeout(() => setScanStep(i + 1), (i + 1) * 240);
     });
-    setTimeout(() => setScanDone(true), SCAN_TOTAL_MS);
+    setTimeout(() => { setScanDone(true); setTimeout(() => setScanVisible(false), 400); }, SCAN_TOTAL_MS);
 
     // Staggered reveal — offset by scan duration
     setTimeout(() => { setVisible(true); setRevealPhase(1); }, SCAN_TOTAL_MS + 80);
@@ -418,11 +419,12 @@ function ResultContent() {
       `}</style>
 
       {/* Pre-flight scan overlay */}
-      {!scanDone && (
+      {scanVisible && (
         <div style={{
           position: "fixed", inset: 0, zIndex: 9000, background: "var(--bg)",
           display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
           padding: 40,
+          animation: scanDone ? "scan-fade-out 0.4s ease forwards" : undefined,
         }}>
           <div style={{ width: "100%", maxWidth: 340 }}>
             <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", color: verdict.color, marginBottom: 28, textAlign: "center" }}>

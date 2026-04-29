@@ -57,7 +57,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     fetch("/api/me").then((r) => r.json()).then((d) => {
-      setIsPro(d.plan === "premium");
+      setIsPro(d.plan === "pro" || d.plan === "premium");
     }).catch(() => setIsPro(false));
   }, []);
 

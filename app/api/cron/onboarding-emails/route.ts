@@ -210,17 +210,10 @@ const EMAILS: Record<number, (firstName: string, email: string) => { subject: st
         </p>
       </div>
 
-      <div style="display:flex;gap:10px;margin-bottom:24px;">
-        <div style="flex:1;background:#0D1420;border:1px solid #4F8EF730;border-radius:10px;padding:16px;text-align:center;">
-          <div style="font-size:11px;color:#4F8EF7;letter-spacing:0.08em;margin-bottom:8px;">PRO</div>
-          <div style="font-size:28px;font-weight:800;color:#E8F0FF;line-height:1;margin-bottom:4px;">$19</div>
-          <div style="font-size:10px;color:#3D4F6A;">/month</div>
-        </div>
-        <div style="flex:1;background:#0D1420;border:1px solid #8B5CF630;border-radius:10px;padding:16px;text-align:center;">
-          <div style="font-size:11px;color:#8B5CF6;letter-spacing:0.08em;margin-bottom:8px;">PREMIUM</div>
-          <div style="font-size:28px;font-weight:800;color:#E8F0FF;line-height:1;margin-bottom:4px;">$45</div>
-          <div style="font-size:10px;color:#3D4F6A;">/month</div>
-        </div>
+      <div style="background:#0D1420;border:1px solid #8B5CF630;border-radius:10px;padding:20px;text-align:center;margin-bottom:24px;">
+        <div style="font-size:11px;color:#8B5CF6;letter-spacing:0.08em;margin-bottom:8px;">TRADEMIND</div>
+        <div style="font-size:36px;font-weight:800;color:#E8F0FF;line-height:1;margin-bottom:4px;">$39</div>
+        <div style="font-size:10px;color:#3D4F6A;">/month · everything included · cancel anytime</div>
       </div>
 
       <div style="text-align:center;margin-bottom:8px;">
@@ -328,17 +321,10 @@ function buildDay4PersonalizedEmail(
 
       ${insightBlock}
 
-      <div style="display:flex;gap:10px;margin-bottom:24px;">
-        <div style="flex:1;background:#0D1420;border:1px solid #4F8EF730;border-radius:10px;padding:16px;text-align:center;">
-          <div style="font-size:11px;color:#4F8EF7;letter-spacing:0.08em;margin-bottom:8px;">PRO</div>
-          <div style="font-size:28px;font-weight:800;color:#E8F0FF;line-height:1;margin-bottom:4px;">$19</div>
-          <div style="font-size:10px;color:#3D4F6A;">/month</div>
-        </div>
-        <div style="flex:1;background:#0D1420;border:1px solid #8B5CF630;border-radius:10px;padding:16px;text-align:center;">
-          <div style="font-size:11px;color:#8B5CF6;letter-spacing:0.08em;margin-bottom:8px;">PREMIUM</div>
-          <div style="font-size:28px;font-weight:800;color:#E8F0FF;line-height:1;margin-bottom:4px;">$45</div>
-          <div style="font-size:10px;color:#3D4F6A;">/month</div>
-        </div>
+      <div style="background:#0D1420;border:1px solid #8B5CF630;border-radius:10px;padding:20px;text-align:center;margin-bottom:24px;">
+        <div style="font-size:11px;color:#8B5CF6;letter-spacing:0.08em;margin-bottom:8px;">TRADEMIND</div>
+        <div style="font-size:36px;font-weight:800;color:#E8F0FF;line-height:1;margin-bottom:4px;">$39</div>
+        <div style="font-size:10px;color:#3D4F6A;">/month · everything included · cancel anytime</div>
       </div>
 
       <div style="text-align:center;margin-bottom:8px;">
