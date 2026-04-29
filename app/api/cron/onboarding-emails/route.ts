@@ -175,7 +175,7 @@ const EMAILS: Record<number, (firstName: string, email: string) => { subject: st
       </div>
 
       <div style="background:#0D1420;border:1px solid #8B5CF630;border-radius:14px;padding:24px;margin-bottom:20px;">
-        <div style="font-size:11px;color:#8B5CF6;letter-spacing:0.08em;margin-bottom:12px;">AI COACH · PREMIUM</div>
+        <div style="font-size:11px;color:#8B5CF6;letter-spacing:0.08em;margin-bottom:12px;">AI COACH · ALEX</div>
         <p style="color:#7A8BA8;font-size:14px;line-height:1.8;margin:0;">
           Alex, your AI trading psychologist, analyzes your specific patterns and gives you one precise action per session — not generic advice. <strong style="color:#E8F0FF;">Try it free while you're in your trial.</strong>
         </p>

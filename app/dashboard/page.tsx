@@ -58,7 +58,6 @@ export default function DashboardPage() {
   const [monthlyCount, setMonthlyCount] = useState(0);
   const [goCount, setGoCount] = useState(0);
   const [isPro, setIsPro] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
   const [savedLosses, setSavedLosses] = useState<number | null>(null);
   const [broker, setBroker] = useState<{ broker: string; status: string } | null>(null);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -108,9 +107,7 @@ export default function DashboardPage() {
         .then((r) => r.json())
         .then((d) => {
           const pro = d.plan === "pro" || d.plan === "premium";
-          const premium = d.plan === "premium";
           setIsPro(pro);
-          setIsPremium(premium);
           if (!pro && localStorage.getItem("trademind_nudge_eligible") === "1") {
             setShowUpgradeNudge(true);
             localStorage.removeItem("trademind_nudge_eligible");
@@ -127,7 +124,7 @@ export default function DashboardPage() {
               .catch(() => {})
               .finally(() => setPartnersLoading(false));
           }
-          if (premium) {
+          if (pro) {
             fetch("/api/analytics")
               .then((r) => r.json())
               .then((ad) => { if (ad.estimatedSaved > 0) setSavedLosses(ad.estimatedSaved); })
@@ -371,7 +368,7 @@ export default function DashboardPage() {
       {/* Upgrade Welcome */}
       {showUpgradeWelcome && (
         <div style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(7,11,20,0.94)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={() => setShowUpgradeWelcome(false)}>
-          <div style={{ maxWidth: 400, width: "100%", textAlign: "center", background: "var(--surface)", border: `1px solid ${isPremium ? "rgba(139,92,246,0.3)" : "rgba(94,106,210,0.3)"}`, borderRadius: 20, padding: "48px 32px", boxShadow: `0 0 80px ${isPremium ? "rgba(139,92,246,0.1)" : "rgba(94,106,210,0.08)"}` }} onClick={(e) => e.stopPropagation()}>
+          <div style={{ maxWidth: 400, width: "100%", textAlign: "center", background: "var(--surface)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 20, padding: "48px 32px", boxShadow: "0 0 80px rgba(139,92,246,0.1)" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
             <div className="font-bebas" style={{ fontSize: 52, lineHeight: 1, marginBottom: 12, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               Welcome to TradeMind
@@ -588,7 +585,7 @@ export default function DashboardPage() {
         )}
 
         {/* Saved losses banner */}
-        {isPremium && savedLosses !== null && savedLosses > 0 && (
+        {isPro && savedLosses !== null && savedLosses > 0 && (
           <div className="dash-section s2" style={{ padding: "14px 20px", marginBottom: 20, borderRadius: 12, background: "rgba(0,232,122,0.05)", border: "1px solid rgba(0,232,122,0.2)", display: "flex", alignItems: "center", gap: 14 }}>
             <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,232,122,0.12)", border: "1px solid rgba(0,232,122,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5l1.3 3.2L13 5l-2.3 2.2.5 3.1L8 8.8l-2.7 1.5.5-3.1L3.5 5l3.2-.3L8 1.5z" stroke="var(--green)" strokeWidth="1.2" strokeLinejoin="round"/></svg>
@@ -661,7 +658,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Lifestyle correlation strip — premium */}
-        {isPremium && lifestyleInsight && lifestyleInsight.exerciseLift !== null && lifestyleInsight.exerciseCount >= 3 && (
+        {isPro && lifestyleInsight && lifestyleInsight.exerciseLift !== null && lifestyleInsight.exerciseCount >= 3 && (
           <div className="dash-section s3" style={{ marginBottom: 16, padding: "14px 18px", borderRadius: 12, background: "linear-gradient(135deg, rgba(0,232,122,0.05), rgba(94,106,210,0.04))", border: "1px solid rgba(0,232,122,0.15)", display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: 16, flex: 1, flexWrap: "wrap" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>

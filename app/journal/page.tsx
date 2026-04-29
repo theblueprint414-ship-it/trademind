@@ -185,7 +185,6 @@ export default function JournalPage() {
   const [allEntries, setAllEntries] = useState<TradeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPro, setIsPro] = useState<boolean | null>(null);
-  const [isPremium, setIsPremium] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [todayScore, setTodayScore] = useState<number | null>(null);
@@ -238,7 +237,7 @@ export default function JournalPage() {
     fetch("/api/me").then((r) => {
       if (r.status === 401) { window.location.href = "/login"; return null; }
       return r.json();
-    }).then((d) => { if (d) { setIsPro(d.plan === "pro" || d.plan === "premium"); setIsPremium(d.plan === "premium"); } }).catch(() => setIsPro(false));
+    }).then((d) => { if (d) { setIsPro(d.plan === "pro" || d.plan === "premium"); } }).catch(() => setIsPro(false));
     fetch("/api/broker").then((r) => r.json()).then((d) => {
       if (d.connected) {
         setBroker(d);
@@ -574,7 +573,7 @@ export default function JournalPage() {
             <div>
               <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
                 CHART SCREENSHOT (optional)
-                {!isPremium && <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: 10, marginLeft: 6 }}>5/month · unlimited on Premium</span>}
+                {!isPro && <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: 10, marginLeft: 6 }}>5/month · unlimited on TradeMind</span>}
               </label>
               {f.chartUrl ? (
                 <div style={{ position: "relative" }}>

@@ -279,23 +279,6 @@ export default function SettingsPage() {
     setDisconnecting(false);
   }
 
-  async function handleUpgrade() {
-    if (!paddle) { alert("Payment is loading. Try again in a second."); return; }
-    const priceId = process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID;
-    if (!priceId) { alert("Paddle not configured."); return; }
-    setCheckoutLoading(true);
-    try {
-      const me = await fetch("/api/me").then((r) => r.json());
-      paddle.Checkout.open({
-        items: [{ priceId, quantity: 1 }],
-        customer: me.email ? { email: me.email } : undefined,
-        customData: { userId: me.id ?? "", plan: "pro" },
-        settings: { successUrl: `${window.location.origin}/dashboard?upgraded=true` },
-      });
-    } catch { alert("Network error. Try again."); }
-    finally { setCheckoutLoading(false); }
-  }
-
   function scheduleReminder(timeStr: string) {
     const [timePart, meridiem] = timeStr.split(" ");
     const [rawHour, minute] = timePart.split(":").map(Number);
@@ -406,11 +389,8 @@ export default function SettingsPage() {
       <div style={{ maxWidth: 600, margin: "0 auto", padding: "40px 24px" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
           <h1 className="font-bebas" style={{ fontSize: 40 }}>Settings</h1>
-          {!planLoading && isPremium && (
-            <div style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 10, padding: "4px 12px", fontSize: 12, color: "#8B5CF6", fontWeight: 700, letterSpacing: "0.06em" }}>PREMIUM ✓</div>
-          )}
-          {!planLoading && isPro && !isPremium && (
-            <div style={{ background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.3)", borderRadius: 10, padding: "4px 12px", fontSize: 12, color: "var(--green)", fontWeight: 700, letterSpacing: "0.06em" }}>PRO ✓</div>
+          {!planLoading && isPro && (
+            <div style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 10, padding: "4px 12px", fontSize: 12, color: "#8B5CF6", fontWeight: 700, letterSpacing: "0.06em" }}>TRADEMIND ✓</div>
           )}
         </div>
 
@@ -440,8 +420,8 @@ export default function SettingsPage() {
         <section id="challenge" className="card" style={{ padding: 28, marginBottom: 20 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
             <h2 style={{ fontSize: 16, fontWeight: 700 }}>Prop Firm Challenge Mode</h2>
-            {!isPremium && (
-              <span style={{ fontSize: 11, background: "rgba(139,92,246,0.12)", color: "#8B5CF6", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 6, padding: "3px 8px", fontWeight: 700 }}>PREMIUM</span>
+            {!isPro && (
+              <span style={{ fontSize: 11, background: "rgba(139,92,246,0.12)", color: "#8B5CF6", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 6, padding: "3px 8px", fontWeight: 700 }}>TradeMind</span>
             )}
           </div>
           <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>
@@ -454,7 +434,7 @@ export default function SettingsPage() {
             <div>3. Your dashboard shows a live challenge bar. When you hit 80% of your daily limit, you get a warning. At 100%, a hard stop is shown.</div>
             <div>4. Combined with your mental score — if your score is low <em>and</em> you are near your drawdown limit, TradeMind will strongly recommend no trading that day.</div>
           </div>
-          {!isPremium ? (
+          {!isPro ? (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
               <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>Upgrade to TradeMind to unlock Challenge Mode.</p>
               <button className="btn-primary" style={{ fontSize: 14, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }} onClick={() => {
@@ -624,7 +604,7 @@ export default function SettingsPage() {
         </section>
 
         {/* Challenge History */}
-        {isPremium && (
+        {isPro && (
           <section className="card" style={{ padding: 28, marginBottom: 20 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
               <h2 style={{ fontSize: 16, fontWeight: 700 }}>Challenge History</h2>
@@ -920,11 +900,10 @@ export default function SettingsPage() {
                 )}
               </div>
             ))}
-            {isPremium && (
+            {isPro && (
               <div style={{ paddingTop: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                   <div style={{ fontSize: 14, fontWeight: 600 }}>Custom Check-in Question</div>
-                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 6, background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)", color: "#8B5CF6" }}>PREMIUM</span>
                 </div>
                 <input type="text" placeholder="e.g. Did you review your watchlist?" value={customQuestion} onChange={(e) => setCustomQuestion(e.target.value)} style={{ marginBottom: 8, fontSize: 13 }} />
                 <div style={{ display: "flex", gap: 8 }}>
