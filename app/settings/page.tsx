@@ -29,7 +29,6 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [isPro, setIsPro] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
   const [planLoading, setPlanLoading] = useState(true);
   const [paddle, setPaddle] = useState<Paddle | undefined>();
   const [userId, setUserId] = useState("");
@@ -118,7 +117,6 @@ export default function SettingsPage() {
       .then((r) => r.json())
       .then((d) => {
         setIsPro(d.plan === "pro" || d.plan === "premium");
-        setIsPremium(d.plan === "premium");
         const limit = d.tradeLimit ?? 5;
         setTradeLimit(limit);
         setSavedLimit(limit);

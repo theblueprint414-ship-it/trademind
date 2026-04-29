@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   const rl = await rateLimit(request, "normal");
   if (!rl.ok) return rl.response!;
 
-  const guard = await requirePlan(["premium"]);
+  const guard = await requirePlan(["pro", "premium"]);
   if (!guard.ok) return guard.response;
 
   const userId = guard.userId;

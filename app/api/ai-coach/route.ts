@@ -209,9 +209,9 @@ export async function POST(request: NextRequest) {
   const stream: boolean = body?.stream === true;
   const chatMessages: { role: "user" | "assistant"; content: string }[] = body?.messages ?? [];
 
-  // weekly analysis and chat require Pro or Premium; daily briefing is free
+  // weekly analysis and chat require a paid plan; daily briefing is free
   if (type === "weekly" || type === "chat") {
-    const guard = await requirePlan(["premium"]);
+    const guard = await requirePlan(["pro", "premium"]);
     if (!guard.ok) return guard.response;
   }
 
