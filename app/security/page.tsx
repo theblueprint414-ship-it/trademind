@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Security & Data Privacy — TradeMind",
-  description: "How TradeMind protects your trading data, psychology scores, and financial information. No passwords stored, Stripe PCI-DSS payments, Turso encrypted database.",
+  description: "How TradeMind protects your trading data, psychology scores, and financial information. No passwords stored, LemonSqueezy PCI-DSS payments, Turso encrypted database.",
   alternates: { canonical: "https://trademindedge.com/security" },
   openGraph: {
     title: "Security & Data Privacy — TradeMind",
@@ -61,14 +61,14 @@ const sections = [
   },
   {
     icon: "💳",
-    title: "Payments via Stripe — We Never See Your Card",
+    title: "Payments via LemonSqueezy — We Never See Your Card",
     badge: "PCI DSS compliant",
-    body: "All billing is handled by Stripe, a PCI DSS Level 1 certified payment processor — the highest standard in payment security. Your card number, CVV, and billing address are entered directly on Stripe's hosted checkout. TradeMind's servers never receive, process, or store any payment card data.",
+    body: "All billing is handled by LemonSqueezy, a PCI DSS Level 1 certified payment processor — the highest standard in payment security. Your card number, CVV, and billing address are entered directly on LemonSqueezy's hosted checkout. TradeMind's servers never receive, process, or store any payment card data.",
     points: [
-      "Stripe is PCI DSS Level 1 certified",
-      "Card data is entered on Stripe's domain, not ours",
-      "TradeMind stores only a Stripe customer ID and subscription status",
-      "Invoices and receipts are issued by Stripe directly",
+      "LemonSqueezy is PCI DSS Level 1 certified",
+      "Card data is entered on LemonSqueezy's domain, not ours",
+      "TradeMind stores only a LemonSqueezy customer ID and subscription status",
+      "Invoices and receipts are issued by LemonSqueezy directly",
     ],
   },
   {
@@ -160,7 +160,7 @@ export default function SecurityPage() {
           <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
             {[
               { label: "No passwords stored" },
-              { label: "PCI DSS (via Stripe)" },
+              { label: "PCI DSS (via LemonSqueezy)" },
               { label: "Encrypted at rest" },
               { label: "Vercel SOC 2 infra" },
               { label: "GDPR compliant" },

@@ -59,7 +59,7 @@ const STACK = [
   {
     category: "Payments",
     items: [
-      { name: "Stripe", role: "PCI DSS Level 1 compliant billing — card data never touches our servers" },
+      { name: "LemonSqueezy", role: "PCI DSS Level 1 compliant billing — card data never touches our servers" },
     ],
   },
   {

@@ -837,11 +837,11 @@ export default function SettingsPage() {
                     onClick={async () => {
                       setPortalLoading(true);
                       try {
-                        const r = await fetch("/api/stripe/portal");
+                        const r = await fetch("/api/lemonsqueezy/portal");
                         const { url } = await r.json();
                         window.open(url, "_blank", "noopener");
                       } catch {
-                        window.open("https://billing.stripe.com", "_blank", "noopener");
+                        window.open("https://app.lemonsqueezy.com/my-orders", "_blank", "noopener");
                       } finally {
                         setPortalLoading(false);
                       }
@@ -909,13 +909,13 @@ export default function SettingsPage() {
                           onClick={async () => {
                             setPauseLoading(true);
                             try {
-                              const r = await fetch("/api/stripe/pause", { method: "POST" });
+                              const r = await fetch("/api/lemonsqueezy/pause", { method: "POST" });
                               if (r.ok) {
                                 setPauseSuccess(true);
                               } else {
                                 const { error } = await r.json();
                                 if (error?.includes("billing.stripe.com")) {
-                                  window.open("https://billing.stripe.com", "_blank", "noopener");
+                                  window.open("https://app.lemonsqueezy.com/my-orders", "_blank", "noopener");
                                   setShowPauseModal(false);
                                 } else {
                                   alert(error ?? "Something went wrong. Please manage from your billing portal.");
@@ -957,7 +957,7 @@ export default function SettingsPage() {
                   onClick={async () => {
                     setCheckoutLoading(true);
                     try {
-                      const r = await fetch("/api/stripe/checkout", { method: "POST" });
+                      const r = await fetch("/api/lemonsqueezy/checkout", { method: "POST" });
                       const { url, error } = await r.json();
                       if (error) { alert(error); return; }
                       window.location.href = url;

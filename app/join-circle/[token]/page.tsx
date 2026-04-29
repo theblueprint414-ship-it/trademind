@@ -47,7 +47,7 @@ export default function JoinCirclePage() {
   async function openCheckout() {
     setCheckoutLoading(true);
     try {
-      const r = await fetch("/api/stripe/checkout", { method: "POST" });
+      const r = await fetch("/api/lemonsqueezy/checkout", { method: "POST" });
       const { url, error } = await r.json();
       if (error) { alert(error); return; }
       window.location.href = url;
