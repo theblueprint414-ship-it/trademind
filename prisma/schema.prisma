@@ -21,8 +21,8 @@ model User {
   traderType     String?
   streakFreezeUsedAt String?  // ISO date of last freeze use (YYYY-MM)
   publicProfile  Boolean   @default(false)
-  paddleSubscriptionId String?
-  paddleCustomerId     String?
+  stripeSubscriptionId String?
+  stripeCustomerId     String?
   createdAt      DateTime  @default(now())
 
   // Prop Firm Challenge Mode

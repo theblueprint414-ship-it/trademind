@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 
 const FAQ_ITEMS = [
   { q: "Can I try TradeMind for free?", a: "Yes. TradeMind includes a 7-day free trial — cancel before day 8 and you won't be charged a thing. No commitment, no risk. The free plan also stays free forever with daily check-ins." },
@@ -21,10 +20,6 @@ const PLANS = [
     tagline: "The pre-flight checklist for serious traders.",
     price: { monthly: 39, annual: 29 },
     annualTotal: 348,
-    priceId: {
-      monthly: process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID,
-      annual:  process.env.NEXT_PUBLIC_PADDLE_PREMIUM_ANNUAL_PRICE_ID || process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID,
-    },
     color: "#8B5CF6",
     features: [
       { text: "Daily mental check-in + GO / CAUTION / NO-TRADE verdict", included: true },
@@ -64,37 +59,22 @@ function XIcon() {
 }
 
 export default function PricingPage() {
-  const [paddle, setPaddle] = useState<Paddle | undefined>();
   const [loading, setLoading] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
   const [billing, setBilling] = useState<"monthly" | "annual">("annual");
 
-  useEffect(() => {
-    const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-    if (token) {
-      const env = process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === "production" ? "production" : "sandbox";
-      initializePaddle({ token, environment: env }).then((p) => { if (p) setPaddle(p); });
-    }
-  }, []);
-
   async function handleCheckout(planId: string) {
-    if (!paddle) { alert("Payment is loading. Try again in a second."); return; }
-
-    const plan = PLANS.find((p) => p.id === planId);
-    const priceId = plan?.priceId[billing];
-    if (!priceId) { alert("Paddle not configured."); return; }
-
     setLoading(planId);
     try {
-      const me = await fetch("/api/me").then((r) => r.json()).catch(() => ({}));
-      paddle.Checkout.open({
-        items: [{ priceId, quantity: 1 }],
-        customer: me.email ? { email: me.email } : undefined,
-        customData: { userId: me.id ?? "", plan: planId },
-        settings: { successUrl: `${window.location.origin}/dashboard?upgraded=true` },
-      });
-    } catch { alert("Network error. Try again."); }
-    finally { setLoading(null); }
+      const r = await fetch("/api/stripe/checkout", { method: "POST" });
+      const { url, error } = await r.json();
+      if (error) { alert(error); return; }
+      window.location.href = url;
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setLoading(null);
+    }
   }
 
   const productJsonLd = {

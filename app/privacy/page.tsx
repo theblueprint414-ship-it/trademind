@@ -25,7 +25,7 @@ d) Broker API credentials: API keys you voluntarily provide to connect your brok
 
 e) Usage data: Pages visited, features used, and general platform interactions — used for product improvement only, not for advertising profiling.
 
-f) Payment data: Handled entirely by Paddle (our Merchant of Record). TradeMind does not store, process, or have access to your full payment card details.
+f) Payment data: Handled entirely by Stripe. TradeMind does not store, process, or have access to your full payment card details.
 
 g) Communications: Support emails or messages you send us.`,
   },
@@ -35,7 +35,7 @@ g) Communications: Support emails or messages you send us.`,
 • Provide and improve the TradeMind service (calculate your mental score, track streaks, generate analytics)
 • Send you transactional emails (check-in reminders, trial notifications, account alerts) — only if you have email reminders enabled
 • Provide AI Coach analysis based on your own data
-• Process subscription payments via Paddle
+• Process subscription payments via Stripe
 • Respond to customer support requests
 • Ensure platform security and prevent abuse
 
@@ -47,7 +47,7 @@ We do NOT use your data for advertising, sell your data to third parties, share 
 
 • Google LLC (OAuth authentication) — privacy.google.com
 • Resend (email delivery) — resend.com/privacy
-• Paddle.com Inc. (payment processing, Merchant of Record) — paddle.com/privacy — Paddle independently complies with GDPR and handles all billing
+• Stripe Inc. (payment processing) — stripe.com/privacy — Stripe is PCI DSS Level 1 certified and handles all billing data
 • Vercel Inc. (hosting and infrastructure) — vercel.com/legal/privacy-policy
 • Turso / Chiselstrike (database hosting) — turso.tech/privacy
 • Anthropic PBC (AI Coach feature — Claude API) — anthropic.com/privacy — your data is sent to Anthropic only when you use the AI Coach feature; Anthropic does not use API inputs to train its models by default
@@ -61,7 +61,7 @@ Each of these services has its own privacy policy. We recommend reviewing them. 
   },
   {
     title: "6. Data Retention",
-    body: `We retain your data for as long as your account is active. If you delete your account, all associated data (check-ins, journal entries, analytics, broker credentials, playbook rules) is permanently and irrecoverably deleted from our systems within 30 days. Aggregated, anonymized usage statistics that cannot identify you may be retained indefinitely. Paddle retains billing records as required by applicable tax and financial regulations.`,
+    body: `We retain your data for as long as your account is active. If you delete your account, all associated data (check-ins, journal entries, analytics, broker credentials, playbook rules) is permanently and irrecoverably deleted from our systems within 30 days. Aggregated, anonymized usage statistics that cannot identify you may be retained indefinitely. Stripe retains billing records as required by applicable tax and financial regulations.`,
   },
   {
     title: "7. Cookies and Local Storage",

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 
 type CircleInfo = { id: string; name: string; creatorName: string; memberCount: number; token: string };
 
@@ -14,7 +13,6 @@ export default function JoinCirclePage() {
   const [circle, setCircle] = useState<CircleInfo | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "needsLogin" | "needsPro" | "waitingPlan" | "joining" | "done" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
-  const [paddle, setPaddle] = useState<Paddle | undefined>();
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -41,34 +39,23 @@ export default function JoinCirclePage() {
         setState("ready");
       } else {
         setState("needsPro");
-        initPaddle();
       }
     }
     load().catch(() => { setErrorMsg("Failed to load circle."); setState("error"); });
   }, [token]);
 
-  function initPaddle() {
-    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-    if (!clientToken) return;
-    const env = process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === "production" ? "production" : "sandbox";
-    initializePaddle({ token: clientToken, environment: env }).then((p) => { if (p) setPaddle(p); });
-  }
-
   async function openCheckout() {
-    if (!paddle) { alert("Payment is loading. Try again in a second."); return; }
-    const priceId = process.env.NEXT_PUBLIC_PADDLE_PRO_PRICE_ID;
-    if (!priceId) { alert("Paddle not configured."); return; }
     setCheckoutLoading(true);
     try {
-      const me = await fetch("/api/me").then((r) => r.json());
-      paddle.Checkout.open({
-        items: [{ priceId, quantity: 1 }],
-        customer: me.email ? { email: me.email } : undefined,
-        customData: { userId: me.id ?? "", plan: "pro" },
-        settings: { successUrl: `${window.location.origin}/join-circle/${token}?autoJoin=1` },
-      });
-    } catch { alert("Network error. Try again."); }
-    finally { setCheckoutLoading(false); }
+      const r = await fetch("/api/stripe/checkout", { method: "POST" });
+      const { url, error } = await r.json();
+      if (error) { alert(error); return; }
+      window.location.href = url;
+    } catch {
+      alert("Network error. Please try again.");
+    } finally {
+      setCheckoutLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -172,8 +159,8 @@ export default function JoinCirclePage() {
               <div className="font-bebas" style={{ fontSize: 40, lineHeight: 1 }}>$39</div>
               <div style={{ fontSize: 12, color: "var(--text-muted)" }}>/month · 7-day free trial</div>
             </div>
-            <button className="btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} onClick={openCheckout} disabled={checkoutLoading || !paddle}>
-              {checkoutLoading ? "Loading..." : !paddle ? "Loading payment..." : "Start Free Trial & join →"}
+            <button className="btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} onClick={openCheckout} disabled={checkoutLoading}>
+              {checkoutLoading ? "Loading..." : "Start Free Trial & join →"}
             </button>
           </>
         )}

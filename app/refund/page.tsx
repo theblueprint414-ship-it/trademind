@@ -17,7 +17,7 @@ export default function RefundPage() {
           },
           {
             title: "How to Cancel",
-            body: "You can cancel your subscription at any time from your Paddle billing portal. After cancellation, you will retain access to your paid plan until the end of your current billing period, then revert to the free plan. No future charges will apply."
+            body: "You can cancel your subscription at any time from your billing portal in Settings. After cancellation, you will retain access to your paid plan until the end of your current billing period, then revert to the free plan. No future charges will apply."
           },
           {
             title: "Contact",

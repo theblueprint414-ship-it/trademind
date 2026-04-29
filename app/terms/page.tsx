@@ -33,7 +33,7 @@ const sections = [
   },
   {
     title: "7. Subscription, Billing, and Free Trial",
-    body: `TradeMind includes a 7-day free trial. You will not be charged during the trial period. If you do not cancel before the trial ends, your subscription will automatically begin billing at $39/month (or $29/month on the annual plan), processed by Paddle (our Merchant of Record). By providing payment information, you authorize Paddle to charge you on a recurring basis. All charges after the free trial are final. We do not offer refunds except where required by applicable law or at Paddle's discretion. You may cancel your subscription at any time through Settings; cancellation takes effect at the end of the current billing period. Annual pricing is non-refundable after the trial period. For billing disputes, contact support@trademindedge.com or Paddle directly at paddle.com.`,
+    body: `TradeMind includes a 7-day free trial. You will not be charged during the trial period. If you do not cancel before the trial ends, your subscription will automatically begin billing at $39/month (or $29/month on the annual plan), processed by Stripe. By providing payment information, you authorize Stripe to charge you on a recurring basis. All charges after the free trial are final. We do not offer refunds except where required by applicable law. You may cancel your subscription at any time through Settings; cancellation takes effect at the end of the current billing period. Annual pricing is non-refundable after the trial period. For billing disputes, contact support@trademindedge.com.`,
   },
   {
     title: "8. Intellectual Property",

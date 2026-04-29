@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
-import { initializePaddle, type Paddle } from "@paddle/paddle-js";
 
 type ChallengeAttempt = {
   id: string;
@@ -30,7 +29,6 @@ export default function SettingsPage() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [isPro, setIsPro] = useState(false);
   const [planLoading, setPlanLoading] = useState(true);
-  const [paddle, setPaddle] = useState<Paddle | undefined>();
   const [userId, setUserId] = useState("");
   const [customQuestion, setCustomQuestion] = useState("");
   const [customQSaved, setCustomQSaved] = useState(false);
@@ -177,12 +175,6 @@ export default function SettingsPage() {
       .catch(() => {})
       .finally(() => setHistoryLoading(false));
 
-    // Initialize Paddle
-    const clientToken = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
-    if (clientToken) {
-      const env = process.env.NEXT_PUBLIC_PADDLE_ENVIRONMENT === "production" ? "production" : "sandbox";
-      initializePaddle({ token: clientToken, environment: env }).then((p) => { if (p) setPaddle(p); });
-    }
   }, []);
 
   async function saveChallenge(enabled: boolean) {
@@ -845,11 +837,11 @@ export default function SettingsPage() {
                     onClick={async () => {
                       setPortalLoading(true);
                       try {
-                        const r = await fetch("/api/paddle/portal");
+                        const r = await fetch("/api/stripe/portal");
                         const { url } = await r.json();
                         window.open(url, "_blank", "noopener");
                       } catch {
-                        window.open("https://customer.paddle.com", "_blank", "noopener");
+                        window.open("https://billing.stripe.com", "_blank", "noopener");
                       } finally {
                         setPortalLoading(false);
                       }
@@ -917,16 +909,16 @@ export default function SettingsPage() {
                           onClick={async () => {
                             setPauseLoading(true);
                             try {
-                              const r = await fetch("/api/paddle/pause", { method: "POST" });
+                              const r = await fetch("/api/stripe/pause", { method: "POST" });
                               if (r.ok) {
                                 setPauseSuccess(true);
                               } else {
                                 const { error } = await r.json();
-                                if (error?.includes("customer.paddle.com")) {
-                                  window.open("https://customer.paddle.com", "_blank", "noopener");
+                                if (error?.includes("billing.stripe.com")) {
+                                  window.open("https://billing.stripe.com", "_blank", "noopener");
                                   setShowPauseModal(false);
                                 } else {
-                                  alert(error ?? "Something went wrong. Try pausing from customer.paddle.com.");
+                                  alert(error ?? "Something went wrong. Please manage from your billing portal.");
                                 }
                               }
                             } catch {
@@ -962,19 +954,18 @@ export default function SettingsPage() {
                 <button
                   className="btn-primary"
                   style={{ width: "100%", fontSize: 14, padding: "12px", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}
-                  onClick={() => {
-                    if (!paddle) { alert("Payment loading. Try again."); return; }
-                    const priceId = process.env.NEXT_PUBLIC_PADDLE_PREMIUM_PRICE_ID;
-                    if (!priceId) { alert("Billing not configured yet."); return; }
+                  onClick={async () => {
                     setCheckoutLoading(true);
-                    fetch("/api/me").then((r) => r.json()).then((me) => {
-                      paddle.Checkout.open({
-                        items: [{ priceId, quantity: 1 }],
-                        customer: me.email ? { email: me.email } : undefined,
-                        customData: { userId: me.id ?? "", plan: "premium" },
-                        settings: { successUrl: `${window.location.origin}/dashboard?upgraded=true` },
-                      });
-                    }).catch(() => alert("Error. Try again.")).finally(() => setCheckoutLoading(false));
+                    try {
+                      const r = await fetch("/api/stripe/checkout", { method: "POST" });
+                      const { url, error } = await r.json();
+                      if (error) { alert(error); return; }
+                      window.location.href = url;
+                    } catch {
+                      alert("Something went wrong. Please try again.");
+                    } finally {
+                      setCheckoutLoading(false);
+                    }
                   }}
                   disabled={checkoutLoading}
                 >
