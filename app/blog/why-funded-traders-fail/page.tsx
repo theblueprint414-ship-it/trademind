@@ -24,8 +24,8 @@ const jsonLd = {
   description:
     "The real reason most prop firm traders blow their accounts has nothing to do with their edge. It's mental state.",
   url: "https://trademindedge.com/blog/why-funded-traders-fail",
-  datePublished: "2025-01-15",
-  dateModified: "2025-04-21",
+  datePublished: "2026-04-16",
+  dateModified: "2026-04-29",
   author: { "@type": "Organization", name: "TradeMind", url: "https://trademindedge.com" },
   publisher: {
     "@type": "Organization",
