@@ -59,7 +59,7 @@ export default function WhyFundedTradersFailPage() {
           {/* Category + Date */}
           <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 24 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 6, padding: "3px 10px" }}>TRADING PSYCHOLOGY</span>
-            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>April 2025 · 8 min read</span>
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>April 2026 · 8 min read</span>
           </div>
 
           {/* Title */}
