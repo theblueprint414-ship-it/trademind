@@ -977,7 +977,7 @@ export default function AnalyticsPage() {
         <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(139,92,246,0.2)", background: "rgba(139,92,246,0.02)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
             <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>MENTAL P&L CALCULATOR</h3>
-            <span style={{ fontSize: 10, background: "rgba(139,92,246,0.12)", color: "#8B5CF6", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 4, padding: "1px 6px", fontWeight: 700 }}>PREMIUM</span>
+            <span style={{ fontSize: 10, background: "rgba(139,92,246,0.12)", color: "#8B5CF6", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 4, padding: "1px 6px", fontWeight: 700 }}>TRADEMIND</span>
           </div>
           <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 16 }}>
             What is your mental state actually costing you — or earning you — in real dollars?

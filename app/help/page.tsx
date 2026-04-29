@@ -184,7 +184,7 @@ export default function HelpPage() {
           <a href="#pricing" className="help-card">
             <div style={{ fontSize: 24, marginBottom: 10 }}>💳</div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Plans &amp; Pricing</div>
-            <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Free, Pro, Premium</div>
+            <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Free · TradeMind $39/mo</div>
           </a>
         </div>
 
