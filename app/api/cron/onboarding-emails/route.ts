@@ -351,7 +351,7 @@ export async function GET(req: NextRequest) {
   const now = new Date();
   const users = await db.user.findMany({
     where: { emailReminders: true },
-    select: { id: true, email: true, name: true, createdAt: true },
+    select: { id: true, email: true, name: true, createdAt: true, plan: true },
   });
 
   const results: Record<number, number> = {};
@@ -362,7 +362,58 @@ export async function GET(req: NextRequest) {
     let subject: string;
     let html: string;
 
-    if (daysSince === 4) {
+    // Day 8 — only for users who converted to paid (trial ended, now charging)
+    if (daysSince === 8 && (user.plan === "pro" || user.plan === "premium")) {
+      const firstName = user.name?.split(" ")[0] ?? "";
+      subject = `${firstName ? `${firstName}, you're` : "You're"} officially a TradeMind member`;
+      html = wrap(`
+        <h1 style="color:#E8F0FF;font-size:22px;font-weight:700;text-align:center;margin:0 0 8px;">
+          You're officially in. 🎯
+        </h1>
+        <p style="color:#3D4F6A;font-size:13px;text-align:center;margin:0 0 32px;">
+          ${firstName ? `${firstName}, your` : "Your"} first payment just processed. Welcome to the traders who take their edge seriously.
+        </p>
+
+        <div style="background:#0D1420;border:1px solid #00E87A30;border-radius:14px;padding:24px;margin-bottom:20px;">
+          <div style="font-size:11px;color:#00E87A;letter-spacing:0.08em;margin-bottom:12px;">THIS WEEK'S FOCUS</div>
+          <p style="color:#7A8BA8;font-size:14px;line-height:1.8;margin:0 0 16px;">
+            You've done the hard part — you've built data on yourself. Now use it.
+          </p>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            ${[
+              ["Check your Analytics", "See your GO vs NO-TRADE P&L gap. It's probably bigger than you think.", "https://trademindedge.com/analytics", "#4F8EF7"],
+              ["Talk to Alex", "Your AI coach has been watching your patterns. Ask: 'What's my biggest pattern costing me?'", "https://trademindedge.com/coach", "#8B5CF6"],
+              ["Set up your Playbook", "Write your rules once. TradeMind surfaces them before every check-in.", "https://trademindedge.com/playbook", "#00E87A"],
+            ].map(([title, desc, , color]) => `
+            <div style="display:flex;align-items:flex-start;gap:12px;">
+              <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;margin-top:5px;"></div>
+              <div>
+                <div style="font-size:13px;font-weight:700;color:#E8F0FF;margin-bottom:2px;">${title}</div>
+                <div style="font-size:12px;color:#7A8BA8;line-height:1.6;">${desc}</div>
+              </div>
+            </div>`).join("")}
+          </div>
+        </div>
+
+        <div style="background:#0D1420;border:1px solid #8B5CF630;border-radius:14px;padding:20px;margin-bottom:20px;text-align:center;">
+          <div style="font-size:11px;color:#8B5CF6;letter-spacing:0.08em;margin-bottom:8px;">REFER & EARN</div>
+          <p style="color:#7A8BA8;font-size:13px;line-height:1.7;margin:0 0 12px;">
+            Know a trader who's fighting the same battles? Refer 3 traders and get <strong style="color:#E8F0FF;">1 month free</strong>. Your referral link is in Settings.
+          </p>
+          <a href="https://trademindedge.com/settings#referral" style="display:inline-block;background:rgba(139,92,246,0.15);border:1px solid rgba(139,92,246,0.3);color:#8B5CF6;text-decoration:none;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:600;">
+            Get My Referral Link →
+          </a>
+        </div>
+
+        <div style="text-align:center;margin-bottom:8px;">
+          <a href="https://trademindedge.com/checkin" style="display:inline-block;background:linear-gradient(135deg,#00E87A,#00c46a);color:#070B14;text-decoration:none;border-radius:10px;padding:14px 36px;font-size:15px;font-weight:700;">
+            Start Today's Check-in →
+          </a>
+        </div>
+
+        ${footer(user.email)}
+      `);
+    } else if (daysSince === 4) {
       // Personalized pre-charge email — fetch real data
       const [checkins, trades] = await Promise.all([
         db.checkin.findMany({ where: { userId: user.id }, orderBy: { date: "desc" }, take: 10 }),

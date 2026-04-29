@@ -46,6 +46,10 @@ export default function SettingsPage() {
   const [freezeAvailable, setFreezeAvailable] = useState(false);
   const [freezeUsing, setFreezeUsing] = useState(false);
   const [freezeUsed, setFreezeUsed] = useState(false);
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [pauseLoading, setPauseLoading] = useState(false);
+  const [pauseSuccess, setPauseSuccess] = useState(false);
+  const [portalLoading, setPortalLoading] = useState(false);
 
   // Prop Firm Challenge
   const [challengeEnabled, setChallengeEnabled] = useState(false);
@@ -827,14 +831,117 @@ export default function SettingsPage() {
               </div>
             )}
             {isPro && (
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)", marginBottom: 16 }}>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 1 }}>Billing & Invoices</div>
-                  <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Update payment method, view invoices, or cancel</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+                {/* Billing portal row */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)" }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 1 }}>Billing & Invoices</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Update payment method, view invoices, or cancel</div>
+                  </div>
+                  <button
+                    className="btn-ghost"
+                    style={{ fontSize: 12, padding: "7px 14px", flexShrink: 0 }}
+                    disabled={portalLoading}
+                    onClick={async () => {
+                      setPortalLoading(true);
+                      try {
+                        const r = await fetch("/api/paddle/portal");
+                        const { url } = await r.json();
+                        window.open(url, "_blank", "noopener");
+                      } catch {
+                        window.open("https://customer.paddle.com", "_blank", "noopener");
+                      } finally {
+                        setPortalLoading(false);
+                      }
+                    }}
+                  >
+                    {portalLoading ? "Loading…" : "Manage →"}
+                  </button>
                 </div>
-                <a href="https://customer.paddle.com" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-                  <button className="btn-ghost" style={{ fontSize: 12, padding: "7px 14px", flexShrink: 0 }}>Manage →</button>
-                </a>
+                {/* Pause subscription row */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)" }}>
+                  <div>
+                    <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 1 }}>Pause Subscription</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Take a break — pauses at end of billing period</div>
+                  </div>
+                  <button
+                    className="btn-ghost"
+                    style={{ fontSize: 12, padding: "7px 14px", flexShrink: 0 }}
+                    onClick={() => setShowPauseModal(true)}
+                  >
+                    Pause →
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Pause subscription modal */}
+            {showPauseModal && (
+              <div
+                style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+                onClick={(e) => { if (e.target === e.currentTarget) setShowPauseModal(false); }}
+              >
+                <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 28, maxWidth: 380, width: "100%" }}>
+                  {pauseSuccess ? (
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+                      <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 8 }}>Subscription paused</div>
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 20 }}>
+                        Your subscription will pause at the end of the current billing period. You&apos;ll keep full access until then.
+                      </div>
+                      <button className="btn-primary" style={{ width: "100%", fontSize: 13 }} onClick={() => { setShowPauseModal(false); setPauseSuccess(false); }}>
+                        Got it
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 22, marginBottom: 12 }}>⏸️ Pause your subscription?</div>
+                      <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 20 }}>
+                        Your subscription will pause at the <strong style={{ color: "var(--text)" }}>end of the current billing period</strong>. You keep full access until then — no charge during the pause.
+                      </div>
+                      <div style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 20, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                        💡 Your streaks, journal, and analytics are saved. Resume anytime from this page.
+                      </div>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <button
+                          className="btn-ghost"
+                          style={{ flex: 1, fontSize: 13 }}
+                          onClick={() => setShowPauseModal(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          className="btn-primary"
+                          style={{ flex: 1, fontSize: 13, background: "none", border: "1px solid rgba(251,191,36,0.4)", color: "#FBB024" }}
+                          disabled={pauseLoading}
+                          onClick={async () => {
+                            setPauseLoading(true);
+                            try {
+                              const r = await fetch("/api/paddle/pause", { method: "POST" });
+                              if (r.ok) {
+                                setPauseSuccess(true);
+                              } else {
+                                const { error } = await r.json();
+                                if (error?.includes("customer.paddle.com")) {
+                                  window.open("https://customer.paddle.com", "_blank", "noopener");
+                                  setShowPauseModal(false);
+                                } else {
+                                  alert(error ?? "Something went wrong. Try pausing from customer.paddle.com.");
+                                }
+                              }
+                            } catch {
+                              alert("Something went wrong. Please try again.");
+                            } finally {
+                              setPauseLoading(false);
+                            }
+                          }}
+                        >
+                          {pauseLoading ? "Pausing…" : "Pause Subscription"}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
             )}
 
@@ -934,69 +1041,117 @@ export default function SettingsPage() {
         </section>
 
         {/* Referral */}
-        <section className="card" style={{ padding: 28, marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700 }}>Invite a Trader</h2>
-            {referral && referral.usedCount > 0 && (
-              <div style={{ fontSize: 12, fontWeight: 700, padding: "3px 10px", borderRadius: 8, background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.2)", color: "var(--green)" }}>
-                {referral.usedCount} {referral.usedCount === 1 ? "trader joined" : "traders joined"}
-              </div>
-            )}
-          </div>
-          <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>
-            Know a trader who&apos;s fighting their own psychology? Send them your link. Every trader who joins using your code grows the accountability network you trade in.
-          </p>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: "rgba(0,232,122,0.04)", border: "1px solid rgba(0,232,122,0.15)", marginBottom: 16 }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><path d="M2 7l3 3 7-7" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            <span style={{ fontSize: 12, color: "var(--green)", fontWeight: 600 }}>
-              {referral && referral.usedCount >= 3 ? `${referral.usedCount} traders joined — your network is building` : "Invite 3 traders and your entire circle becomes more accountable"}
-            </span>
-          </div>
-          {referral ? (
-            <div>
-              <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                <div style={{ flex: 1, padding: "10px 14px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)", fontSize: 13, fontFamily: "var(--font-geist-mono)", color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {referral.link}
-                </div>
-                <button
-                  className={referralCopied ? "btn-primary" : "btn-ghost"}
-                  style={{ padding: "10px 16px", fontSize: 13, flexShrink: 0 }}
-                  onClick={() => {
-                    navigator.clipboard.writeText(referral.link);
-                    setReferralCopied(true);
-                    setTimeout(() => setReferralCopied(false), 2000);
-                  }}>
-                  {referralCopied ? "✓ Copied!" : "Copy"}
-                </button>
-              </div>
-              <div style={{ display: "flex", gap: 8 }}>
-                <a
-                  href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I've been using TradeMind to track my mental state before trading — it's changed how I approach the markets. Check it out: ${referral.link}`)}`}
-                  target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", flex: 1 }}>
-                  <button className="btn-ghost" style={{ width: "100%", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M13 1L8.5 6.5 13.5 13H10L7 9 3.5 13H1L5.5 7.5 0.5 1H4L7 4.5 10.5 1H13Z" fill="currentColor"/></svg>
-                    Share on X
-                  </button>
-                </a>
-                <button
-                  className="btn-ghost"
-                  style={{ flex: 1, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-                  onClick={() => { if (navigator.share) navigator.share({ title: "TradeMind", text: "Know your mental state before you trade.", url: referral.link }); }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="11.5" cy="2.5" r="1.5" stroke="currentColor" strokeWidth="1.2"/><circle cx="2.5" cy="7" r="1.5" stroke="currentColor" strokeWidth="1.2"/><circle cx="11.5" cy="11.5" r="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M4 7l6-4M10 11L4 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
-                  Share
-                </button>
-              </div>
-              {referral.usedCount > 0 && (
-                <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 12, textAlign: "center" }}>
-                  {referral.usedCount} {referral.usedCount === 1 ? "trader has" : "traders have"} joined using your link
-                </p>
-              )}
+        <section id="referral" className="card" style={{ padding: 28, marginBottom: 20, border: referral && referral.usedCount >= 3 ? "1px solid rgba(0,232,122,0.3)" : "1px solid var(--border)", background: referral && referral.usedCount >= 3 ? "rgba(0,232,122,0.03)" : undefined }}>
+
+          {referral && referral.usedCount >= 3 ? (
+            /* === REWARD EARNED STATE === */
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
+              <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--green)", marginBottom: 8 }}>You&apos;ve earned a free month!</h2>
+              <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 20 }}>
+                {referral.usedCount} traders joined using your link. Email us to claim your reward — we&apos;ll add 1 month free to your account.
+              </p>
+              <a
+                href={`mailto:support@trademindedge.com?subject=Referral%20Reward%20—%20${encodeURIComponent(referral.code)}&body=Hi%2C%20I%27ve%20referred%20${referral.usedCount}%20traders%20using%20my%20link%20(code%3A%20${encodeURIComponent(referral.code)}).%20Please%20add%201%20free%20month%20to%20my%20account.`}
+                style={{ display: "inline-block", background: "linear-gradient(135deg,#00E87A,#00c46a)", color: "#070B14", textDecoration: "none", borderRadius: 10, padding: "12px 32px", fontSize: 14, fontWeight: 700 }}>
+                Claim 1 Month Free →
+              </a>
+              <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 16 }}>
+                Or email support@trademindedge.com with subject &ldquo;Referral Reward&rdquo;
+              </p>
             </div>
           ) : (
-            <div style={{ height: 80, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid var(--surface3)", borderTopColor: "var(--blue)", animation: "spin 0.8s linear infinite" }} />
-              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-            </div>
+            /* === DEFAULT STATE === */
+            <>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
+                <h2 style={{ fontSize: 16, fontWeight: 700 }}>Refer &amp; Earn</h2>
+                <div style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 8, background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", color: "#8B5CF6", whiteSpace: "nowrap" }}>
+                  🎁 1 month free
+                </div>
+              </div>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>
+                Refer 3 traders who start a trial and you get <strong style={{ color: "var(--text)" }}>1 month free</strong> — automatically. Traders refer traders. This is how the best tools spread.
+              </p>
+
+              {/* Progress bar */}
+              {referral ? (
+                <div style={{ marginBottom: 20 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Progress toward free month</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: referral.usedCount >= 3 ? "var(--green)" : "var(--text)" }}>
+                      {referral.usedCount} / 3 traders
+                    </span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 3, background: "var(--surface3)", overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%",
+                      borderRadius: 3,
+                      background: "linear-gradient(90deg, #8B5CF6, #6366f1)",
+                      width: `${Math.min(100, (referral.usedCount / 3) * 100)}%`,
+                      transition: "width 0.6s ease",
+                    }} />
+                  </div>
+                  {referral.usedCount === 0 && (
+                    <p style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8 }}>Share your link below to get started</p>
+                  )}
+                  {referral.usedCount === 1 && (
+                    <p style={{ fontSize: 12, color: "#8B5CF6", marginTop: 8, fontWeight: 600 }}>1 trader joined — 2 more to earn your free month</p>
+                  )}
+                  {referral.usedCount === 2 && (
+                    <p style={{ fontSize: 12, color: "#8B5CF6", marginTop: 8, fontWeight: 600 }}>2 traders joined — 1 more and you&apos;re there 🔥</p>
+                  )}
+                </div>
+              ) : null}
+
+              {/* Link + copy */}
+              {referral ? (
+                <>
+                  <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                    <div style={{ flex: 1, padding: "10px 14px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)", fontSize: 12, fontFamily: "var(--font-geist-mono)", color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {referral.link}
+                    </div>
+                    <button
+                      className={referralCopied ? "btn-primary" : "btn-ghost"}
+                      style={{ padding: "10px 18px", fontSize: 13, flexShrink: 0, transition: "all 0.15s" }}
+                      onClick={() => {
+                        navigator.clipboard.writeText(referral.link);
+                        setReferralCopied(true);
+                        setTimeout(() => setReferralCopied(false), 2000);
+                      }}>
+                      {referralCopied ? "✓ Copied!" : "Copy"}
+                    </button>
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <a
+                      href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`I've been using TradeMind to track my mental edge before every trade — it's the pre-flight checklist I wish I had years ago. Try it free: ${referral.link}`)}`}
+                      target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none", flex: 1 }}>
+                      <button className="btn-ghost" style={{ width: "100%", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M13 1L8.5 6.5 13.5 13H10L7 9 3.5 13H1L5.5 7.5 0.5 1H4L7 4.5 10.5 1H13Z" fill="currentColor"/></svg>
+                        Share on X
+                      </button>
+                    </a>
+                    <button
+                      className="btn-ghost"
+                      style={{ flex: 1, fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                      onClick={() => {
+                        if (navigator.share) navigator.share({
+                          title: "TradeMind — Know your mental edge before you trade",
+                          text: "I've been using TradeMind to check my mental state before trading. It's changed how I approach every session. Try it free:",
+                          url: referral.link,
+                        });
+                      }}>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="11.5" cy="2.5" r="1.5" stroke="currentColor" strokeWidth="1.2"/><circle cx="2.5" cy="7" r="1.5" stroke="currentColor" strokeWidth="1.2"/><circle cx="11.5" cy="11.5" r="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M4 7l6-4M10 11L4 8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                      Share
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div style={{ height: 80, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid var(--surface3)", borderTopColor: "var(--blue)", animation: "spin 0.8s linear infinite" }} />
+                  <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+                </div>
+              )}
+            </>
           )}
         </section>
 

@@ -4,6 +4,8 @@ import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
 
 type SubData = {
+  id?: string;
+  customerId?: string;
   customData?: { userId?: string };
   customerEmail?: string;
   status?: string;
@@ -55,10 +57,15 @@ export async function POST(request: NextRequest) {
         const sub = event.data as SubData;
         const plan = resolvePlanFromPriceId(sub);
         const userId = sub.customData?.userId;
+        const paddleData = {
+          plan,
+          ...(sub.id && { paddleSubscriptionId: sub.id }),
+          ...(sub.customerId && { paddleCustomerId: sub.customerId }),
+        };
         if (userId) {
-          await db.user.update({ where: { id: userId }, data: { plan } });
+          await db.user.update({ where: { id: userId }, data: paddleData });
         } else if (sub.customerEmail) {
-          await db.user.update({ where: { email: sub.customerEmail }, data: { plan } });
+          await db.user.update({ where: { email: sub.customerEmail }, data: paddleData });
         } else {
           logger.error("Paddle webhook: cannot identify user — no userId or email", { eventType: event.eventType });
           return Response.json({ error: "Cannot identify user" }, { status: 400 });
@@ -70,10 +77,15 @@ export async function POST(request: NextRequest) {
         const sub = event.data as SubData;
         const plan = resolvePlanFromPriceId(sub);
         const userId = sub.customData?.userId;
+        const paddleData = {
+          plan,
+          ...(sub.id && { paddleSubscriptionId: sub.id }),
+          ...(sub.customerId && { paddleCustomerId: sub.customerId }),
+        };
         if (userId) {
-          await db.user.update({ where: { id: userId }, data: { plan } });
+          await db.user.update({ where: { id: userId }, data: paddleData });
         } else if (sub.customerEmail) {
-          await db.user.update({ where: { email: sub.customerEmail }, data: { plan } });
+          await db.user.update({ where: { email: sub.customerEmail }, data: paddleData });
         } else {
           logger.error("Paddle webhook: cannot identify user for update", { eventType: event.eventType });
           return Response.json({ error: "Cannot identify user" }, { status: 400 });
