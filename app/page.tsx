@@ -758,6 +758,67 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Pricing — immediately after How it works */}
+      <section id="pricing" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div className="reveal" style={{ textAlign: "center", marginBottom: 40 }}>
+            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>One plan. Everything included.</h2>
+            <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>7-day free trial. Cancel before day 8 and you won&apos;t be charged a cent.</p>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,176,32,0.08)", border: "1px solid rgba(255,176,32,0.25)", borderRadius: 20, padding: "8px 20px", fontSize: 13, color: "var(--amber)", fontWeight: 600 }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.3 3 3.2.5-2.3 2.2.5 3.1L7 8.4 4.3 9.8l.5-3.1L2.5 4.5l3.2-.5L7 1z" fill="var(--amber)" opacity="0.8"/></svg>
+              Founding member pricing — locked forever for early signups
+            </div>
+          </div>
+
+          <div style={{ maxWidth: 520, margin: "0 auto" }}>
+            <div className="card reveal" style={{ padding: 40, border: "1px solid rgba(139,92,246,0.4)", background: "linear-gradient(135deg, rgba(139,92,246,0.06) 0%, var(--surface) 60%)", position: "relative", boxShadow: "0 0 60px rgba(139,92,246,0.12)", display: "flex", flexDirection: "column" }}>
+              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", padding: "5px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>The complete pre-flight protocol</div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <div style={{ fontSize: 11, color: "#8B5CF6", letterSpacing: "0.12em", fontWeight: 700 }}>TRADEMIND</div>
+                <div style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "#8B5CF6", fontWeight: 700 }}>7 DAYS FREE</div>
+              </div>
+              <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 8, fontStyle: "italic" }}>The pre-flight checklist for serious traders.</div>
+              <div style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 600, marginBottom: 16 }}>Less than the cost of one failed FTMO challenge retry.</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
+                <div className="font-bebas" style={{ fontSize: 56, lineHeight: 1 }}>$39</div>
+                <div style={{ color: "var(--text-muted)", fontSize: 14 }}>/month</div>
+              </div>
+              <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>Cancel before day 8 — you won&apos;t be charged.</div>
+
+              <ul style={{ listStyle: "none", marginBottom: 28, flex: 1, display: "flex", flexDirection: "column", gap: 0 }}>
+                {["Daily mental check-in + GO / CAUTION / NO-TRADE verdict", "Trade Journal + emotion tracking, tags & reflection", "90-day analytics + P&L vs. psychology correlation", "Accountability partners + circle groups", "AI Coach Alex — daily briefing & personalized insights", "Broker auto-connect (MT4/MT5, TopstepX + CSV)", "Deep behavioral pattern detection (revenge, FOMO, overtrading)", "Trading Playbook & rules engine", "Prop firm challenge tracker (FTMO, TopStep & more)", "Mental P&L — see what psychology costs you in dollars", "Unlimited history + priority support"].map((f) => (
+                  <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)" }}>
+                    <CheckIcon color="#8B5CF6" />{f}
+                  </li>
+                ))}
+              </ul>
+
+              <Link href="/login?callbackUrl=/checkin" style={{ display: "block", marginBottom: 12 }}>
+                <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start Pre-Flight — 7-Day Free Trial →</button>
+              </Link>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.18)", borderRadius: 8, padding: "10px 14px", marginBottom: 12, justifyContent: "space-between" }}>
+                <div>
+                  <div style={{ fontSize: 11, color: "#8B5CF6", fontWeight: 700, letterSpacing: "0.06em", marginBottom: 2 }}>ANNUAL PLAN</div>
+                  <div style={{ fontSize: 13, color: "var(--text-dim)" }}>$348/year — save $120 vs monthly (26% off)</div>
+                </div>
+                <Link href="/pricing" style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>Get annual →</Link>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", borderTop: "1px solid rgba(139,92,246,0.15)" }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.3 2.8 3.2.4-2.3 2.2.5 3.1L8 8l-2.7 1.5.5-3.1L3.5 4.2l3.2-.4L8 1z" stroke="var(--green)" strokeWidth="1.2" strokeLinejoin="round"/></svg>
+                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>7-day free trial · No charge until day 8 · Cancel anytime</span>
+              </div>
+            </div>
+          </div>
+
+          <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", marginTop: 32 }}>
+            Already have an account?{" "}
+            <Link href="/login" style={{ color: "var(--blue)", textDecoration: "none", fontWeight: 600 }}>Log in here</Link>
+          </p>
+        </div>
+      </section>
+
       {/* Science Section */}
       <section style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 24px" }}>
         <div className="reveal" style={{ textAlign: "center", marginBottom: 52 }}>
@@ -1095,67 +1156,6 @@ export default function LandingPage() {
               <span className="hero-gradient-text">It&apos;s insurance.</span>
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* Pricing */}
-      <section id="pricing" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 40 }}>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>One plan. Everything included.</h2>
-            <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>7-day free trial. Cancel before day 8 and you won&apos;t be charged a cent.</p>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,176,32,0.08)", border: "1px solid rgba(255,176,32,0.25)", borderRadius: 20, padding: "8px 20px", fontSize: 13, color: "var(--amber)", fontWeight: 600 }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.3 3 3.2.5-2.3 2.2.5 3.1L7 8.4 4.3 9.8l.5-3.1L2.5 4.5l3.2-.5L7 1z" fill="var(--amber)" opacity="0.8"/></svg>
-              Founding member pricing — locked forever for early signups
-            </div>
-          </div>
-
-          <div style={{ maxWidth: 520, margin: "0 auto" }}>
-            <div className="card reveal" style={{ padding: 40, border: "1px solid rgba(139,92,246,0.4)", background: "linear-gradient(135deg, rgba(139,92,246,0.06) 0%, var(--surface) 60%)", position: "relative", boxShadow: "0 0 60px rgba(139,92,246,0.12)", display: "flex", flexDirection: "column" }}>
-              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", padding: "5px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>The complete pre-flight protocol</div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <div style={{ fontSize: 11, color: "#8B5CF6", letterSpacing: "0.12em", fontWeight: 700 }}>TRADEMIND</div>
-                <div style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "#8B5CF6", fontWeight: 700 }}>7 DAYS FREE</div>
-              </div>
-              <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 8, fontStyle: "italic" }}>The pre-flight checklist for serious traders.</div>
-              <div style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 600, marginBottom: 16 }}>Less than the cost of one failed FTMO challenge retry.</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
-                <div className="font-bebas" style={{ fontSize: 56, lineHeight: 1 }}>$39</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 14 }}>/month</div>
-              </div>
-              <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>Cancel before day 8 — you won&apos;t be charged.</div>
-
-              <ul style={{ listStyle: "none", marginBottom: 28, flex: 1, display: "flex", flexDirection: "column", gap: 0 }}>
-                {["Daily mental check-in + GO / CAUTION / NO-TRADE verdict", "Trade Journal + emotion tracking, tags & reflection", "90-day analytics + P&L vs. psychology correlation", "Accountability partners + circle groups", "AI Coach Alex — daily briefing & personalized insights", "Broker auto-connect (MT4/MT5, TopstepX + CSV)", "Deep behavioral pattern detection (revenge, FOMO, overtrading)", "Trading Playbook & rules engine", "Prop firm challenge tracker (FTMO, TopStep & more)", "Mental P&L — see what psychology costs you in dollars", "Unlimited history + priority support"].map((f) => (
-                  <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)" }}>
-                    <CheckIcon color="#8B5CF6" />{f}
-                  </li>
-                ))}
-              </ul>
-
-              <Link href="/login?callbackUrl=/checkin" style={{ display: "block", marginBottom: 12 }}>
-                <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start Pre-Flight — 7-Day Free Trial →</button>
-              </Link>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.18)", borderRadius: 8, padding: "10px 14px", marginBottom: 12, justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 11, color: "#8B5CF6", fontWeight: 700, letterSpacing: "0.06em", marginBottom: 2 }}>ANNUAL PLAN</div>
-                  <div style={{ fontSize: 13, color: "var(--text-dim)" }}>$348/year — save $120 vs monthly (26% off)</div>
-                </div>
-                <Link href="/pricing" style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>Get annual →</Link>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", borderTop: "1px solid rgba(139,92,246,0.15)" }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.3 2.8 3.2.4-2.3 2.2.5 3.1L8 8l-2.7 1.5.5-3.1L3.5 4.2l3.2-.4L8 1z" stroke="var(--green)" strokeWidth="1.2" strokeLinejoin="round"/></svg>
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>7-day free trial · No charge until day 8 · Cancel anytime</span>
-              </div>
-            </div>
-          </div>
-
-          <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", marginTop: 32 }}>
-            Already have an account?{" "}
-            <Link href="/login" style={{ color: "var(--blue)", textDecoration: "none", fontWeight: 600 }}>Log in here</Link>
-          </p>
         </div>
       </section>
 
