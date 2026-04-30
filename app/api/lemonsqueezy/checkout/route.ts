@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { rateLimit } from "@/lib/ratelimit";
 import { lemonSqueezySetup, createCheckout } from "@lemonsqueezy/lemonsqueezy.js";
+import { db } from "@/lib/db";
 
 function setup() {
   const apiKey = process.env.LEMONSQUEEZY_API_KEY;
@@ -18,6 +19,15 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id || !session.user.email) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Guard: don't create duplicate checkout for already-premium users
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { plan: true, lsSubscriptionId: true },
+  });
+  if (user?.plan === "premium" || user?.plan === "pro") {
+    return Response.json({ error: "already_premium" }, { status: 409 });
   }
 
   const storeId = process.env.LEMONSQUEEZY_STORE_ID;

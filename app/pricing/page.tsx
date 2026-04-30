@@ -72,6 +72,7 @@ export default function PricingPage() {
         body: JSON.stringify({ billing }),
       });
       const { url, error } = await r.json();
+      if (error === "already_premium") { window.location.href = "/dashboard"; return; }
       if (error) { alert(error); return; }
       window.location.href = url;
     } catch {
@@ -223,7 +224,9 @@ export default function PricingPage() {
               </button>
               {plan.id !== "free" && (
                 <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", margin: "10px 0 0", lineHeight: 1.5 }}>
-                  7-day trial · Cancel in 30 seconds
+                  {billing === "annual"
+                    ? "7-day trial · Annual plan ($348/yr) · Cancel anytime"
+                    : "7-day trial · Cancel in 30 seconds"}
                 </p>
               )}
               {"roi" in plan && plan.roi && (

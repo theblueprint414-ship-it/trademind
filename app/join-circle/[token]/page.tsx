@@ -49,6 +49,7 @@ export default function JoinCirclePage() {
     try {
       const r = await fetch("/api/lemonsqueezy/checkout", { method: "POST" });
       const { url, error } = await r.json();
+      if (error === "already_premium") { window.location.reload(); return; }
       if (error) { alert(error); return; }
       window.location.href = url;
     } catch {

@@ -94,6 +94,20 @@ export default function DashboardPage() {
     if (searchParams.get("upgraded") === "true") {
       setShowUpgradeWelcome(true);
       window.history.replaceState({}, "", "/dashboard");
+      // Poll /api/me until plan=premium (webhook may arrive a few seconds after redirect)
+      let attempts = 0;
+      const poll = setInterval(async () => {
+        attempts++;
+        try {
+          const d = await fetch("/api/me").then((r) => r.json());
+          if (d.plan === "premium" || d.plan === "pro") {
+            setIsPro(true);
+            clearInterval(poll);
+          }
+        } catch { /* ignore */ }
+        if (attempts >= 10) clearInterval(poll);
+      }, 1500);
+      return () => clearInterval(poll);
     }
   }, [searchParams]);
 
