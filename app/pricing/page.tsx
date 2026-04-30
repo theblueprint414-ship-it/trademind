@@ -66,7 +66,11 @@ export default function PricingPage() {
   async function handleCheckout(planId: string) {
     setLoading(planId);
     try {
-      const r = await fetch("/api/lemonsqueezy/checkout", { method: "POST" });
+      const r = await fetch("/api/lemonsqueezy/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ billing }),
+      });
       const { url, error } = await r.json();
       if (error) { alert(error); return; }
       window.location.href = url;

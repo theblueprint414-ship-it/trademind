@@ -914,12 +914,7 @@ export default function SettingsPage() {
                                 setPauseSuccess(true);
                               } else {
                                 const { error } = await r.json();
-                                if (error?.includes("billing.stripe.com")) {
-                                  window.open("https://app.lemonsqueezy.com/my-orders", "_blank", "noopener");
-                                  setShowPauseModal(false);
-                                } else {
-                                  alert(error ?? "Something went wrong. Please manage from your billing portal.");
-                                }
+                                alert(error ?? "Something went wrong. Please manage from your billing portal.");
                               }
                             } catch {
                               alert("Something went wrong. Please try again.");

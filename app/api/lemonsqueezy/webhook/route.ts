@@ -86,10 +86,12 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case "subscription_updated": {
+      case "subscription_updated":
+      case "subscription_cancelled": {
+        // "cancelled" = user cancelled but still in paid period — keep premium until subscription_expired fires
         const userId = await resolveUserId(custom_data, email);
         if (!userId) break;
-        const active = ["active", "trialing", "past_due"].includes(sub.attributes.status);
+        const active = ["active", "trialing", "past_due", "cancelled"].includes(sub.attributes.status);
         await db.user.update({
           where: { id: userId },
           data: {
@@ -101,9 +103,9 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case "subscription_cancelled":
       case "subscription_expired":
       case "subscription_paused": {
+        // expired = billing period ended; paused with void mode = no access
         const userId = await resolveUserId(custom_data, email);
         if (!userId) break;
         await db.user.update({

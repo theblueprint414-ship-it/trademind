@@ -21,8 +21,10 @@ export async function POST(req: NextRequest) {
   }
 
   const storeId = process.env.LEMONSQUEEZY_STORE_ID;
-  const variantId = process.env.LEMONSQUEEZY_VARIANT_ID;
-  if (!storeId || !variantId) {
+  const monthlyVariantId = process.env.LEMONSQUEEZY_VARIANT_ID;
+  const annualVariantId = process.env.LEMONSQUEEZY_ANNUAL_VARIANT_ID;
+
+  if (!storeId || !monthlyVariantId) {
     return Response.json({ error: "Billing not configured" }, { status: 500 });
   }
 
@@ -31,6 +33,16 @@ export async function POST(req: NextRequest) {
   } catch {
     return Response.json({ error: "Billing not configured" }, { status: 500 });
   }
+
+  let billing: string | undefined;
+  try {
+    const body = await req.json().catch(() => ({}));
+    billing = body?.billing;
+  } catch {
+    // no body — default to monthly
+  }
+
+  const variantId = billing === "annual" && annualVariantId ? annualVariantId : monthlyVariantId;
 
   const origin = req.headers.get("origin") ?? "https://trademindedge.com";
 
