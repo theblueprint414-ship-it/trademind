@@ -167,6 +167,10 @@ export default function LandingPage() {
   const [siteStats, setSiteStats] = useState<{ users: number; checkins: number } | null>(null);
 
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
+
   const revealRef = useRef<IntersectionObserver | null>(null);
   useEffect(() => {
     revealRef.current = new IntersectionObserver(
@@ -722,8 +726,8 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
           {[
             {
-              value: siteStats && siteStats.checkins > 0 ? `${siteStats.checkins.toLocaleString()}+` : "—",
-              label: "check-ins logged",
+              value: siteStats && siteStats.checkins > 0 ? `${siteStats.checkins.toLocaleString()}+` : "60s",
+              label: siteStats && siteStats.checkins > 0 ? "check-ins logged" : "to your first GO / NO-TRADE verdict",
               color: "var(--green)",
             },
             { value: "5", label: "questions, 60 seconds", color: "var(--blue)" },
@@ -897,7 +901,7 @@ export default function LandingPage() {
           </div>
 
           {/* 3 verdict science blocks */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 40 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16, marginBottom: 40 }}>
             {[
               {
                 verdict: "GO", score: "70+", color: "var(--green)", bg: "rgba(0,232,122,0.04)", border: "rgba(0,232,122,0.2)",

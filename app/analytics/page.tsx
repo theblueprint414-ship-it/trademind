@@ -361,7 +361,7 @@ function MentalStatePerformanceCard({ data }: { data: AnalyticsData["scoreRangeP
           You win <strong>{diff}%</strong> more trades on GO days vs NO-TRADE days
         </div>
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
+      <div className="analytics-verdict-grid">
         {ranges.map(({ key, color, borderColor, bg }) => {
           const r = data[key];
           return (
@@ -743,13 +743,21 @@ export default function AnalyticsPage() {
   if (loading) {
     return (
       <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
-        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        <style>{`
+          @keyframes spin{to{transform:rotate(360deg)}}
+          .analytics-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px; }
+          .analytics-verdict-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+          @media(max-width:600px){
+            .analytics-kpi-grid { grid-template-columns:repeat(2,1fr); }
+            .analytics-verdict-grid { grid-template-columns:1fr; }
+          }
+        `}</style>
         <div className="app-header">
           <Skeleton width={100} height={24} />
           <Skeleton width={80} height={16} />
         </div>
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
+          <div className="analytics-kpi-grid">
             {[0,1,2,3].map((i) => <SkeletonStat key={i} />)}
           </div>
           <SkeletonCard rows={4} style={{ marginBottom: 20, padding: 24 }} />
@@ -889,7 +897,7 @@ export default function AnalyticsPage() {
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
 
         {/* Top KPI row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10, marginBottom: 20 }}>
+        <div className="analytics-kpi-grid">
           {[
             { label: "TOTAL CHECK-INS", value: data.totalCheckins, color: "var(--blue)" },
             { label: "AVG SCORE", value: data.avgScore ?? "—", color: scoreColor(data.avgScore), suffix: data.avgScore ? "/100" : "" },

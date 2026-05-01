@@ -359,6 +359,12 @@ export default function DashboardPage() {
         .quick-link:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
         .stat-card { transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
         .stat-card:hover { border-color: var(--border-bright) !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+        .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        @media (max-width: 600px) {
+          .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+          .quick-grid { grid-template-columns: repeat(3, 1fr); }
+        }
         .bar-col:hover .bar-fill { opacity: 1 !important; }
         .brief-card { position: relative; overflow: hidden; }
         .brief-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(94,106,210,0.06),rgba(139,92,246,0.06),rgba(0,232,122,0.04)); pointer-events:none; border-radius:inherit; }
@@ -460,7 +466,7 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10, marginBottom: 20 }}>
+          <div className="stats-grid">
             {[0,1,2,3].map((i) => <SkeletonStat key={i} />)}
           </div>
           <SkeletonCard rows={3} style={{ marginBottom: 16, padding: 24 }} />
@@ -613,7 +619,7 @@ export default function DashboardPage() {
         )}
 
         {/* STATS ROW — 4 cards */}
-        <div className="dash-section s2" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+        <div className="dash-section s2 stats-grid">
           {/* Streak */}
           <div className="card stat-card" style={{ padding: "18px 14px", textAlign: "center", background: streak >= 3 ? "linear-gradient(160deg, rgba(255,176,32,0.08) 0%, var(--surface) 70%)" : "linear-gradient(160deg, rgba(255,255,255,0.02), var(--surface))", borderColor: streak >= 3 ? "rgba(255,176,32,0.25)" : undefined, boxShadow: streak >= 7 ? "0 0 20px rgba(255,176,32,0.08) inset" : "none" }}>
             <div className="font-bebas" style={{ fontSize: 30, color: streakColor, lineHeight: 1, marginBottom: streak >= 3 ? 0 : 4, textShadow: streak >= 3 ? `0 0 20px ${streakColor}60` : "none" }}>
@@ -952,7 +958,7 @@ export default function DashboardPage() {
         {/* QUICK LINKS — 2×3 grid */}
         <div className="dash-section s4" style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 12 }}>QUICK ACCESS</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          <div className="quick-grid">
             {[
               { href: "/checkin", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="var(--blue)" strokeWidth="1.5"/><path d="M11 7v4l2.5 2.5" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/></svg>, label: "Check-in", sub: "Daily score", color: "var(--blue)" },
               { href: "/journal", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="3" width="14" height="16" rx="2.5" stroke="var(--green)" strokeWidth="1.5"/><path d="M7 8h8M7 11h8M7 14h5" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>, label: "Journal", sub: "Log trades", color: "var(--green)" },

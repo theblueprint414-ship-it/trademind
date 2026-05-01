@@ -3,6 +3,7 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import Google from "next-auth/providers/google";
 import Resend from "next-auth/providers/resend";
 import { db } from "@/lib/db";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
@@ -36,6 +37,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           (token.plan as string) ?? "free";
       }
       return session;
+    },
+  },
+  events: {
+    async createUser({ user }) {
+      if (!user.email) return;
+      try {
+        await sendWelcomeEmail(user.email, user.name ?? undefined);
+      } catch {
+        // non-critical — don't fail auth if email sending fails
+      }
     },
   },
 });
