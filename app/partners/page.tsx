@@ -55,6 +55,8 @@ export default function PartnersPage() {
   const [circleInviteLinks, setCircleInviteLinks] = useState<Record<string, string>>({});
   const [nudged, setNudged] = useState<Record<string, boolean>>({});
   const [nudging, setNudging] = useState<Record<string, boolean>>({});
+  const [copiedInvite, setCopiedInvite] = useState(false);
+  const [copiedCircle, setCopiedCircle] = useState<string | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -253,10 +255,10 @@ export default function PartnersPage() {
                 <div style={{ display: "flex", gap: 8 }}>
                   <button
                     className="btn-ghost"
-                    style={{ fontSize: 12, padding: "8px 16px" }}
-                    onClick={() => { navigator.clipboard.writeText(inviteLink); }}
+                    style={{ fontSize: 12, padding: "8px 16px", color: copiedInvite ? "var(--green)" : undefined }}
+                    onClick={() => { navigator.clipboard.writeText(inviteLink); setCopiedInvite(true); setTimeout(() => setCopiedInvite(false), 2000); }}
                   >
-                    Copy link
+                    {copiedInvite ? "✓ Copied!" : "Copy link"}
                   </button>
                   <button
                     className="btn-ghost"
@@ -372,10 +374,10 @@ export default function PartnersPage() {
                         {circleInviteLinks[circle.id] && (
                           <button
                             className="btn-ghost"
-                            style={{ fontSize: 12, padding: "6px 12px" }}
-                            onClick={() => navigator.clipboard.writeText(circleInviteLinks[circle.id])}
+                            style={{ fontSize: 12, padding: "6px 12px", color: copiedCircle === circle.id ? "var(--green)" : undefined }}
+                            onClick={() => { navigator.clipboard.writeText(circleInviteLinks[circle.id]); setCopiedCircle(circle.id); setTimeout(() => setCopiedCircle(null), 2000); }}
                           >
-                            Copy link
+                            {copiedCircle === circle.id ? "✓ Copied!" : "Copy link"}
                           </button>
                         )}
                         <button

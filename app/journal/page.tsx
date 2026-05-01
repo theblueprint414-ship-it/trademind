@@ -193,6 +193,7 @@ export default function JournalPage() {
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "done" | "error">("idle");
   const [syncImported, setSyncImported] = useState<number>(0);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
@@ -401,9 +402,12 @@ export default function JournalPage() {
   }
 
   async function handleDelete(id: string) {
+    if (!window.confirm("Delete this trade? This cannot be undone.")) return;
+    setDeletingId(id);
     await fetch(`/api/journal?id=${id}`, { method: "DELETE" });
     setEntries((prev) => prev.filter((e) => e.id !== id));
     setAllEntries((prev) => prev.filter((e) => e.id !== id));
+    setDeletingId(null);
   }
 
   async function handleCsvUpload(file: File) {
@@ -1011,9 +1015,10 @@ export default function JournalPage() {
                         >✏</button>
                         <button
                           onClick={() => handleDelete(entry.id)}
-                          style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, padding: "0 4px" }}
+                          disabled={deletingId === entry.id}
+                          style={{ background: "none", border: "none", color: deletingId === entry.id ? "var(--surface3)" : "var(--text-muted)", cursor: deletingId === entry.id ? "default" : "pointer", fontSize: 16, padding: "0 4px" }}
                           title="Delete"
-                        >×</button>
+                        >{deletingId === entry.id ? "…" : "×"}</button>
                       </div>
 
                       {entryTags.length > 0 && (

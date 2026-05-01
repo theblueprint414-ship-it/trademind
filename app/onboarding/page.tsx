@@ -135,6 +135,16 @@ export default function OnboardingPage() {
       </Link>
 
       <div style={{ width: "100%", maxWidth: 520 }}>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
+          {step !== "welcome" && (
+            <button
+              onClick={() => setStep(step === "trader-type" ? "welcome" : step === "limit" ? "trader-type" : "limit")}
+              style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, padding: 0, display: "flex", alignItems: "center", gap: 4 }}
+            >
+              ← Back
+            </button>
+          )}
+        </div>
         <ProgressBar current={stepIndex} total={4} />
 
         {/* ── Step: Welcome ── */}
@@ -329,6 +339,7 @@ export default function OnboardingPage() {
                         key={b.id}
                         onClick={() => !isComingSoon && setSelectedBroker(b.id)}
                         disabled={isComingSoon}
+                        title={isComingSoon ? "Coming soon — contact us if you need this broker" : undefined}
                         style={{
                           padding: "14px 16px", borderRadius: 10, textAlign: "left",
                           border: `1.5px solid ${selectedBroker === b.id ? "var(--blue)" : "var(--border)"}`,
