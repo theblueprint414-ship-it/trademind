@@ -57,14 +57,15 @@ function parseTags(raw: string | null): string[] {
   try { return JSON.parse(raw) as string[]; } catch { return []; }
 }
 
-function EmotionPicker({ value, onChange }: { value: number | null; onChange: (v: number) => void }) {
+function EmotionPicker({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
   return (
-    <div style={{ display: "flex", gap: 8 }}>
+    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
       {EMOTIONS.map((e, i) => (
         <button
           key={i}
           type="button"
-          onClick={() => onChange(i + 1)}
+          onClick={() => onChange(value === i + 1 ? null : i + 1)}
+          title={EMOTION_LABELS[i]}
           style={{
             flex: 1, padding: "10px 0", borderRadius: 10, border: `1.5px solid ${value === i + 1 ? "var(--blue)" : "var(--border)"}`,
             background: value === i + 1 ? "rgba(94,106,210,0.12)" : "var(--surface2)",
@@ -75,6 +76,16 @@ function EmotionPicker({ value, onChange }: { value: number | null; onChange: (v
           {e}
         </button>
       ))}
+      {value !== null && (
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          title="Clear"
+          style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, padding: "0 4px", flexShrink: 0, lineHeight: 1 }}
+        >
+          ✕
+        </button>
+      )}
     </div>
   );
 }
@@ -402,17 +413,22 @@ export default function JournalPage() {
     setChartUploading(true);
     setChartUploadError(null);
     try {
+      if (file.size > 10 * 1024 * 1024) {
+        setChartUploadError("File is too large — max 10 MB. Try compressing the image.");
+        setChartUploading(false);
+        return;
+      }
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/upload/chart", { method: "POST", body: fd });
       const data = await res.json();
       if (!res.ok || data.error) {
-        setChartUploadError(data.error ?? "Upload failed");
+        setChartUploadError(data.error ?? "Upload failed — try a smaller file or different format.");
       } else {
         setter(data.url);
       }
     } catch {
-      setChartUploadError("Upload failed");
+      setChartUploadError("Upload failed — check your connection and try again.");
     }
     setChartUploading(false);
   }
@@ -616,7 +632,18 @@ export default function JournalPage() {
                   />
                 </label>
               )}
-              {chartUploadError && <div style={{ fontSize: 12, color: "var(--red)", marginTop: 6 }}>{chartUploadError}</div>}
+              {chartUploadError && (
+                <div style={{ fontSize: 12, color: "var(--red)", marginTop: 6, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                  <span>{chartUploadError}</span>
+                  <button
+                    type="button"
+                    onClick={() => setChartUploadError(null)}
+                    style={{ fontSize: 11, color: "var(--blue)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", flexShrink: 0 }}
+                  >
+                    Try again
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

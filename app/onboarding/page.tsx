@@ -112,6 +112,10 @@ export default function OnboardingPage() {
 
   async function connectBroker() {
     if (!selectedBroker || !apiKey.trim()) return;
+    if (selectedBroker === "metaapi" && !metaApiServer.trim()) {
+      setConnectError("MT4/MT5 server name is required. Open MT4/MT5 → File → Login to find it.");
+      return;
+    }
     setConnecting(true);
     setConnectError("");
     try {
@@ -481,12 +485,17 @@ export default function OnboardingPage() {
 
                       {selectedBroker === "metaapi" && (
                         <div>
-                          <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.07em", display: "block", marginBottom: 8 }}>MT4/MT5 SERVER</label>
+                          <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.07em", display: "block", marginBottom: 8 }}>
+                            MT4/MT5 SERVER <span style={{ color: "var(--red)" }}>*</span>
+                          </label>
                           <input
                             type="text" value={metaApiServer} onChange={(e) => setMetaApiServer(e.target.value)}
                             placeholder="e.g. ICMarkets-Demo02"
-                            style={{ fontFamily: "var(--font-geist-mono)", fontSize: 13, width: "100%" }}
+                            style={{ fontFamily: "var(--font-geist-mono)", fontSize: 13, width: "100%", borderColor: !metaApiServer.trim() ? "rgba(255,59,92,0.35)" : undefined }}
                           />
+                          <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>
+                            Open MT4/MT5 → File → Login → look for the server dropdown
+                          </div>
                         </div>
                       )}
 

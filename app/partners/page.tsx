@@ -60,6 +60,18 @@ export default function PartnersPage() {
   const [copiedCircle, setCopiedCircle] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isLoggedIn) return;
+    const interval = setInterval(async () => {
+      const fRes = await fetch("/api/partners/feed").catch(() => null);
+      if (fRes?.ok) {
+        const data = await fRes.json();
+        setFeed(data.feed ?? []);
+      }
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  useEffect(() => {
     async function load() {
       try {
         const [pRes, fRes, iRes] = await Promise.all([
