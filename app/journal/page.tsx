@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { showToast } from "@/components/Toast";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 
@@ -286,12 +287,17 @@ export default function JournalPage() {
       if (data.ok) {
         setSyncImported(data.imported ?? 0);
         setSyncStatus("done");
+        if ((data.imported ?? 0) > 0) showToast(`${data.imported} new trade${data.imported !== 1 ? "s" : ""} imported`, "success");
         fetch(`/api/journal?date=${selectedDate}`).then((r) => r.json()).then((d) => setEntries(d.entries ?? []));
         fetch("/api/journal?date=all&limit=500").then((r) => r.json()).then((d) => { if (d.entries) setAllEntries(d.entries); });
       } else {
         setSyncStatus("error");
+        showToast(data.error ?? "Broker sync failed — check your connection", "error");
       }
-    } catch { setSyncStatus("error"); }
+    } catch {
+      setSyncStatus("error");
+      showToast("Broker sync failed — network error", "error");
+    }
   }
 
   async function syncBroker() {
@@ -329,8 +335,13 @@ export default function JournalPage() {
         setAllEntries((prev) => [data.entry, ...prev]);
         setShowForm(false);
         setForm(EMPTY_FORM);
+        showToast("Trade saved", "success");
+      } else {
+        showToast(data.error ?? "Failed to save trade — try again", "error");
       }
-    } catch {}
+    } catch {
+      showToast("Network error — trade not saved", "error");
+    }
     setSaving(false);
   }
 
@@ -377,8 +388,13 @@ export default function JournalPage() {
         setEntries((prev) => prev.map((e) => e.id === id ? data.entry : e));
         setAllEntries((prev) => prev.map((e) => e.id === id ? data.entry : e));
         setEditingId(null);
+        showToast("Trade updated", "success");
+      } else {
+        showToast(data.error ?? "Failed to save — try again", "error");
       }
-    } catch {}
+    } catch {
+      showToast("Network error — changes not saved", "error");
+    }
     setSaving(false);
   }
 
@@ -404,9 +420,14 @@ export default function JournalPage() {
   async function handleDelete(id: string) {
     if (!window.confirm("Delete this trade? This cannot be undone.")) return;
     setDeletingId(id);
-    await fetch(`/api/journal?id=${id}`, { method: "DELETE" });
-    setEntries((prev) => prev.filter((e) => e.id !== id));
-    setAllEntries((prev) => prev.filter((e) => e.id !== id));
+    try {
+      await fetch(`/api/journal?id=${id}`, { method: "DELETE" });
+      setEntries((prev) => prev.filter((e) => e.id !== id));
+      setAllEntries((prev) => prev.filter((e) => e.id !== id));
+      showToast("Trade deleted", "info");
+    } catch {
+      showToast("Couldn't delete — try again", "error");
+    }
     setDeletingId(null);
   }
 

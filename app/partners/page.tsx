@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { showToast } from "@/components/Toast";
 import Link from "next/link";
 import PartnerCard from "@/components/PartnerCard";
 import BottomNav from "@/components/BottomNav";
@@ -109,8 +110,13 @@ export default function PartnersPage() {
         const cRes = await fetch("/api/circles");
         if (cRes.ok) { const cd = await cRes.json(); setCircles(cd.circles ?? []); }
         setNewCircleName("");
+        showToast("Circle created", "success");
+      } else {
+        showToast(data.error ?? "Failed to create circle", "error");
       }
-    } catch {}
+    } catch {
+      showToast("Network error — try again", "error");
+    }
     setCreatingCircle(false);
   }
 
@@ -125,25 +131,40 @@ export default function PartnersPage() {
       if (data.ok) {
         setCircleInviteLinks((prev) => ({ ...prev, [circleId]: data.joinUrl }));
         const text = encodeURIComponent(`Hey! Join my "${data.circleName}" trading circle on TradeMind — we share our daily mental check-in scores to keep each other accountable. Click here: ${data.joinUrl}`);
-        window.open(`https://wa.me/?text=${text}`, "_blank");
+        const opened = window.open(`https://wa.me/?text=${text}`, "_blank");
+        if (!opened) showToast("Copy the link below and send it manually", "info");
+      } else {
+        showToast(data.error ?? "Failed to generate invite link", "error");
       }
-    } catch {}
+    } catch {
+      showToast("Network error — try again", "error");
+    }
   }
 
   async function handleNudge(partnerId: string) {
     setNudging((prev) => ({ ...prev, [partnerId]: true }));
-    await fetch("/api/partners/nudge", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ partnerId }),
-    }).catch(() => {});
+    try {
+      await fetch("/api/partners/nudge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ partnerId }),
+      });
+      setNudged((prev) => ({ ...prev, [partnerId]: true }));
+      showToast("Nudge sent!", "success");
+    } catch {
+      showToast("Couldn't send nudge — try again", "error");
+    }
     setNudging((prev) => ({ ...prev, [partnerId]: false }));
-    setNudged((prev) => ({ ...prev, [partnerId]: true }));
   }
 
   async function handleLeaveCircle(circleId: string) {
-    await fetch(`/api/circles/leave?circleId=${circleId}`, { method: "DELETE" });
-    setCircles((prev) => prev.filter((c) => c.id !== circleId));
+    try {
+      await fetch(`/api/circles/leave?circleId=${circleId}`, { method: "DELETE" });
+      setCircles((prev) => prev.filter((c) => c.id !== circleId));
+      showToast("Left circle", "info");
+    } catch {
+      showToast("Couldn't leave circle — try again", "error");
+    }
   }
 
   async function handleInvite(e: React.SyntheticEvent<HTMLFormElement>) {
@@ -158,12 +179,22 @@ export default function PartnersPage() {
         body: JSON.stringify({}),
       });
       const data = await res.json();
-      if (!res.ok) { setInviteError(data.error ?? "Failed to generate invite"); setGenerating(false); return; }
+      if (!res.ok) {
+        setInviteError(data.error ?? "Failed to generate invite");
+        showToast(data.error ?? "Failed to generate invite", "error");
+        setGenerating(false);
+        return;
+      }
       const link: string = data.acceptUrl;
       setInviteLink(link);
       const text = encodeURIComponent(`Hey! I use TradeMind to track my trading psychology. Join me as an accountability partner — we'll see each other's daily mental check-in scores. Click here: ${link}`);
-      window.open(`https://wa.me/?text=${text}`, "_blank");
-    } catch { setInviteError("Network error. Try again."); }
+      const opened = window.open(`https://wa.me/?text=${text}`, "_blank");
+      if (opened) showToast("Invite link sent to WhatsApp", "success");
+      else showToast("Copy the link below and send it manually", "info");
+    } catch {
+      setInviteError("Network error — try again.");
+      showToast("Network error — try again", "error");
+    }
     setGenerating(false);
   }
 

@@ -272,6 +272,34 @@ button[style*="padding: 0"], button[style*="padding:0"] {
 .data-table tr:last-child td { border-bottom: none; }
 .data-table tr:hover td { background: rgba(255,255,255,0.02); }
 
+/* ── Toast ── */
+@keyframes toast-up {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+
+/* ── Onboarding step transitions ── */
+@keyframes step-from-right {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes step-from-left {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.step-slide-right { animation: step-from-right 0.25s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+.step-slide-left  { animation: step-from-left  0.25s cubic-bezier(0.25,0.46,0.45,0.94) forwards; }
+
+/* ── Shake (form validation) ── */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%     { transform: translateX(-6px); }
+  40%     { transform: translateX(6px); }
+  60%     { transform: translateX(-4px); }
+  80%     { transform: translateX(4px); }
+}
+.shake { animation: shake 0.35s ease forwards; }
+
 /* ── Animations ── */
 @keyframes pulse-red {
   0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--red); }

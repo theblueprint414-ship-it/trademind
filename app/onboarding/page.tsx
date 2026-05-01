@@ -39,9 +39,17 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 export default function OnboardingPage() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("welcome");
+  const [slideClass, setSlideClass] = useState("step-slide-right");
+  const [stepKey, setStepKey] = useState(0);
   const [traderType, setTraderType] = useState("");
   const [tradeLimit, setTradeLimit] = useState(5);
   const [isPro, setIsPro] = useState<boolean | null>(null);
+
+  function goToStep(next: Step, dir: "forward" | "back" = "forward") {
+    setSlideClass(dir === "forward" ? "step-slide-right" : "step-slide-left");
+    setStepKey((k) => k + 1);
+    setStep(next);
+  }
 
   // Broker connect state
   const [selectedBroker, setSelectedBroker] = useState("");
@@ -74,7 +82,7 @@ export default function OnboardingPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ traderType: type }),
     }).catch(() => {});
-    setStep("limit");
+    goToStep("limit");
   }
 
   async function saveLimit() {
@@ -84,7 +92,7 @@ export default function OnboardingPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tradeLimit }),
     }).catch(() => {});
-    setStep("broker");
+    goToStep("broker");
   }
 
   async function handleCsvUpload(file: File) {
@@ -138,7 +146,7 @@ export default function OnboardingPage() {
         <div style={{ display: "flex", alignItems: "center", marginBottom: 16 }}>
           {step !== "welcome" && (
             <button
-              onClick={() => setStep(step === "trader-type" ? "welcome" : step === "limit" ? "trader-type" : "limit")}
+              onClick={() => goToStep(step === "trader-type" ? "welcome" : step === "limit" ? "trader-type" : "limit", "back")}
               style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, padding: 0, display: "flex", alignItems: "center", gap: 4 }}
             >
               ← Back
@@ -146,6 +154,9 @@ export default function OnboardingPage() {
           )}
         </div>
         <ProgressBar current={stepIndex} total={4} />
+
+        {/* ── Steps ── */}
+        <div key={stepKey} className={slideClass}>
 
         {/* ── Step: Welcome ── */}
         {step === "welcome" && (
@@ -171,7 +182,7 @@ export default function OnboardingPage() {
               ))}
             </div>
 
-            <button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 16 }} onClick={() => setStep("trader-type")}>
+            <button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 16 }} onClick={() => goToStep("trader-type")}>
               Start Setup (2 min) →
             </button>
           </div>
@@ -223,7 +234,7 @@ export default function OnboardingPage() {
               ))}
             </div>
 
-            <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }} onClick={() => setStep("limit")}>
+            <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }} onClick={() => goToStep("limit")}>
               Skip — I&apos;ll set this later
             </button>
           </div>
@@ -516,6 +527,8 @@ export default function OnboardingPage() {
             )}
           </div>
         )}
+
+        </div>{/* end step slide wrapper */}
       </div>
     </div>
   );

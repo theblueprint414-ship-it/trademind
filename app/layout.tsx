@@ -8,6 +8,8 @@ import AccessibilityWidget from "@/components/AccessibilityWidget";
 import PostHogProvider from "@/components/PostHogProvider";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import ThemeProvider from "@/components/ThemeProvider";
+import Toast from "@/components/Toast";
+import TopLoadingBar from "@/components/TopLoadingBar";
 import "./globals.css";
 
 const geistSans = Inter({
@@ -103,6 +105,8 @@ export default function RootLayout({
         <CookieBanner />
         <PWAInstallPrompt />
         <AccessibilityWidget />
+        <Toast />
+        <TopLoadingBar />
         <Script
           id="sw-register"
           strategy="afterInteractive"

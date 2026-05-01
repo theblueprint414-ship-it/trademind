@@ -17,14 +17,25 @@ function LoginInner() {
 
   async function handleEmailSignIn(e: React.FormEvent) {
     e.preventDefault();
+    const trimmed = email.trim();
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRe.test(trimmed)) {
+      setError("Enter a valid email address (e.g. you@gmail.com).");
+      return;
+    }
     setLoading(true);
     setError("");
     try {
-      const res = await signIn("resend", { email, redirect: false, callbackUrl });
-      if (res?.error) setError("Failed to send sign-in link. Try again.");
-      else setSent(true);
+      const res = await signIn("resend", { email: trimmed, redirect: false, callbackUrl });
+      if (res?.error === "EmailSignin") {
+        setError("Couldn't send the email — check the address and try again.");
+      } else if (res?.error) {
+        setError("Sign-in failed. Try Google instead, or contact support.");
+      } else {
+        setSent(true);
+      }
     } catch {
-      setError("Something went wrong. Please try again.");
+      setError("Network error — check your connection and try again.");
     } finally {
       setLoading(false);
     }
