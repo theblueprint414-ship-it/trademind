@@ -355,8 +355,10 @@ export default function DashboardPage() {
         .dash-section { animation: slide-up 0.5s ease both; }
         .s1{animation-delay:0.05s} .s2{animation-delay:0.12s} .s3{animation-delay:0.19s}
         .s4{animation-delay:0.26s} .s5{animation-delay:0.33s} .s6{animation-delay:0.40s}
-        .quick-link { transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease; }
-        .quick-link:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+        .quick-link { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease; }
+        .quick-link:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
+        .quick-link-arrow { opacity: 0; transform: translateX(-4px); transition: opacity 0.15s ease, transform 0.15s ease; }
+        .quick-link:hover .quick-link-arrow { opacity: 1; transform: translateX(0); }
         .stat-card { transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
         .stat-card:hover { border-color: var(--border-bright) !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
@@ -955,28 +957,113 @@ export default function DashboardPage() {
           </Link>
         )}
 
-        {/* QUICK LINKS — 2×3 grid */}
+        {/* QUICK LINKS */}
         <div className="dash-section s4" style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 12 }}>QUICK ACCESS</div>
           <div className="quick-grid">
             {[
-              { href: "/checkin", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8" stroke="var(--blue)" strokeWidth="1.5"/><path d="M11 7v4l2.5 2.5" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/></svg>, label: "Check-in", sub: "Daily score", color: "var(--blue)" },
-              { href: "/journal", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="3" width="14" height="16" rx="2.5" stroke="var(--green)" strokeWidth="1.5"/><path d="M7 8h8M7 11h8M7 14h5" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>, label: "Journal", sub: "Log trades", color: "var(--green)" },
-              { href: "/analytics", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17l4.5-6 3.5 3.5 4.5-8L19 11" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><rect x="3" y="3" width="16" height="14" rx="2" stroke="var(--amber)" strokeWidth="1.5"/></svg>, label: "Analytics", sub: "Patterns", color: "var(--amber)" },
-              { href: "/playbook", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="3" width="14" height="16" rx="2.5" stroke="var(--purple)" strokeWidth="1.5"/><path d="M7 8h8M7 11h5M13 14l2-2 1.2 1.2" stroke="var(--purple)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>, label: "Playbook", sub: "Your rules", color: "var(--purple)" },
-              { href: "/partners", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="8" r="3.5" stroke="var(--text-dim)" strokeWidth="1.5"/><circle cx="15" cy="8" r="3.5" stroke="var(--text-dim)" strokeWidth="1.5"/><path d="M2 19c0-2.76 2.686-5 6-5M13 14c3.314 0 6 2.24 6 5" stroke="var(--text-dim)" strokeWidth="1.5" strokeLinecap="round"/></svg>, label: "Partners", sub: "Accountability", color: "var(--text-dim)" },
-              { href: "/coach", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8" r="4" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M3 19c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/><path d="M17 4.5l1.5-1.5M18.5 7h1.5M17 9.5l1.5 1.5" stroke="#8B5CF6" strokeWidth="1.2" strokeLinecap="round"/></svg>, label: "AI Coach", sub: "Alex", color: "#8B5CF6", premium: !isPro },
-              { href: "/leaderboard", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="12" width="4" height="7" rx="1" stroke="var(--amber)" strokeWidth="1.5"/><rect x="9" y="7" width="4" height="12" rx="1" stroke="var(--amber)" strokeWidth="1.5"/><rect x="15" y="4" width="4" height="15" rx="1" stroke="var(--amber)" strokeWidth="1.5"/></svg>, label: "Leaderboard", sub: "Discipline rank", color: "var(--amber)" },
+              {
+                href: "/checkin",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5"/><path d="M12 7.5v4.5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+                label: "Check-in",
+                sub: "Daily mental score",
+                color: "var(--blue)",
+                hex: "#4F8EF7",
+              },
+              {
+                href: "/journal",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+                label: "Journal",
+                sub: "Log & reflect on trades",
+                color: "var(--green)",
+                hex: "#00E87A",
+              },
+              {
+                href: "/analytics",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 18l5-7 4 4 5-9 4 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="4" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/></svg>,
+                label: "Analytics",
+                sub: "Psychology vs P&L",
+                color: "var(--amber)",
+                hex: "#FFB020",
+              },
+              {
+                href: "/playbook",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/><path d="M8 9h8M8 13h6M15 16l2-2 1.5 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                label: "Playbook",
+                sub: "Rules & trading plan",
+                color: "var(--purple)",
+                hex: "#A78BFA",
+              },
+              {
+                href: "/partners",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><circle cx="17" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M2 20c0-3.314 3.134-6 7-6M14 14c3.866 0 7 2.686 7 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+                label: "Partners",
+                sub: "Accountability circles",
+                color: "#5E6AD2",
+                hex: "#5E6AD2",
+              },
+              {
+                href: "/coach",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4.5" stroke="currentColor" strokeWidth="1.5"/><path d="M4 21c0-3.866 3.582-7 8-7s8 3.134 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M19 3l1.5-1.5M20.5 6H22M19 9l1.5 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+                label: "AI Coach",
+                sub: "Alex · Personalized insights",
+                color: "#8B5CF6",
+                hex: "#8B5CF6",
+                premium: !isPro,
+              },
+              {
+                href: "/leaderboard",
+                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="13" width="5" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><rect x="10" y="8" width="5" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><rect x="17" y="4" width="5" height="17" rx="1.5" stroke="currentColor" strokeWidth="1.5"/></svg>,
+                label: "Leaderboard",
+                sub: "Discipline rank",
+                color: "var(--amber)",
+                hex: "#FFB020",
+              },
             ].map((item) => (
               <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
-                <div className="card quick-link" style={{ padding: "16px 14px", display: "flex", gap: 10, alignItems: "center", cursor: "pointer", borderColor: `${item.color}18`, position: "relative" }}>
-                  <div style={{ color: item.color, flexShrink: 0 }}>{item.icon}</div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 1, color: item.color }}>{item.label}</div>
-                    <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{item.sub}</div>
+                <div
+                  className="card quick-link"
+                  style={{
+                    padding: "18px 16px 16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 14,
+                    cursor: "pointer",
+                    borderColor: `${item.hex}22`,
+                    background: `linear-gradient(145deg, ${item.hex}08 0%, var(--surface) 70%)`,
+                    position: "relative",
+                    minHeight: 120,
+                    overflow: "hidden",
+                  }}
+                >
+                  {/* Ambient corner glow */}
+                  <div style={{ position: "absolute", top: -20, left: -20, width: 80, height: 80, borderRadius: "50%", background: `radial-gradient(circle, ${item.hex}18, transparent 70%)`, pointerEvents: "none" }} />
+
+                  {/* Top row: icon + arrow */}
+                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                    <div style={{
+                      width: 40, height: 40, borderRadius: 10,
+                      background: `${item.hex}14`,
+                      border: `1px solid ${item.hex}28`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: item.color, flexShrink: 0,
+                    }}>
+                      {item.icon}
+                    </div>
+                    <svg className="quick-link-arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: item.color, marginTop: 4 }}>
+                      <path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
+
+                  {/* Text */}
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text)", marginBottom: 3, letterSpacing: "-0.015em" }}>{item.label}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{item.sub}</div>
+                  </div>
+
+                  {/* Premium badge */}
                   {item.premium && (
-                    <div style={{ position: "absolute", top: 6, right: 6, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 7, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 5px", borderRadius: 4 }}>UPGRADE</div>
+                    <div style={{ position: "absolute", top: 10, right: 10, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 8, fontWeight: 700, letterSpacing: "0.08em", padding: "3px 7px", borderRadius: 5 }}>PRO</div>
                   )}
                 </div>
               </Link>
