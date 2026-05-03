@@ -1,12 +1,9 @@
-const CACHE_VERSION = 'v5';
+const CACHE_VERSION = 'v6';
 const CACHE_NAME = `trademind-${CACHE_VERSION}`;
-const OFFLINE_URL = '/offline.html';
 
-// ─── Install: cache only the offline fallback page ───────────────────────────
+// ─── Install: nothing to pre-cache ───────────────────────────────────────────
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL))
-  );
+  event.waitUntil(Promise.resolve());
   self.skipWaiting();
 });
 
@@ -26,17 +23,9 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET and API calls entirely — let them go straight to network
-  if (request.method !== 'GET' || url.pathname.startsWith('/api/')) return;
-
-  // Navigation (page loads): ALWAYS network-first.
-  // Only fall back to the offline page if the network is completely unreachable.
-  if (request.mode === 'navigate') {
-    event.respondWith(
-      fetch(request).catch(() => caches.match(OFFLINE_URL))
-    );
-    return;
-  }
+  // Skip non-GET, API calls, and navigations — browser handles these directly.
+  // Never intercept page navigations: prevents offline.html showing on deploy gaps.
+  if (request.method !== 'GET' || url.pathname.startsWith('/api/') || request.mode === 'navigate') return;
 
   // Next.js content-hashed static chunks: safe to cache forever.
   // These filenames change with every build, so cache-first is correct here.
