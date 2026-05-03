@@ -355,18 +355,17 @@ export default function DashboardPage() {
         .dash-section { animation: slide-up 0.5s ease both; }
         .s1{animation-delay:0.05s} .s2{animation-delay:0.12s} .s3{animation-delay:0.19s}
         .s4{animation-delay:0.26s} .s5{animation-delay:0.33s} .s6{animation-delay:0.40s}
-        .quick-link { transition: transform 0.25s cubic-bezier(0.16,1,0.3,1), box-shadow 0.25s ease, border-color 0.22s ease; position: relative; overflow: hidden; border-radius: 16px !important; }
-        .quick-link:hover { transform: translateY(-6px) scale(1.012); box-shadow: 0 32px 72px rgba(0,0,0,0.55); }
-        .quick-link-arrow { opacity: 0.32; transform: translateX(0); transition: opacity 0.18s ease, transform 0.2s ease; }
-        .quick-link:hover .quick-link-arrow { opacity: 1; transform: translateX(4px); }
-        .quick-link:hover .quick-glow { opacity: 0.22 !important; }
-        .quick-icon-box { transition: transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s ease; }
-        .quick-link:hover .quick-icon-box { transform: scale(1.08); }
+        .quick-link { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s ease, border-color 0.2s ease; position: relative; overflow: hidden; border-radius: 14px !important; }
+        .quick-link:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.48); border-color: var(--border-bright) !important; }
+        .quick-icon-box { transition: color 0.2s ease; color: var(--text-dim); }
+        .quick-link:hover .quick-icon-box { color: var(--qa-hex); }
+        .quick-link-arrow { opacity: 0.38; transition: opacity 0.18s ease, transform 0.18s ease, color 0.18s ease; }
+        .quick-link:hover .quick-link-arrow { opacity: 1; transform: translateX(3px); color: var(--qa-hex) !important; }
         .quick-card-wide { grid-column: 1 / -1; }
         .stat-card { transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
         .stat-card:hover { border-color: var(--border-bright) !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-        .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         @media (max-width: 600px) {
           .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
           .quick-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
@@ -1041,64 +1040,88 @@ export default function DashboardPage() {
                 chip: streak > 0 ? { label: `${streak} day streak`, color: "var(--amber)" } : null,
                 wide: true,
               },
-            ] as Array<{ href: string; icon: React.ReactNode; label: string; sub: string; color: string; hex: string; chip: { label: string; color: string } | null; premium?: boolean; wide?: boolean }>).map((item) => (
-              <Link key={item.href} href={item.href} style={{ textDecoration: "none", gridColumn: item.wide ? "1 / -1" : undefined }}>
+            ] as Array<{ href: string; icon: React.ReactNode; label: string; sub: string; color?: string; hex: string; chip: { label: string; color: string } | null; premium?: boolean; wide?: boolean }>).map((item) => (
+              <Link key={item.href} href={item.href} style={{ textDecoration: "none", gridColumn: item.wide ? "1 / -1" : undefined, "--qa-hex": item.hex } as React.CSSProperties}>
                 <div
                   className="card quick-link"
                   style={{
-                    padding: "20px",
+                    padding: 0,
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                    minHeight: item.wide ? "auto" : 140,
+                    overflow: "hidden",
+                    borderRadius: 14,
+                    cursor: "pointer",
+                  }}
+                >
+                  {/* Solid color bar — sharp, no glow */}
+                  <div style={{ height: 3, background: item.hex, flexShrink: 0 }} />
+
+                  {/* Card content */}
+                  <div style={{
+                    padding: item.wide ? "14px 20px" : "15px 16px 16px",
                     display: "flex",
                     flexDirection: item.wide ? "row" : "column",
                     alignItems: item.wide ? "center" : "flex-start",
-                    gap: item.wide ? 20 : 0,
-                    cursor: "pointer",
-                    borderColor: `${item.hex}1A`,
-                    background: `linear-gradient(145deg, ${item.hex}0E 0%, var(--surface) 58%)`,
-                    minHeight: item.wide ? "auto" : 152,
-                    height: "100%",
-                    borderRadius: 16,
-                  }}
-                >
-                  {/* Top accent bar with glow */}
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(90deg, ${item.hex}, ${item.hex}55, transparent)`, boxShadow: `0 2px 10px ${item.hex}55`, borderRadius: "16px 16px 0 0" }} />
-
-                  {/* Ambient glow orb */}
-                  <div className="quick-glow" style={{ position: "absolute", top: -28, right: -28, width: 96, height: 96, borderRadius: "50%", background: item.hex, filter: "blur(36px)", opacity: 0.13, transition: "opacity 0.3s ease", pointerEvents: "none" }} />
-
-                  {/* Icon */}
-                  <div className="quick-icon-box" style={{
-                    width: 52, height: 52, borderRadius: 14, flexShrink: 0,
-                    background: `${item.hex}15`,
-                    border: `1px solid ${item.hex}30`,
-                    boxShadow: `0 0 0 5px ${item.hex}08, inset 0 1px 0 rgba(255,255,255,0.05)`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    color: item.color,
-                    marginBottom: item.wide ? 0 : 14,
+                    gap: item.wide ? 16 : 0,
+                    flex: 1,
                   }}>
-                    {item.icon}
-                  </div>
 
-                  {/* Text */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: 15, color: "var(--text)", marginBottom: 5, letterSpacing: "-0.02em", lineHeight: 1.2 }}>{item.label}</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>{item.sub}</div>
-                  </div>
-
-                  {/* Footer: chip + arrow */}
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: item.wide ? 0 : "auto", paddingTop: item.wide ? 0 : 14, width: item.wide ? "auto" : "100%", gap: 10 }}>
-                    {item.chip ? (
-                      <div style={{ background: `${item.hex}18`, border: `1px solid ${item.hex}32`, borderRadius: 8, padding: "4px 10px", fontSize: 11, fontWeight: 700, color: item.chip.color, letterSpacing: "0.02em", flexShrink: 0 }}>
-                        {item.chip.label}
+                    {/* Column layout: icon row */}
+                    {!item.wide && (
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", marginBottom: 13 }}>
+                        <div className="quick-icon-box">{item.icon}</div>
+                        <svg className="quick-link-arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "var(--text-muted)", flexShrink: 0 }}>
+                          <path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
                       </div>
-                    ) : !item.wide ? <div /> : null}
-                    <svg className="quick-link-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: item.color, flexShrink: 0, marginLeft: "auto" }}>
-                      <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    )}
+
+                    {/* Wide layout: icon */}
+                    {item.wide && <div className="quick-icon-box" style={{ flexShrink: 0 }}>{item.icon}</div>}
+
+                    {/* Text block */}
+                    <div style={{ flex: 1, minWidth: 0, display: item.wide ? "block" : "flex", flexDirection: "column" }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text)", letterSpacing: "-0.02em", marginBottom: 3, lineHeight: 1.2 }}>{item.label}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.45 }}>{item.sub}</div>
+                    </div>
+
+                    {/* Column: status at bottom */}
+                    {!item.wide && (
+                      <div style={{ marginTop: "auto", paddingTop: 13, width: "100%" }}>
+                        {item.chip ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                            <div style={{ width: 5, height: 5, borderRadius: "50%", background: item.chip.color, flexShrink: 0 }} />
+                            <span style={{ fontSize: 11, color: item.chip.color, fontWeight: 600, letterSpacing: "0.01em" }}>{item.chip.label}</span>
+                          </div>
+                        ) : (
+                          <div style={{ height: 16 }} />
+                        )}
+                      </div>
+                    )}
+
+                    {/* Wide: chip + arrow */}
+                    {item.wide && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
+                        {item.chip && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                            <div style={{ width: 5, height: 5, borderRadius: "50%", background: item.chip.color, flexShrink: 0 }} />
+                            <span style={{ fontSize: 12, color: item.chip.color, fontWeight: 600 }}>{item.chip.label}</span>
+                          </div>
+                        )}
+                        <svg className="quick-link-arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "var(--text-muted)" }}>
+                          <path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    )}
                   </div>
 
                   {/* PRO badge */}
                   {item.premium && (
-                    <div style={{ position: "absolute", top: 12, right: 12, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 8, fontWeight: 800, letterSpacing: "0.1em", padding: "3px 8px", borderRadius: 6, boxShadow: "0 2px 8px rgba(139,92,246,0.4)" }}>PRO</div>
+                    <div style={{ position: "absolute", top: 11, right: 11, background: "#8B5CF6", color: "white", fontSize: 8, fontWeight: 800, letterSpacing: "0.1em", padding: "2px 7px", borderRadius: 4 }}>PRO</div>
                   )}
                 </div>
               </Link>
