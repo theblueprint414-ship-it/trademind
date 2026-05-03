@@ -580,7 +580,7 @@ export default function DashboardPage() {
               {/* Best day of week */}
               {morningBriefInsight.bestDow && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,176,32,0.1)", border: "1px solid rgba(255,176,32,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13 }}>📅</div>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(255,176,32,0.1)", border: "1px solid rgba(255,176,32,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--amber)" }}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><rect x="1" y="2" width="11" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M1 5h11M4 1v2M9 1v2" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg></div>
                   <span style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.5 }}>
                     Historically your sharpest day is <strong style={{ color: "var(--amber)" }}>{morningBriefInsight.bestDow}</strong> — plan your best setups then
                   </span>
@@ -589,7 +589,7 @@ export default function DashboardPage() {
               {/* Lifestyle correlation — premium only */}
               {lifestyleInsight && lifestyleInsight.exerciseLift !== null && lifestyleInsight.exerciseCount >= 3 && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 13 }}>💪</div>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--green)" }}><svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M7.5 1.5L3.5 7h4.5L5 11.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
                   <span style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.5 }}>
                     Exercise days give you a <strong style={{ color: "var(--green)" }}>+{lifestyleInsight.exerciseLift} point lift</strong> — {lifestyleInsight.avgScoreWithExercise} vs {lifestyleInsight.avgScoreWithoutExercise} avg score
                   </span>
@@ -627,59 +627,68 @@ export default function DashboardPage() {
         {/* STATS ROW — 4 cards */}
         <div className="dash-section s2 stats-grid">
           {/* Streak */}
-          <div className="card stat-card" style={{ padding: "18px 14px", textAlign: "center", background: streak >= 3 ? "linear-gradient(160deg, rgba(255,176,32,0.08) 0%, var(--surface) 70%)" : "linear-gradient(160deg, rgba(255,255,255,0.02), var(--surface))", borderColor: streak >= 3 ? "rgba(255,176,32,0.25)" : undefined, boxShadow: streak >= 7 ? "0 0 20px rgba(255,176,32,0.08) inset" : "none" }}>
-            <div className="font-bebas" style={{ fontSize: 30, color: streakColor, lineHeight: 1, marginBottom: streak >= 3 ? 0 : 4, textShadow: streak >= 3 ? `0 0 20px ${streakColor}60` : "none" }}>
-              {streak > 0 ? streak : "—"}
+          <div className="card stat-card" style={{ padding: 0, textAlign: "center", overflow: "hidden" }}>
+            <div style={{ height: 2, background: streak > 0 ? streakColor : "var(--border)" }} />
+            <div style={{ padding: "16px 12px 18px" }}>
+              <div className="font-bebas" style={{ fontSize: 32, color: streak > 0 ? streakColor : "var(--text-muted)", lineHeight: 1, marginBottom: streak >= 3 ? 3 : 6 }}>
+                {streak > 0 ? streak : "—"}
+              </div>
+              {streak >= 3 && <div style={{ fontSize: 9, color: streakColor, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>ON FIRE</div>}
+              <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>STREAK</div>
             </div>
-            {streak >= 3 && <div style={{ fontSize: 14, lineHeight: 1, marginBottom: 4 }}>🔥</div>}
-            <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>STREAK</div>
           </div>
 
           {/* 7-day avg */}
-          <div className="card stat-card" style={{ padding: "18px 14px", textAlign: "center", background: "linear-gradient(160deg, rgba(255,255,255,0.02), var(--surface))" }}>
-            <div className="font-bebas" style={{ fontSize: 30, color: avg7Color, lineHeight: 1, marginBottom: 2, textShadow: avg7 ? `0 0 20px ${avg7Color}50` : "none" }}>
-              {avg7 !== null ? avg7 : "—"}
+          <div className="card stat-card" style={{ padding: 0, textAlign: "center", overflow: "hidden" }}>
+            <div style={{ height: 2, background: avg7 !== null ? avg7Color : "var(--border)" }} />
+            <div style={{ padding: "16px 12px 18px" }}>
+              <div className="font-bebas" style={{ fontSize: 32, color: avg7 !== null ? avg7Color : "var(--text-muted)", lineHeight: 1, marginBottom: 4 }}>
+                {avg7 !== null ? avg7 : "—"}
+              </div>
+              {history.length >= 3 && (() => {
+                const pts = [...history].reverse();
+                const W = 48; const H = 14; const pad = 2;
+                const xs = pts.map((_, i) => pad + (i / Math.max(pts.length - 1, 1)) * (W - pad * 2));
+                const ys = pts.map((p) => pad + (1 - p.score / 100) * (H - pad * 2));
+                const d = pts.map((_, i) => `${i === 0 ? "M" : "L"} ${xs[i]} ${ys[i]}`).join(" ");
+                return (
+                  <svg viewBox={`0 0 ${W} ${H}`} style={{ width: 44, height: 13, display: "block", margin: "0 auto 4px", opacity: 0.7 }}>
+                    <path d={d} fill="none" stroke={avg7Color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                );
+              })()}
+              <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>7-DAY AVG</div>
             </div>
-            {history.length >= 3 && (() => {
-              const pts = [...history].reverse();
-              const W = 48; const H = 16; const pad = 2;
-              const xs = pts.map((_, i) => pad + (i / Math.max(pts.length - 1, 1)) * (W - pad * 2));
-              const ys = pts.map((p) => pad + (1 - p.score / 100) * (H - pad * 2));
-              const d = pts.map((_, i) => `${i === 0 ? "M" : "L"} ${xs[i]} ${ys[i]}`).join(" ");
-              const area = `${d} L ${xs[xs.length - 1]} ${H - pad} L ${xs[0]} ${H - pad} Z`;
-              return (
-                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: 48, height: 16, display: "block", margin: "0 auto 2px" }}>
-                  <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={avg7Color} stopOpacity="0.3"/><stop offset="100%" stopColor={avg7Color} stopOpacity="0"/></linearGradient></defs>
-                  <path d={area} fill="url(#sg)" />
-                  <path d={d} fill="none" stroke={avg7Color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.8" />
-                </svg>
-              );
-            })()}
-            <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>7-DAY AVG</div>
           </div>
 
           {/* Monthly */}
-          <div className="card stat-card" style={{ padding: "18px 14px", textAlign: "center", background: "linear-gradient(160deg, rgba(94,106,210,0.05), var(--surface))", borderColor: monthlyCount > 0 ? "rgba(94,106,210,0.15)" : undefined }}>
-            <div className="font-bebas" style={{ fontSize: 30, color: "var(--blue)", lineHeight: 1, marginBottom: 4, textShadow: "0 0 20px rgba(94,106,210,0.4)" }}>
-              {monthlyCount > 0 ? monthlyCount : "—"}
-            </div>
-            <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em", marginBottom: weeklyGoalCount > 0 ? 4 : 0 }}>THIS MONTH</div>
-            {weeklyGoalCount > 0 && (
-              <div style={{ fontSize: 9, color: weeklyGoalCount >= weeklyGoal ? "var(--green)" : "var(--text-muted)" }}>
-                {weeklyGoalCount}/{weeklyGoal} wk {weeklyGoalCount >= weeklyGoal ? "✓" : ""}
+          <div className="card stat-card" style={{ padding: 0, textAlign: "center", overflow: "hidden" }}>
+            <div style={{ height: 2, background: monthlyCount > 0 ? "var(--blue)" : "var(--border)" }} />
+            <div style={{ padding: "16px 12px 18px" }}>
+              <div className="font-bebas" style={{ fontSize: 32, color: monthlyCount > 0 ? "var(--blue)" : "var(--text-muted)", lineHeight: 1, marginBottom: 4 }}>
+                {monthlyCount > 0 ? monthlyCount : "—"}
               </div>
-            )}
+              <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em", marginBottom: weeklyGoalCount > 0 ? 3 : 0 }}>THIS MONTH</div>
+              {weeklyGoalCount > 0 && (
+                <div style={{ fontSize: 9, color: weeklyGoalCount >= weeklyGoal ? "var(--green)" : "var(--text-muted)", fontWeight: 600 }}>
+                  {weeklyGoalCount}/{weeklyGoal} this week{weeklyGoalCount >= weeklyGoal ? " ✓" : ""}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* GO days */}
-          <div className="card stat-card" style={{ padding: "18px 14px", textAlign: "center", background: goCount > 0 ? "linear-gradient(160deg, rgba(0,232,122,0.05), var(--surface))" : "linear-gradient(160deg, rgba(255,255,255,0.02), var(--surface))", borderColor: goCount > 0 ? "rgba(0,232,122,0.18)" : undefined }}>
-            <div className="font-bebas" style={{ fontSize: 30, color: "var(--green)", lineHeight: 1, marginBottom: 4, textShadow: goCount > 0 ? "0 0 20px rgba(0,232,122,0.4)" : "none" }}>
-              {goCount > 0 ? goCount : "—"}
+          <div className="card stat-card" style={{ padding: 0, textAlign: "center", overflow: "hidden" }}>
+            <div style={{ height: 2, background: goCount > 0 ? "var(--green)" : "var(--border)" }} />
+            <div style={{ padding: "16px 12px 18px" }}>
+              <div className="font-bebas" style={{ fontSize: 32, color: goCount > 0 ? "var(--green)" : "var(--text-muted)", lineHeight: 1, marginBottom: 4 }}>
+                {goCount > 0 ? goCount : "—"}
+              </div>
+              <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em", marginBottom: monthlyCount > 0 && goCount > 0 ? 3 : 0 }}>GO DAYS</div>
+              {monthlyCount > 0 && goCount > 0 && (
+                <div style={{ fontSize: 9, color: "var(--green)", fontWeight: 600 }}>{Math.round((goCount / monthlyCount) * 100)}% rate</div>
+              )}
             </div>
-            <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>GO DAYS</div>
-            {monthlyCount > 0 && goCount > 0 && (
-              <div style={{ fontSize: 9, color: "var(--green)" }}>{Math.round((goCount / monthlyCount) * 100)}% rate</div>
-            )}
           </div>
         </div>
 
