@@ -113,7 +113,14 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
+                window.addEventListener('load', async function() {
+                  // Unregister stale SWs before registering current version
+                  try {
+                    var regs = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(regs.filter(function(r) {
+                      return !r.active || !r.active.scriptURL.includes('/sw.js');
+                    }).map(function(r) { return r.unregister(); }));
+                  } catch(_) {}
                   navigator.serviceWorker.register('/sw.js').then(function() {
                     // Re-schedule reminder on every app open (setTimeout is lost after browser restart)
                     var savedTime = localStorage.getItem('trademind_reminder_time');
