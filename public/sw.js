@@ -1,56 +1,80 @@
-const CACHE_NAME = 'trademind-v3';
-const STATIC_ASSETS = ['/', '/checkin', '/dashboard', '/manifest.json', '/offline.html'];
+const CACHE_VERSION = 'v5';
+const CACHE_NAME = `trademind-${CACHE_VERSION}`;
+const OFFLINE_URL = '/offline.html';
 
+// ─── Install: cache only the offline fallback page ───────────────────────────
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.add(OFFLINE_URL))
+  );
   self.skipWaiting();
 });
 
+// ─── Activate: delete every old cache, claim all clients immediately ──────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((names) =>
-      Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
-    )
+    caches.keys()
+      .then((names) =>
+        Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
+      )
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
+// ─── Fetch ────────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
+
+  // Skip non-GET and API calls entirely — let them go straight to network
   if (request.method !== 'GET' || url.pathname.startsWith('/api/')) return;
 
-  const isNavigation = request.mode === 'navigate';
-
-  if (isNavigation) {
+  // Navigation (page loads): ALWAYS network-first.
+  // Only fall back to the offline page if the network is completely unreachable.
+  if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request).catch(() =>
-        caches.match(request).then((cached) => cached || caches.match('/offline.html'))
-      )
+      fetch(request).catch(() => caches.match(OFFLINE_URL))
     );
     return;
   }
 
-  // Cache first for static assets
+  // Next.js content-hashed static chunks: safe to cache forever.
+  // These filenames change with every build, so cache-first is correct here.
+  if (url.pathname.startsWith('/_next/static/')) {
+    event.respondWith(
+      caches.match(request).then((cached) => {
+        if (cached) return cached;
+        return fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          }
+          return response;
+        });
+      })
+    );
+    return;
+  }
+
+  // Everything else (icons, manifest, fonts): network-first with cache fallback.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetchPromise = fetch(request).then((response) => {
+    fetch(request)
+      .then((response) => {
         if (response.ok) {
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
         }
         return response;
-      });
-      return cached || fetchPromise;
-    })
+      })
+      .catch(() => caches.match(request))
   );
 });
 
-// ─── Push Notifications ───────────────────────────────────────────────────
-
+// ─── Push Notifications ───────────────────────────────────────────────────────
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
   const title = data.title ?? 'TradeMind';
-  const body = data.body ?? "Time for your daily mental check-in.";
+  const body = data.body ?? 'Time for your daily mental check-in.';
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
@@ -79,8 +103,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// ─── Daily reminder alarm ─────────────────────────────────────────────────
-
+// ─── Daily reminder scheduling ────────────────────────────────────────────────
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SCHEDULE_REMINDER') {
     const { hour, minute } = event.data;
@@ -99,11 +122,14 @@ function scheduleDaily(hour, minute, yesterdayScore) {
   if (next <= now) next.setDate(next.getDate() + 1);
   const delay = next.getTime() - now.getTime();
   setTimeout(() => {
-    let body = "Morning. Your mental edge check-in is ready.";
+    let body = 'Morning. Your mental edge check-in is ready.';
     if (yesterdayScore !== undefined && yesterdayScore !== null) {
-      if (yesterdayScore >= 70) body = `Yesterday: ${yesterdayScore} — GO. Let's see where today lands.`;
-      else if (yesterdayScore >= 45) body = `Yesterday: ${yesterdayScore} — CAUTION. Check yourself before you trade.`;
-      else body = `Yesterday was a NO-TRADE day (${yesterdayScore}). Take 60 seconds before you touch anything.`;
+      if (yesterdayScore >= 70)
+        body = `Yesterday: ${yesterdayScore} — GO. Let's see where today lands.`;
+      else if (yesterdayScore >= 45)
+        body = `Yesterday: ${yesterdayScore} — CAUTION. Check yourself before you trade.`;
+      else
+        body = `Yesterday was a NO-TRADE day (${yesterdayScore}). Take 60 seconds before you touch anything.`;
     }
     self.registration.showNotification('TradeMind — Daily Check-in', {
       body,
@@ -113,7 +139,6 @@ function scheduleDaily(hour, minute, yesterdayScore) {
       data: { url: '/checkin' },
       actions: [{ action: 'checkin', title: 'Check in now' }],
     });
-    scheduleDaily(hour, minute, null); // reschedule for tomorrow without score
+    scheduleDaily(hour, minute, null);
   }, delay);
 }
-
