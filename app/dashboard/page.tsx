@@ -355,10 +355,12 @@ export default function DashboardPage() {
         .dash-section { animation: slide-up 0.5s ease both; }
         .s1{animation-delay:0.05s} .s2{animation-delay:0.12s} .s3{animation-delay:0.19s}
         .s4{animation-delay:0.26s} .s5{animation-delay:0.33s} .s6{animation-delay:0.40s}
-        .quick-link { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease; }
-        .quick-link:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.4); }
-        .quick-link-arrow { opacity: 0; transform: translateX(-4px); transition: opacity 0.15s ease, transform 0.15s ease; }
-        .quick-link:hover .quick-link-arrow { opacity: 1; transform: translateX(0); }
+        .quick-link { transition: transform 0.22s cubic-bezier(0.16,1,0.3,1), box-shadow 0.22s ease, border-color 0.2s ease; position: relative; overflow: hidden; }
+        .quick-link:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(0,0,0,0.5); border-color: var(--border-bright) !important; }
+        .quick-link-arrow { opacity: 0; transform: translate(-3px, 3px); transition: opacity 0.16s ease, transform 0.16s ease; }
+        .quick-link:hover .quick-link-arrow { opacity: 1; transform: translate(0, 0); }
+        .quick-link-chip { transition: opacity 0.2s; }
+        .quick-grid > *:last-child { grid-column: 1 / -1; }
         .stat-card { transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
         .stat-card:hover { border-color: var(--border-bright) !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
@@ -961,104 +963,117 @@ export default function DashboardPage() {
         <div className="dash-section s4" style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 12 }}>QUICK ACCESS</div>
           <div className="quick-grid">
-            {[
+            {([
               {
                 href: "/checkin",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5"/><path d="M12 7.5v4.5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+                icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" strokeWidth="1.6"/><path d="M11 7v4.5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>,
                 label: "Check-in",
                 sub: "Daily mental score",
-                color: "var(--blue)",
-                hex: "#4F8EF7",
+                color: "var(--blue)", hex: "#4F8EF7",
+                chip: todayScore !== null ? { label: verdict?.label ?? "Done", color: verdict?.color ?? "var(--green)" } : streak > 0 ? { label: `${streak}🔥`, color: "var(--amber)" } : null,
               },
               {
                 href: "/journal",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/><path d="M8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+                icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="3" width="14" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.6"/><path d="M7 8.5h8M7 12h8M7 15.5h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
                 label: "Journal",
                 sub: "Log & reflect on trades",
-                color: "var(--green)",
-                hex: "#00E87A",
+                color: "var(--green)", hex: "#00E87A",
+                chip: monthlyCount > 0 ? { label: `${monthlyCount} this month`, color: "var(--green)" } : null,
               },
               {
                 href: "/analytics",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 18l5-7 4 4 5-9 4 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="4" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/></svg>,
+                icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17l4-5.5 4 3.5 4-7.5 4 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><rect x="3" y="3" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/></svg>,
                 label: "Analytics",
                 sub: "Psychology vs P&L",
-                color: "var(--amber)",
-                hex: "#FFB020",
+                color: "var(--amber)", hex: "#FFB020",
+                chip: avg7 !== null ? { label: `${avg7} avg`, color: avg7Color } : null,
               },
               {
                 href: "/playbook",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" strokeWidth="1.5"/><path d="M8 9h8M8 13h6M15 16l2-2 1.5 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="3" width="14" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.6"/><path d="M7 8.5h8M7 12h6M14 15l2-2 1.5 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
                 label: "Playbook",
-                sub: "Rules & trading plan",
-                color: "var(--purple)",
-                hex: "#A78BFA",
+                sub: "Rules & trade plan",
+                color: "#A78BFA", hex: "#A78BFA",
+                chip: null,
               },
               {
                 href: "/partners",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><circle cx="17" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M2 20c0-3.314 3.134-6 7-6M14 14c3.866 0 7 2.686 7 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+                icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="8" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="15.5" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.5"/><path d="M2 19.5c0-2.761 2.686-5 6-5M13 14.5c3.314 0 6 2.239 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
                 label: "Partners",
                 sub: "Accountability circles",
-                color: "#5E6AD2",
-                hex: "#5E6AD2",
+                color: "#5E6AD2", hex: "#5E6AD2",
+                chip: null,
               },
               {
                 href: "/coach",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4.5" stroke="currentColor" strokeWidth="1.5"/><path d="M4 21c0-3.866 3.582-7 8-7s8 3.134 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M19 3l1.5-1.5M20.5 6H22M19 9l1.5 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>,
+                icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M3 19.5c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M17.5 3.5l1.5-1.5M19.5 6.5H21M17.5 9.5l1.5 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>,
                 label: "AI Coach",
-                sub: "Alex · Personalized insights",
-                color: "#8B5CF6",
-                hex: "#8B5CF6",
+                sub: "Personalized insights",
+                color: "#8B5CF6", hex: "#8B5CF6",
+                chip: { label: "Alex", color: "#8B5CF6" },
                 premium: !isPro,
               },
               {
                 href: "/leaderboard",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="13" width="5" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><rect x="10" y="8" width="5" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><rect x="17" y="4" width="5" height="17" rx="1.5" stroke="currentColor" strokeWidth="1.5"/></svg>,
+                icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="2.5" y="12" width="5" height="8" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><rect x="9" y="7" width="5" height="13" rx="1.5" stroke="currentColor" strokeWidth="1.5"/><rect x="15.5" y="3" width="5" height="17" rx="1.5" stroke="currentColor" strokeWidth="1.5"/></svg>,
                 label: "Leaderboard",
-                sub: "Discipline rank",
-                color: "var(--amber)",
-                hex: "#FFB020",
+                sub: "See where you rank in mental discipline",
+                color: "var(--amber)", hex: "#FFB020",
+                chip: streak > 0 ? { label: `${streak} day streak`, color: "var(--amber)" } : null,
+                wide: true,
               },
-            ].map((item) => (
+            ] as Array<{ href: string; icon: React.ReactNode; label: string; sub: string; color: string; hex: string; chip: { label: string; color: string } | null; premium?: boolean; wide?: boolean }>).map((item) => (
               <Link key={item.href} href={item.href} style={{ textDecoration: "none" }}>
                 <div
                   className="card quick-link"
                   style={{
-                    padding: "18px 16px 16px",
+                    padding: "18px 18px 16px",
                     display: "flex",
-                    flexDirection: "column",
-                    gap: 14,
+                    flexDirection: item.wide ? "row" : "column",
+                    alignItems: item.wide ? "center" : "flex-start",
+                    gap: item.wide ? 18 : 0,
                     cursor: "pointer",
-                    borderColor: `${item.hex}22`,
-                    background: `linear-gradient(145deg, ${item.hex}08 0%, var(--surface) 70%)`,
-                    position: "relative",
-                    minHeight: 120,
-                    overflow: "hidden",
+                    borderColor: `${item.hex}1E`,
+                    background: `linear-gradient(150deg, ${item.hex}09 0%, var(--surface) 65%)`,
+                    minHeight: item.wide ? "auto" : 138,
+                    height: "100%",
                   }}
                 >
-                  {/* Ambient corner glow */}
-                  <div style={{ position: "absolute", top: -20, left: -20, width: 80, height: 80, borderRadius: "50%", background: `radial-gradient(circle, ${item.hex}18, transparent 70%)`, pointerEvents: "none" }} />
+                  {/* Top color accent bar */}
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${item.hex}, ${item.hex}44)`, borderRadius: "8px 8px 0 0" }} />
 
-                  {/* Top row: icon + arrow */}
-                  <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-                    <div style={{
-                      width: 40, height: 40, borderRadius: 10,
-                      background: `${item.hex}14`,
-                      border: `1px solid ${item.hex}28`,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      color: item.color, flexShrink: 0,
-                    }}>
-                      {item.icon}
-                    </div>
-                    <svg className="quick-link-arrow" width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: item.color, marginTop: 4 }}>
-                      <path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                  {/* Icon */}
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 11, flexShrink: 0,
+                    background: `${item.hex}12`, border: `1px solid ${item.hex}22`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    color: item.color,
+                    marginBottom: item.wide ? 0 : 14,
+                  }}>
+                    {item.icon}
                   </div>
 
                   {/* Text */}
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text)", marginBottom: 3, letterSpacing: "-0.015em" }}>{item.label}</div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{item.sub}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, color: "var(--text)", marginBottom: 4, letterSpacing: "-0.018em" }}>{item.label}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.45 }}>{item.sub}</div>
+                  </div>
+
+                  {/* Chip + arrow row */}
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: item.wide ? 0 : "auto", paddingTop: item.wide ? 0 : 12, width: item.wide ? "auto" : "100%", gap: 8 }}>
+                    {item.chip && !item.wide && (
+                      <div className="quick-link-chip" style={{ background: `${item.hex}14`, border: `1px solid ${item.hex}25`, borderRadius: 6, padding: "3px 8px", fontSize: 10, fontWeight: 700, color: item.chip.color, letterSpacing: "0.02em" }}>
+                        {item.chip.label}
+                      </div>
+                    )}
+                    {item.chip && item.wide && (
+                      <div className="quick-link-chip" style={{ background: `${item.hex}14`, border: `1px solid ${item.hex}25`, borderRadius: 6, padding: "3px 10px", fontSize: 11, fontWeight: 700, color: item.chip.color }}>
+                        {item.chip.label}
+                      </div>
+                    )}
+                    <svg className="quick-link-arrow" width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: item.color, marginLeft: "auto", flexShrink: 0 }}>
+                      <path d="M2.5 6.5h8M7 3l3.5 3.5L7 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                   </div>
 
                   {/* Premium badge */}
