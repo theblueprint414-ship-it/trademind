@@ -48,6 +48,7 @@ model User {
   partnersAsB       Partnership[]    @relation("PartnerB")
   invitesSent       PartnerInvite[]
   brokerConnection  BrokerConnection?
+  circuitBreaker    CircuitBreaker?
   circlesCreated    Circle[]
   circleMembers     CircleMember[]
   dailyRecaps       DailyRecap[]
@@ -274,6 +275,22 @@ model DailyRecap {
 
   @@unique([userId, date])
   @@index([userId])
+}
+
+model CircuitBreaker {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  isActive        Boolean  @default(false)
+  dailyLimit      Int      @default(3)       // max trades per day
+  scoreAdaptive   Boolean  @default(true)    // apply score-based multiplier
+  resetHour       Int      @default(0)       // UTC hour to reset daily count (0 = midnight)
+  extensionToken  String   @unique @default(cuid())
+  blockedAt       DateTime?                  // when limit was hit today
+  tradeCountToday Int      @default(0)       // cached count (refreshed on each check)
+  updatedAt       DateTime @updatedAt
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model AppError {

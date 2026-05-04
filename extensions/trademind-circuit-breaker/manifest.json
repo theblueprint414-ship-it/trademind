@@ -1,0 +1,82 @@
+{
+  "manifest_version": 3,
+  "name": "TradeMind Circuit Breaker",
+  "short_name": "TradeMind CB",
+  "version": "1.0.0",
+  "description": "Automatically blocks access to trading platforms when your daily trade limit is reached.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications"
+  ],
+  "host_permissions": [
+    "https://trademindedge.com/*",
+    "https://*.tradingview.com/*",
+    "https://*.thinkorswim.com/*",
+    "https://*.tastyworks.com/*",
+    "https://*.tastytrade.com/*",
+    "https://*.interactivebrokers.com/*",
+    "https://*.ibkr.com/*",
+    "https://*.etrade.com/*",
+    "https://*.schwab.com/*",
+    "https://*.fidelity.com/*",
+    "https://*.tdameritrade.com/*",
+    "https://*.alpaca.markets/*",
+    "https://*.binance.com/*",
+    "https://*.bybit.com/*",
+    "https://*.kraken.com/*",
+    "https://*.coinbase.com/*",
+    "https://*.robinhood.com/*",
+    "https://*.webull.com/*",
+    "https://*.moomoo.com/*",
+    "https://*.tradestation.com/*",
+    "https://*.ninjatrader.com/*",
+    "https://*.metatrader4.com/*",
+    "https://*.metatrader5.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.tradingview.com/*",
+        "https://*.thinkorswim.com/*",
+        "https://*.tastyworks.com/*",
+        "https://*.tastytrade.com/*",
+        "https://*.interactivebrokers.com/*",
+        "https://*.ibkr.com/*",
+        "https://*.etrade.com/*",
+        "https://*.schwab.com/*",
+        "https://*.fidelity.com/*",
+        "https://*.tdameritrade.com/*",
+        "https://*.alpaca.markets/*",
+        "https://*.binance.com/*",
+        "https://*.bybit.com/*",
+        "https://*.kraken.com/*",
+        "https://*.coinbase.com/*",
+        "https://*.robinhood.com/*",
+        "https://*.webull.com/*",
+        "https://*.moomoo.com/*",
+        "https://*.tradestation.com/*",
+        "https://*.ninjatrader.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "TradeMind Circuit Breaker",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png"
+    }
+  }
+}

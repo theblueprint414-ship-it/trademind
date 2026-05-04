@@ -84,6 +84,13 @@ export default function SettingsPage() {
   const [brokerLoading, setBrokerLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
 
+  // Circuit Breaker
+  const [cb, setCb] = useState<{ isActive: boolean; dailyLimit: number; scoreAdaptive: boolean; extensionToken: string } | null>(null);
+  const [cbLoading, setCbLoading] = useState(true);
+  const [cbSaving, setCbSaving] = useState(false);
+  const [cbTokenCopied, setCbTokenCopied] = useState(false);
+  const [cbRegenerating, setCbRegenerating] = useState(false);
+
   // Push notifications
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "unsupported">("default");
   const [reminderTime, setReminderTime] = useState("8:00 AM");
@@ -166,6 +173,13 @@ export default function SettingsPage() {
         if (d.tradingDaysTarget) setChallengeTradingDaysTarget(String(d.tradingDaysTarget));
       })
       .catch(() => {});
+
+    // Load circuit breaker
+    fetch("/api/circuit-breaker")
+      .then((r) => r.json())
+      .then((d) => { if (d && d.extensionToken) setCb(d); })
+      .catch(() => {})
+      .finally(() => setCbLoading(false));
 
     // Load challenge history
     setHistoryLoading(true);
@@ -251,6 +265,48 @@ export default function SettingsPage() {
       body: JSON.stringify({ id, outcome }),
     });
     setChallengeHistory((prev) => prev.map((a) => a.id === id ? { ...a, outcome } : a));
+  }
+
+  async function saveCb(patch: Partial<typeof cb>) {
+    if (!cb && !patch) return;
+    setCbSaving(true);
+    const updated = { ...(cb ?? { isActive: false, dailyLimit: 3, scoreAdaptive: true, extensionToken: "" }), ...patch };
+    setCb(updated as typeof cb);
+    try {
+      const res = await fetch("/api/circuit-breaker", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+      const d = await res.json();
+      setCb(d);
+    } catch {}
+    setCbSaving(false);
+  }
+
+  async function initCb() {
+    setCbSaving(true);
+    try {
+      const res = await fetch("/api/circuit-breaker", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive: false, dailyLimit: 3, scoreAdaptive: true }),
+      });
+      const d = await res.json();
+      setCb(d);
+    } catch {}
+    setCbSaving(false);
+    setCbLoading(false);
+  }
+
+  async function regenerateCbToken() {
+    setCbRegenerating(true);
+    try {
+      const res = await fetch("/api/circuit-breaker/reset-token", { method: "POST" });
+      const d = await res.json();
+      if (d.extensionToken) setCb((prev) => prev ? { ...prev, extensionToken: d.extensionToken } : prev);
+    } catch {}
+    setCbRegenerating(false);
   }
 
   async function saveTradeLimit() {
@@ -758,6 +814,152 @@ export default function SettingsPage() {
               <Link href="/onboarding">
                 <button className="btn-primary" style={{ fontSize: 14 }}>Connect Broker →</button>
               </Link>
+            </div>
+          )}
+        </section>
+
+        {/* Circuit Breaker */}
+        <section id="circuit-breaker" className="card" style={{ padding: 28, marginBottom: 20, border: cb?.isActive ? "1px solid rgba(255,59,92,0.3)" : "1px solid var(--border)" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                <h2 style={{ fontSize: 16, fontWeight: 700 }}>Circuit Breaker</h2>
+                {cb?.isActive && (
+                  <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.1em", padding: "3px 9px", borderRadius: 20, background: "rgba(255,59,92,0.12)", color: "var(--red)", border: "1px solid rgba(255,59,92,0.3)" }}>ACTIVE</div>
+                )}
+              </div>
+              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, margin: 0 }}>
+                Automatically blocks access to trading platforms when your daily trade limit is reached — across Chrome, MT4, and MT5.
+              </p>
+            </div>
+            {!cbLoading && (
+              <button
+                onClick={() => cb ? saveCb({ isActive: !cb.isActive }) : initCb()}
+                disabled={cbSaving}
+                style={{ width: 48, height: 26, borderRadius: 13, background: cb?.isActive ? "var(--red)" : "var(--surface3)", border: "1px solid var(--border)", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0 }}
+              >
+                <div style={{ width: 20, height: 20, borderRadius: "50%", background: "white", position: "absolute", top: 2, left: cb?.isActive ? 24 : 3, transition: "left 0.2s", boxShadow: "0 1px 4px rgba(0,0,0,0.4)" }} />
+              </button>
+            )}
+          </div>
+
+          {cbLoading ? (
+            <div style={{ height: 48, display: "flex", alignItems: "center" }}>
+              <div style={{ width: 18, height: 18, borderRadius: "50%", border: "2px solid var(--surface3)", borderTopColor: "var(--blue)", animation: "spin 0.8s linear infinite" }} />
+              <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+            </div>
+          ) : !cb ? (
+            <div style={{ marginTop: 20 }}>
+              <p style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 16 }}>Enable the circuit breaker to set it up — it starts inactive until you turn it on.</p>
+              <button className="btn-primary" style={{ fontSize: 14 }} onClick={initCb} disabled={cbSaving}>
+                {cbSaving ? "Setting up..." : "Set up Circuit Breaker →"}
+              </button>
+            </div>
+          ) : (
+            <div style={{ marginTop: 24 }}>
+              {/* Daily limit */}
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                  <label style={{ fontSize: 13, fontWeight: 600 }}>Daily Trade Limit</label>
+                  <span className="font-bebas" style={{ fontSize: 28, color: "var(--red)", lineHeight: 1 }}>{cb.dailyLimit}</span>
+                </div>
+                <input
+                  type="range"
+                  min={1}
+                  max={20}
+                  value={cb.dailyLimit}
+                  onChange={(e) => setCb((p) => p ? { ...p, dailyLimit: Number(e.target.value) } : p)}
+                  onMouseUp={(e) => saveCb({ dailyLimit: Number((e.target as HTMLInputElement).value) })}
+                  onTouchEnd={(e) => saveCb({ dailyLimit: Number((e.target as HTMLInputElement).value) })}
+                  style={{ width: "100%", marginBottom: 6 }}
+                />
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)" }}>
+                  <span>1 trade</span><span>20 trades</span>
+                </div>
+              </div>
+
+              {/* Score-adaptive toggle */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "var(--surface2)", borderRadius: 10, marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>Score-Adaptive Limits</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                    GO day → full limit · CAUTION day → 50% · NO-TRADE day → 0 trades
+                  </div>
+                </div>
+                <button
+                  onClick={() => saveCb({ scoreAdaptive: !cb.scoreAdaptive })}
+                  disabled={cbSaving}
+                  style={{ width: 44, height: 24, borderRadius: 12, background: cb.scoreAdaptive ? "var(--blue)" : "var(--surface3)", border: "none", cursor: "pointer", position: "relative", flexShrink: 0, transition: "background 0.2s" }}
+                >
+                  <div style={{ position: "absolute", top: 3, left: cb.scoreAdaptive ? 23 : 3, width: 18, height: 18, borderRadius: "50%", background: "white", transition: "left 0.2s" }} />
+                </button>
+              </div>
+
+              {/* How platforms connect */}
+              <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)", marginBottom: 20, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.9 }}>
+                <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6, fontSize: 12 }}>How to connect each platform</div>
+                <div>
+                  <span style={{ color: "var(--text)", fontWeight: 600 }}>Chrome Extension</span> — Blocks TradingView, thinkorswim, Binance, and 15+ platforms. Install from the link below, paste your token.
+                </div>
+                <div>
+                  <span style={{ color: "var(--text)", fontWeight: 600 }}>MT4 / MT5</span> — Attach the EA to any chart. It polls your token every 5 minutes and blocks new orders when blocked.
+                </div>
+              </div>
+
+              {/* Extension token */}
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", color: "var(--text-muted)" }}>EXTENSION TOKEN</label>
+                  <button
+                    onClick={regenerateCbToken}
+                    disabled={cbRegenerating}
+                    style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0, opacity: cbRegenerating ? 0.5 : 1 }}
+                  >
+                    {cbRegenerating ? "Regenerating..." : "Regenerate"}
+                  </button>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <div style={{ flex: 1, padding: "10px 14px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)", fontSize: 11, fontFamily: "var(--font-geist-mono)", color: "var(--text-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {cb.extensionToken}
+                  </div>
+                  <button
+                    className={cbTokenCopied ? "btn-primary" : "btn-ghost"}
+                    style={{ padding: "10px 16px", fontSize: 13, flexShrink: 0, transition: "all 0.15s" }}
+                    onClick={() => {
+                      navigator.clipboard.writeText(cb.extensionToken);
+                      setCbTokenCopied(true);
+                      setTimeout(() => setCbTokenCopied(false), 2000);
+                    }}
+                  >
+                    {cbTokenCopied ? "✓ Copied!" : "Copy"}
+                  </button>
+                </div>
+                <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>Paste this into the Chrome extension or MT4/MT5 EA input. Regenerating invalidates the old token.</p>
+              </div>
+
+              {/* Download links */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <a href="/downloads/trademind-circuit-breaker.zip" download style={{ textDecoration: "none" }}>
+                  <button className="btn-ghost" style={{ width: "100%", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                    Download Chrome Extension (.zip)
+                  </button>
+                </a>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <a href="/downloads/TradeMind_CircuitBreaker.mq4" download style={{ textDecoration: "none", flex: 1 }}>
+                    <button className="btn-ghost" style={{ width: "100%", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                      MT4 EA (.mq4)
+                    </button>
+                  </a>
+                  <a href="/downloads/TradeMind_CircuitBreaker.mq5" download style={{ textDecoration: "none", flex: 1 }}>
+                    <button className="btn-ghost" style={{ width: "100%", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                      <svg width="12" height="12" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                      MT5 EA (.mq5)
+                    </button>
+                  </a>
+                </div>
+              </div>
             </div>
           )}
         </section>
