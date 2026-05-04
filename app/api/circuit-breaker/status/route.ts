@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { fetchTodayTrades } from "@/lib/brokers";
 import { safeDecrypt } from "@/lib/crypto";
+import { sendPushToUser } from "@/lib/push";
 import { NextResponse } from "next/server";
 
 const CORS = {
@@ -18,7 +19,7 @@ export async function GET(req: Request) {
 
   const cb = await db.circuitBreaker.findUnique({
     where: { extensionToken: token },
-    select: { userId: true, isActive: true, dailyLimit: true, scoreAdaptive: true },
+    select: { userId: true, isActive: true, dailyLimit: true, scoreAdaptive: true, blockedNotifiedDate: true },
   });
 
   if (!cb) return NextResponse.json({ error: "Invalid token" }, { status: 401, headers: CORS });
@@ -96,6 +97,21 @@ export async function GET(req: Request) {
 
   const blocked = tradeCount >= effectiveLimit;
   const remaining = Math.max(0, effectiveLimit - tradeCount);
+
+  // Send push once when the limit is first hit today (broker-polled path)
+  if (blocked && cb.blockedNotifiedDate !== today) {
+    db.circuitBreaker.update({
+      where: { extensionToken: token },
+      data: { blockedNotifiedDate: today, blockedAt: new Date() },
+    }).catch(() => {});
+
+    const verdictLine = verdict !== "GO" ? ` Mental state: ${verdict}.` : "";
+    sendPushToUser(cb.userId, {
+      title: "TradeMind — Trade Limit Reached",
+      body: `You've hit your daily limit of ${effectiveLimit} trade${effectiveLimit === 1 ? "" : "s"} (${tradeCount} done).${verdictLine} Circuit breaker is now active.`,
+      url: "/dashboard",
+    }).catch(() => {});
+  }
 
   return NextResponse.json(
     { blocked, tradeCount, effectiveLimit, dailyLimit: cb.dailyLimit, scoreAdaptive: cb.scoreAdaptive, verdict, remaining, date: today, source: countSource },

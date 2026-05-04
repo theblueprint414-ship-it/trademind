@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { sendPushToUser } from "@/lib/push";
 import { NextResponse } from "next/server";
 
 const CORS = {
@@ -7,9 +8,7 @@ const CORS = {
 };
 
 // POST /api/circuit-breaker/report-trade?token=<extensionToken>
-// Called by MT4/MT5 EA (via WebRequest) immediately after a successful OrderSend.
-// Increments the Trade count so the circuit breaker stays accurate without broker API polling.
-// Body: { symbol?: string, side?: string } — both optional
+// Called by MT4/MT5 EA immediately after a successful OrderSend.
 export async function POST(req: Request) {
   const { searchParams } = new URL(req.url);
   const token = searchParams.get("token");
@@ -18,12 +17,11 @@ export async function POST(req: Request) {
 
   const cb = await db.circuitBreaker.findUnique({
     where: { extensionToken: token },
-    select: { userId: true, isActive: true, dailyLimit: true, scoreAdaptive: true },
+    select: { userId: true, isActive: true, dailyLimit: true, scoreAdaptive: true, blockedNotifiedDate: true },
   });
 
   if (!cb) return NextResponse.json({ error: "Invalid token" }, { status: 401, headers: CORS });
 
-  // Parse optional body (EA sends JSON, but body may be empty — be resilient)
   let symbol: string | undefined;
   let side: string | undefined;
   try {
@@ -34,24 +32,14 @@ export async function POST(req: Request) {
 
   const today = new Date().toISOString().split("T")[0];
 
-  // Record the trade
-  await db.trade.create({
-    data: { userId: cb.userId, date: today },
-  });
+  await db.trade.create({ data: { userId: cb.userId, date: today } });
 
-  // Also create a minimal TradeEntry so journal is populated
   if (symbol) {
     await db.tradeEntry.create({
-      data: {
-        userId: cb.userId,
-        date: today,
-        symbol: symbol.slice(0, 20),
-        side: side ?? null,
-      },
-    }).catch(() => {}); // non-critical
+      data: { userId: cb.userId, date: today, symbol: symbol.slice(0, 20), side: side ?? null },
+    }).catch(() => {});
   }
 
-  // Return updated status so EA can act immediately without a separate GET
   const tradeCount = await db.trade.count({ where: { userId: cb.userId, date: today } });
 
   let effectiveLimit = cb.dailyLimit;
@@ -70,10 +58,25 @@ export async function POST(req: Request) {
 
   const blocked = tradeCount >= effectiveLimit;
 
-  return NextResponse.json(
-    { ok: true, tradeCount, effectiveLimit, blocked, verdict },
-    { headers: CORS }
-  );
+  // Send push notification the first time the limit is hit today
+  if (blocked && cb.blockedNotifiedDate !== today) {
+    await db.circuitBreaker.update({
+      where: { extensionToken: token },
+      data: { blockedNotifiedDate: today, blockedAt: new Date() },
+    });
+
+    const remaining = tradeCount - effectiveLimit;
+    const verdictLine = verdict !== "GO" ? ` Your mental state today: ${verdict}.` : "";
+    sendPushToUser(cb.userId, {
+      title: "TradeMind — Trade Limit Reached",
+      body: `You've hit your daily limit of ${effectiveLimit} trade${effectiveLimit === 1 ? "" : "s"} (${tradeCount} done).${verdictLine} Circuit breaker is now active.`,
+      url: "/dashboard",
+    }).catch(() => {});
+
+    void remaining;
+  }
+
+  return NextResponse.json({ ok: true, tradeCount, effectiveLimit, blocked, verdict }, { headers: CORS });
 }
 
 export async function OPTIONS() {
