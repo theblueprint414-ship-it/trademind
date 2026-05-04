@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { sendPushToUser } from "@/lib/push";
+import { lockBroker } from "@/lib/circuitBreakerLock";
 import { NextResponse } from "next/server";
 
 const CORS = {
@@ -58,22 +59,22 @@ export async function POST(req: Request) {
 
   const blocked = tradeCount >= effectiveLimit;
 
-  // Send push notification the first time the limit is hit today
+  // First time hitting the limit today — lock broker + send push
   if (blocked && cb.blockedNotifiedDate !== today) {
     await db.circuitBreaker.update({
       where: { extensionToken: token },
       data: { blockedNotifiedDate: today, blockedAt: new Date() },
     });
 
-    const remaining = tradeCount - effectiveLimit;
-    const verdictLine = verdict !== "GO" ? ` Your mental state today: ${verdict}.` : "";
+    // Layer 2+3: suspend trading at broker level (Alpaca, MetaAPI, Binance, Bybit)
+    lockBroker(cb.userId).catch(() => {});
+
+    const verdictLine = verdict !== "GO" ? ` Mental state: ${verdict}.` : "";
     sendPushToUser(cb.userId, {
       title: "TradeMind — Trade Limit Reached",
       body: `You've hit your daily limit of ${effectiveLimit} trade${effectiveLimit === 1 ? "" : "s"} (${tradeCount} done).${verdictLine} Circuit breaker is now active.`,
       url: "/dashboard",
     }).catch(() => {});
-
-    void remaining;
   }
 
   return NextResponse.json({ ok: true, tradeCount, effectiveLimit, blocked, verdict }, { headers: CORS });

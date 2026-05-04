@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "TradeMind Circuit Breaker",
   "short_name": "TradeMind CB",
-  "version": "1.0.0",
-  "description": "Automatically blocks access to trading platforms when your daily trade limit is reached.",
+  "version": "2.0.0",
+  "description": "Blocks order API calls and trading platforms when your daily trade limit is reached.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",
@@ -12,7 +12,9 @@
   "permissions": [
     "storage",
     "alarms",
-    "notifications"
+    "notifications",
+    "declarativeNetRequest",
+    "declarativeNetRequestFeedback"
   ],
   "host_permissions": [
     "https://trademindedge.com/*",
@@ -26,19 +28,28 @@
     "https://*.schwab.com/*",
     "https://*.fidelity.com/*",
     "https://*.tdameritrade.com/*",
-    "https://*.alpaca.markets/*",
-    "https://*.binance.com/*",
-    "https://*.bybit.com/*",
-    "https://*.kraken.com/*",
-    "https://*.coinbase.com/*",
     "https://*.robinhood.com/*",
     "https://*.webull.com/*",
     "https://*.moomoo.com/*",
     "https://*.tradestation.com/*",
     "https://*.ninjatrader.com/*",
-    "https://*.metatrader4.com/*",
-    "https://*.metatrader5.com/*"
+    "https://api.alpaca.markets/*",
+    "https://paper-api.alpaca.markets/*",
+    "https://api.binance.com/*",
+    "https://fapi.binance.com/*",
+    "https://dapi.binance.com/*",
+    "https://api.bybit.com/*",
+    "https://api.kraken.com/*",
+    "https://api.coinbase.com/*",
+    "https://api.tastytrade.com/*",
+    "https://api.robinhood.com/*",
+    "https://ustrade.webull.com/*",
+    "https://openapi.moomoo.com/*",
+    "https://api.tradestation.com/*"
   ],
+  "declarative_net_request": {
+    "rule_resources": []
+  },
   "background": {
     "service_worker": "background.js",
     "type": "module"
@@ -56,11 +67,6 @@
         "https://*.schwab.com/*",
         "https://*.fidelity.com/*",
         "https://*.tdameritrade.com/*",
-        "https://*.alpaca.markets/*",
-        "https://*.binance.com/*",
-        "https://*.bybit.com/*",
-        "https://*.kraken.com/*",
-        "https://*.coinbase.com/*",
         "https://*.robinhood.com/*",
         "https://*.webull.com/*",
         "https://*.moomoo.com/*",

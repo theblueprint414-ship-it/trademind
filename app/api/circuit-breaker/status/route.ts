@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { fetchTodayTrades } from "@/lib/brokers";
 import { safeDecrypt } from "@/lib/crypto";
 import { sendPushToUser } from "@/lib/push";
+import { lockBroker } from "@/lib/circuitBreakerLock";
 import { NextResponse } from "next/server";
 
 const CORS = {
@@ -104,6 +105,9 @@ export async function GET(req: Request) {
       where: { extensionToken: token },
       data: { blockedNotifiedDate: today, blockedAt: new Date() },
     }).catch(() => {});
+
+    // Layer 2+3: suspend trading at broker level
+    lockBroker(cb.userId).catch(() => {});
 
     const verdictLine = verdict !== "GO" ? ` Mental state: ${verdict}.` : "";
     sendPushToUser(cb.userId, {
