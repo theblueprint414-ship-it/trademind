@@ -37,7 +37,11 @@ function PremiumUpsell() {
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
           <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
         </Link>
-        <span className="font-bebas" style={{ fontSize: 20, color: "var(--text-muted)", letterSpacing: "0.05em" }}>PLAYBOOK</span>
+        <div style={{ textAlign: "center" }}>
+          <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.05em", display: "block", lineHeight: 1.1 }}>PLAYBOOK</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>YOUR TRADING RULES</span>
+        </div>
+        <div style={{ width: 80 }} />
       </div>
       <div style={{ maxWidth: 520, margin: "60px auto", padding: "0 24px", textAlign: "center" }}>
         <div style={{ marginBottom: 20, display: "flex", justifyContent: "center", color: "var(--blue)" }}><svg width="56" height="56" viewBox="0 0 56 56" fill="none"><rect x="10" y="8" width="36" height="40" rx="5" stroke="currentColor" strokeWidth="2.5"/><path d="M19 21h18M19 29h18M19 37h12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg></div>
@@ -167,13 +171,16 @@ export default function PlaybookPage() {
     <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
 
       <div className="app-header">
-        <Link href="/" style={{ textDecoration: "none" }}>
-          <img src="/logo.svg" alt="TradeMind" height="28" style={{ display: "block" }} />
+        <Link href="/dashboard" style={{ textDecoration: "none" }}>
+          <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
         </Link>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {saved && <span style={{ fontSize: 12, color: "var(--green)" }}>✓ Saved</span>}
-          {saving && <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Saving...</span>}
-          <span className="font-bebas" style={{ fontSize: 20, color: "var(--text-muted)", letterSpacing: "0.05em" }}>PLAYBOOK</span>
+        <div style={{ textAlign: "center" }}>
+          <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.05em", display: "block", lineHeight: 1.1 }}>PLAYBOOK</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>YOUR TRADING RULES</span>
+        </div>
+        <div style={{ width: 80, display: "flex", justifyContent: "flex-end", alignItems: "center" }}>
+          {saved && <span style={{ fontSize: 11, color: "var(--green)", fontWeight: 600 }}>Saved</span>}
+          {saving && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Saving...</span>}
         </div>
       </div>
 
@@ -269,8 +276,8 @@ export default function PlaybookPage() {
                   {/* Toggle */}
                   <button
                     onClick={() => toggleRule(rule.id)}
-                    style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", border: `2px solid ${rule.enabled ? meta.color : "var(--surface3)"}`, background: rule.enabled ? meta.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--bg)", fontSize: 12, fontWeight: 700, marginTop: 1 }}>
-                    {rule.enabled ? "✓" : ""}
+                    style={{ flexShrink: 0, width: 22, height: 22, borderRadius: "50%", border: `2px solid ${rule.enabled ? meta.color : "var(--surface3)"}`, background: rule.enabled ? meta.color : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--bg)", marginTop: 1 }}>
+                    {rule.enabled && <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                   </button>
 
                   {/* Text */}
@@ -295,8 +302,12 @@ export default function PlaybookPage() {
                   {/* Actions */}
                   {!isEditing && (
                     <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                      <button onClick={() => startEdit(rule)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, padding: "2px 6px" }} title="Edit">✏️</button>
-                      <button onClick={() => deleteRule(rule.id)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, padding: "2px 6px" }} title="Delete">🗑</button>
+                      <button onClick={() => startEdit(rule)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px 6px", display: "flex", alignItems: "center" }} title="Edit">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2-7 7H2.5v-2l7-7z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>
+                      </button>
+                      <button onClick={() => deleteRule(rule.id)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px 6px", display: "flex", alignItems: "center" }} title="Delete">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M5 4V2.5h4V4M5.5 6.5v4M8.5 6.5v4M3 4l.7 7.5h6.6L11 4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -318,8 +329,9 @@ export default function PlaybookPage() {
                 </div>
               );
             })}
-            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center" }}>
-              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Shown before every check-in 🧠</span>
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)" }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5C4.5 1.5 2.5 3.3 2.5 5.5c0 1.2.6 2.3 1.5 3 .3.2.5.5.5.8V10h5v-.7c0-.3.2-.6.5-.8.9-.7 1.5-1.8 1.5-3C11.5 3.3 9.5 1.5 7 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/><path d="M5.5 10v1.5a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V10" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/></svg>
+              <span style={{ fontSize: 12 }}>Shown before every check-in</span>
             </div>
           </div>
         )}

@@ -213,7 +213,9 @@ export default function AcceptInvitePage() {
 function InviteHeader({ invite }: { invite: { fromName: string } }) {
   return (
     <div style={{ textAlign: "center", marginBottom: 24 }}>
-      <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,45,45,0.1)", border: "2px solid rgba(255,45,45,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 28 }}>👥</div>
+      <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,45,45,0.1)", border: "2px solid rgba(255,45,45,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--red)" }}>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      </div>
       <h1 className="font-bebas" style={{ fontSize: 32, marginBottom: 8 }}>Accountability invite</h1>
       <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7 }}>
         <strong style={{ color: "white" }}>{invite.fromName}</strong> wants you to be their accountability partner.

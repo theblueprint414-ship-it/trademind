@@ -1125,7 +1125,9 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="reveal" style={{ display: "flex", alignItems: "center", gap: 16, padding: "22px 24px", background: "linear-gradient(135deg, rgba(0,232,122,0.06), rgba(94,106,210,0.06))", border: "1px solid rgba(0,232,122,0.2)", borderRadius: 16 }}>
-            <span style={{ fontSize: 22, flexShrink: 0 }}>✅</span>
+            <span style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.3)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--green)" }}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </span>
             <p style={{ fontSize: 16, color: "var(--text)", fontWeight: 600, lineHeight: 1.5, letterSpacing: "-0.015em", margin: 0 }}>
               It&apos;s the 60-second gate between you and your worst trading day.
             </p>

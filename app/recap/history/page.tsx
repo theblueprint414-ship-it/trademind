@@ -51,17 +51,16 @@ export default function RecapHistoryPage() {
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
-      {/* Header */}
-      <div style={{ borderBottom: "1px solid var(--border)", padding: "16px 24px", background: "var(--surface)", display: "flex", alignItems: "center", gap: 16 }}>
-        <Link href="/recap" style={{ color: "var(--text-muted)", textDecoration: "none", display: "flex", alignItems: "center" }}>
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 4L6 9l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+      <div className="app-header">
+        <Link href="/recap" style={{ textDecoration: "none" }}>
+          <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Back</button>
         </Link>
-        <div>
-          <div style={{ fontSize: 16, fontWeight: 700 }}>Session Recaps</div>
-          <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{recaps.length} {recaps.length === 1 ? "session" : "sessions"} logged</div>
+        <div style={{ textAlign: "center" }}>
+          <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.05em", display: "block", lineHeight: 1.1 }}>HISTORY</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>{recaps.length} SESSIONS LOGGED</span>
         </div>
-        <Link href="/recap" style={{ marginLeft: "auto", textDecoration: "none" }}>
-          <button className="btn-primary" style={{ padding: "8px 16px", fontSize: 13 }}>+ Log Today</button>
+        <Link href="/recap" style={{ textDecoration: "none" }}>
+          <button className="btn-primary" style={{ padding: "8px 14px", fontSize: 12 }}>+ Log Today</button>
         </Link>
       </div>
 
@@ -96,7 +95,9 @@ export default function RecapHistoryPage() {
           </div>
         ) : recaps.length === 0 ? (
           <div style={{ textAlign: "center", paddingTop: 60 }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>📋</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16, color: "var(--text-muted)" }}>
+              <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="10" y="6" width="28" height="36" rx="4" stroke="currentColor" strokeWidth="2"/><path d="M17 16h14M17 24h14M17 32h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+            </div>
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>No recaps yet</div>
             <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 24 }}>
               End-of-day recaps turn your trades into lessons. Log your first one.

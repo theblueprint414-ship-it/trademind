@@ -558,7 +558,7 @@ export default function JournalPage() {
           {isFree && (
             <Link href="/settings" style={{ textDecoration: "none" }}>
               <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(139,92,246,0.05)", border: "1px dashed rgba(139,92,246,0.25)", fontSize: 12, color: "var(--text-muted)" }}>
-                🔒 <strong style={{ color: "var(--blue)" }}>Upgrade to TradeMind</strong> for unlimited journal history, 90-day analytics, and emotion tracking
+                <span style={{ display: "flex", alignItems: "center", gap: 8 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg> <strong style={{ color: "var(--blue)" }}>Upgrade to TradeMind</strong> for unlimited journal history, 90-day analytics, and emotion tracking</span>
               </div>
             </Link>
           )}
@@ -662,19 +662,74 @@ export default function JournalPage() {
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
           <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
         </Link>
-        <span className="font-bebas" style={{ fontSize: 20, color: "var(--text-muted)", letterSpacing: "0.05em" }}>JOURNAL</span>
+        <div style={{ textAlign: "center" }}>
+          <span className="font-bebas" style={{ fontSize: 20, color: "var(--text)", letterSpacing: "0.05em", display: "block", lineHeight: 1.1 }}>JOURNAL</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}</span>
+        </div>
+        <div style={{ width: 80 }} />
       </div>
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "24px 16px" }}>
 
         {/* First-time empty state */}
         {!loading && allEntries.length === 0 && (
-          <div className="card" style={{ padding: 32, marginBottom: 24, border: "1px solid rgba(94,106,210,0.2)", background: "rgba(94,106,210,0.03)", textAlign: "center" }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>📓</div>
-            <div className="font-bebas" style={{ fontSize: 28, marginBottom: 8, letterSpacing: "0.03em" }}>Log Your First Trade</div>
-            <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 0, maxWidth: 380, margin: "0 auto" }}>
-              Every great trader keeps a journal. Log your symbol, P&L, and what you were thinking — over time, the patterns become undeniable.
-            </p>
+          <div style={{ marginBottom: 24 }}>
+            {/* Header */}
+            <div style={{ textAlign: "center", padding: "36px 20px 28px" }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 18 }}>
+                <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+                  <rect x="10" y="7" width="36" height="42" rx="5" stroke="var(--blue)" strokeWidth="1.8"/>
+                  <path d="M18 20h20M18 28h20M18 36h14" stroke="var(--blue)" strokeWidth="1.8" strokeLinecap="round"/>
+                  <path d="M20 14l3.5 5 4-7 3.5 4.5 2.5-2.5" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </div>
+              <div className="font-bebas" style={{ fontSize: 30, marginBottom: 10, letterSpacing: "0.03em" }}>The Edge Is In The Data</div>
+              <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, maxWidth: 360, margin: "0 auto" }}>
+                After 10 logged trades, TradeMind reveals which mental states make you money — and which cost you the most.
+              </p>
+            </div>
+
+            {/* 3-step flow */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
+              {([
+                { color: "var(--blue)", label: "STEP 1", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M3 20c0-3.314 3.582-6 8-6s8 2.686 8 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M16 5l1.5-1.5M18 8h1.5M16 11l1.5 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>, title: "Check In", desc: "Score your mental state before opening charts" },
+                { color: "var(--amber)", label: "STEP 2", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="4" y="3" width="14" height="16" rx="2.5" stroke="currentColor" strokeWidth="1.5"/><path d="M8 8h6M8 12h6M8 16h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>, title: "Log Trades", desc: "Symbol, P&L, and what you were thinking" },
+                { color: "var(--green)", label: "STEP 3", icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M3 17l5-6 4 3.5 6-9 3 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><circle cx="17" cy="6" r="2.5" fill="currentColor" opacity="0.2" stroke="currentColor" strokeWidth="1.3"/></svg>, title: "See Patterns", desc: "Your psychology → P&L correlation" },
+              ] as const).map(({ color, label, icon, title, desc }) => (
+                <div key={title} style={{ padding: "18px 12px", borderRadius: 12, background: "var(--surface2)", border: `1px solid ${color}22`, textAlign: "center" }}>
+                  <div style={{ color, marginBottom: 8, display: "flex", justifyContent: "center" }}>{icon}</div>
+                  <div style={{ fontSize: 9, color, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>{label}</div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>{title}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>{desc}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Smart CTA based on whether check-in is done */}
+            {todayScore === null ? (
+              <>
+                <Link href="/checkin">
+                  <button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 15, marginBottom: 10 }}>
+                    Start Today&apos;s Check-in First →
+                  </button>
+                </Link>
+                <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)" }}>
+                  Your mental score is required before logging trades
+                </p>
+              </>
+            ) : (
+              <>
+                <button className="btn-primary" onClick={handleLogClick} style={{ width: "100%", padding: 16, fontSize: 15, marginBottom: 10 }}>
+                  Log Your First Trade →
+                </button>
+                <p style={{ textAlign: "center", fontSize: 12, color: "var(--text-muted)" }}>
+                  Today&apos;s score:{" "}
+                  <strong style={{ color: todayScore >= 70 ? "var(--green)" : todayScore >= 45 ? "var(--amber)" : "var(--red)" }}>
+                    {todayScore}/100 — {todayScore >= 70 ? "GO" : todayScore >= 45 ? "CAUTION" : "NO-TRADE"}
+                  </strong>
+                </p>
+              </>
+            )}
           </div>
         )}
 
@@ -909,7 +964,12 @@ export default function JournalPage() {
                 </>
               ) : (
                 <div style={{ textAlign: "center" }}>
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>{csvResult.imported > 0 ? "✅" : "📭"}</div>
+                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: csvResult.imported > 0 ? "rgba(0,232,122,0.1)" : "rgba(255,255,255,0.06)", border: csvResult.imported > 0 ? "1.5px solid rgba(0,232,122,0.3)" : "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: csvResult.imported > 0 ? "var(--green)" : "var(--text-dim)" }}>
+                    {csvResult.imported > 0
+                      ? <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      : <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="1.6"/><path d="M3 9l9 6 9-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                    }
+                  </div>
                   <div className="font-bebas" style={{ fontSize: 32, letterSpacing: "0.04em", marginBottom: 8 }}>
                     {csvResult.imported > 0 ? `${csvResult.imported} Trade${csvResult.imported !== 1 ? "s" : ""} Imported` : "Nothing New"}
                   </div>
@@ -965,7 +1025,19 @@ export default function JournalPage() {
 
         {/* Entries list */}
         {loading ? (
-          <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 13 }}>Loading...</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {[80, 65, 90].map((w, i) => (
+              <div key={i} className="card" style={{ padding: 20 }}>
+                <div style={{ display: "flex", gap: 14, alignItems: "center", marginBottom: 12 }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 8, background: "var(--surface3)", animation: "shimmer 1.4s ease-in-out infinite", animationDelay: `${i * 0.15}s` }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ height: 12, width: `${w}%`, borderRadius: 6, background: "var(--surface3)", marginBottom: 8, animation: "shimmer 1.4s ease-in-out infinite", animationDelay: `${i * 0.15}s` }} />
+                    <div style={{ height: 10, width: "45%", borderRadius: 6, background: "var(--surface3)", animation: "shimmer 1.4s ease-in-out infinite", animationDelay: `${i * 0.15 + 0.08}s` }} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         ) : entries.length === 0 ? (
           selectedDate === today ? (() => {
             const goEntries = allEntries.filter((e) => (e.checkinScore ?? 0) >= 70 && e.pnl !== null);
@@ -976,7 +1048,11 @@ export default function JournalPage() {
             const sLabel = sc !== null ? (sc >= 70 ? "GO" : sc >= 45 ? "CAUTION" : "NO-TRADE") : null;
             return (
               <div className="card" style={{ padding: 36, textAlign: "center", border: `1px dashed ${sColor}40` }}>
-                <div style={{ fontSize: 36, marginBottom: 16 }}>🧠</div>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: "50%", background: `${sColor}12`, border: `1.5px solid ${sColor}30`, display: "flex", alignItems: "center", justifyContent: "center", color: sColor }}>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.5"/><path d="M4 20c0-4 3.582-7 8-7s8 3 8 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M18 6l1.5-1.5M20 9h1.5M18 12l1.5 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                  </div>
+                </div>
                 {sc !== null ? (
                   <>
                     <div className="font-bebas" style={{ fontSize: 32, color: sColor, marginBottom: 6, letterSpacing: "0.04em" }}>{sLabel} · {sc}/100</div>
@@ -1020,7 +1096,7 @@ export default function JournalPage() {
               const entryTags = parseTags(entry.tags);
               const isEditing = editingId === entry.id;
               return (
-                <div key={entry.id} className="card" style={{ padding: 20, position: "relative" }}>
+                <div key={entry.id} className="card card-hover" style={{ padding: 20, position: "relative", borderLeft: entry.pnl !== null ? `3px solid ${entry.pnl > 0 ? "var(--green)" : entry.pnl < 0 ? "var(--red)" : "var(--border)"}` : "3px solid var(--border)" }}>
                   {isEditing ? (
                     <TradeForm
                       f={editForm}
@@ -1046,8 +1122,9 @@ export default function JournalPage() {
                           const sBg = sc >= 70 ? "rgba(0,232,122,0.1)" : sc >= 45 ? "rgba(255,176,32,0.1)" : "rgba(255,59,92,0.1)";
                           const sLabel = sc >= 70 ? "GO" : sc >= 45 ? "CAUTION" : "NO-TRADE";
                           return (
-                            <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6, background: sBg, color: sColor, letterSpacing: "0.04em", border: `1px solid ${sColor}30` }}>
-                              🧠 {sLabel} · {sc}
+                            <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 6, background: sBg, color: sColor, letterSpacing: "0.04em", border: `1px solid ${sColor}30`, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-2.26C17.81 13.47 19 11.38 19 9c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="2"/><path d="M9 21h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+                              {sLabel} · {sc}
                             </span>
                           );
                         })()}

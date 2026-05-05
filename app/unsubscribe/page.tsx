@@ -36,7 +36,9 @@ function UnsubscribeContent() {
 
         {status === "done" && (
           <>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1.5px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--green)" }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
             <h1 className="font-bebas" style={{ fontSize: 32, marginBottom: 12 }}>Unsubscribed</h1>
             <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 28 }}>
               You won&apos;t receive daily reminder emails anymore.<br />

@@ -41,6 +41,15 @@ export default function CheckinPage() {
   const [customQ, setCustomQ] = useState("");
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const sliderTrackRef = useRef<HTMLDivElement>(null);
+  const sliderDragging = useRef(false);
+
+  function updateSliderFromPointer(e: React.PointerEvent) {
+    if (!sliderTrackRef.current) return;
+    const rect = sliderTrackRef.current.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setSliderVal(Math.round(pct * 100));
+  }
 
   useEffect(() => {
     const cq = localStorage.getItem("trademind_custom_q") ?? "";
@@ -218,7 +227,7 @@ export default function CheckinPage() {
   }
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", animation: "page-in 0.28s cubic-bezier(0.16,1,0.3,1) both" }}>
       <style>{`
         @keyframes option-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         .opt-btn { animation: option-in 0.25s ease both; }
@@ -330,9 +339,50 @@ export default function CheckinPage() {
               </div>
             </div>
 
-            <div style={{ position: "relative", marginBottom: 16 }}>
-              <input type="range" min={0} max={100} value={sliderVal} onChange={(e) => setSliderVal(Number(e.target.value))} style={{ width: "100%" }} />
-              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, fontSize: 11, color: "var(--text-muted)" }}>
+            <div style={{ marginBottom: 16 }}>
+              {/* Custom slider track */}
+              <div
+                ref={sliderTrackRef}
+                role="slider"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={sliderVal}
+                tabIndex={0}
+                style={{ position: "relative", height: 36, cursor: "grab", userSelect: "none", touchAction: "none", padding: "0 2px" }}
+                onPointerDown={(e) => {
+                  sliderDragging.current = true;
+                  (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                  updateSliderFromPointer(e);
+                }}
+                onPointerMove={(e) => { if (sliderDragging.current) updateSliderFromPointer(e); }}
+                onPointerUp={() => { sliderDragging.current = false; }}
+                onPointerCancel={() => { sliderDragging.current = false; }}
+                onKeyDown={(e) => {
+                  if (e.key === "ArrowRight" || e.key === "ArrowUp") setSliderVal((v) => Math.min(100, v + 1));
+                  if (e.key === "ArrowLeft" || e.key === "ArrowDown") setSliderVal((v) => Math.max(0, v - 1));
+                }}
+              >
+                {/* Background track */}
+                <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 6, transform: "translateY(-50%)", borderRadius: 99, background: "var(--surface3)" }} />
+                {/* Filled track */}
+                <div style={{ position: "absolute", top: "50%", left: 0, width: `${sliderVal}%`, height: 6, transform: "translateY(-50%)", borderRadius: 99, background: `linear-gradient(90deg, rgba(255,59,92,0.8), ${sliderColor})`, boxShadow: sliderVal > 5 ? `0 0 10px ${sliderColor}55` : "none", transition: "background 0.3s, box-shadow 0.3s" }} />
+                {/* Thumb */}
+                <div style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: `${sliderVal}%`,
+                  transform: "translate(-50%, -50%)",
+                  width: 26,
+                  height: 26,
+                  borderRadius: "50%",
+                  background: sliderColor,
+                  boxShadow: `0 0 22px ${sliderColor}80, 0 2px 8px rgba(0,0,0,0.5)`,
+                  border: "2.5px solid rgba(255,255,255,0.18)",
+                  transition: "background 0.3s, box-shadow 0.3s",
+                  pointerEvents: "none",
+                }} />
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 4, fontSize: 11, color: "var(--text-muted)" }}>
                 <span>Very low</span>
                 <span>Very high</span>
               </div>

@@ -252,7 +252,9 @@ export default function PartnersPage() {
         {/* Not logged in */}
         {!isLoggedIn && !loadingPartners && (
           <div className="card" style={{ padding: 32, textAlign: "center", marginBottom: 24 }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🔒</div>
+            <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(255,255,255,0.06)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", color: "var(--text-dim)" }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.6"/><path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+            </div>
             <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 8 }}>Sign in to use Partners</div>
             <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 20 }}>Create an account to invite accountability partners and share check-in scores.</p>
             <Link href="/login"><button className="btn-primary">Sign in</button></Link>
@@ -316,7 +318,7 @@ export default function PartnersPage() {
               <>
                 <form onSubmit={handleInvite}>
                   <button type="submit" className="btn-primary" style={{ padding: "14px 28px", fontSize: 15, display: "flex", alignItems: "center", gap: 10 }} disabled={generating}>
-                    <span style={{ fontSize: 20 }}>💬</span>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                     {generating ? "Generating..." : "Send via WhatsApp"}
                   </button>
                 </form>
@@ -412,7 +414,7 @@ export default function PartnersPage() {
                           style={{ fontSize: 12, padding: "6px 12px", display: "flex", alignItems: "center", gap: 6 }}
                           onClick={() => handleCircleInvite(circle.id)}
                         >
-                          <span>💬</span> Invite
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> Invite
                         </button>
                         {circleInviteLinks[circle.id] && (
                           <button

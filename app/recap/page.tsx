@@ -74,11 +74,16 @@ export default function RecapPage() {
   const dateLabel = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
       <style>{`
         @keyframes recap-in {
           from { opacity: 0; transform: translateY(18px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes score-pop {
+          0% { transform: scale(0.5); opacity: 0; }
+          70% { transform: scale(1.15); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
         }
         .recap-opt {
           display: flex; align-items: center; gap: 14px;
@@ -97,7 +102,10 @@ export default function RecapPage() {
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8l5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           Dashboard
         </Link>
-        <span style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.06em" }}>SESSION RECAP</span>
+        <div style={{ textAlign: "center" }}>
+          <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.05em", display: "block", lineHeight: 1.1 }}>RECAP</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>CLOSE YOUR SESSION</span>
+        </div>
         <div style={{ width: 80 }} />
       </div>
 
@@ -106,7 +114,11 @@ export default function RecapPage() {
         {/* Already done */}
         {alreadyDone && step !== "done" ? (
           <div style={{ textAlign: "center", paddingTop: 40 }}>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>✅</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1.5px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--green)" }}>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M5 14l6.5 6.5 11.5-11" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </div>
+            </div>
             <h2 className="font-bebas" style={{ fontSize: 36, marginBottom: 10 }}>Already logged today</h2>
             <p style={{ fontSize: 15, color: "var(--text-dim)", marginBottom: 28 }}>You already closed your session for {dateLabel}.</p>
             <Link href="/dashboard"><button className="btn-primary" style={{ padding: "12px 28px" }}>Back to Dashboard</button></Link>
@@ -114,8 +126,14 @@ export default function RecapPage() {
         ) : step === "done" ? (
           <SlideWrapper entering={entering}>
             <div style={{ textAlign: "center", paddingTop: 20 }}>
-              <div style={{ fontSize: 56, marginBottom: 20, animation: "score-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both" }}>
-                {moodObj?.emoji ?? "✅"}
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 20, animation: "score-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both" }}>
+                {moodObj ? (
+                  <span style={{ fontSize: 56, lineHeight: 1 }}>{moodObj.emoji}</span>
+                ) : (
+                  <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1.5px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--green)" }}>
+                    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M5 14l6.5 6.5 11.5-11" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </div>
+                )}
               </div>
               <h2 className="font-bebas" style={{ fontSize: 44, lineHeight: 1, marginBottom: 8 }}>Session closed.</h2>
               <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 32 }}>

@@ -27,6 +27,32 @@
   --glow-amber: rgba(255,176,32,0.22);
   --glow-blue: rgba(94,106,210,0.22);
   --glow-purple: rgba(157,111,255,0.22);
+
+  /* ── Radius tokens — use these everywhere ── */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+  --r-2xl: 24px;
+
+  /* ── Spacing tokens ── */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 28px;
+  --sp-8: 32px;
+
+  /* ── Motion — use for consistent easing ── */
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+  --duration-slow: 380ms;
 }
 
 /* OLED theme override */
@@ -93,9 +119,13 @@ body {
   animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
 
+/* ── Page entrance animation ── */
+@keyframes page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
 /* ── Safe-area bottom nav ── */
 .has-bottom-nav {
   padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  animation: page-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ── Touch targets ── */
@@ -334,6 +364,18 @@ button[style*="padding: 0"], button[style*="padding:0"] {
   70%  { transform: scale(1.05); }
   100% { transform: scale(1); opacity: 1; }
 }
+@keyframes num-rise {
+  from { opacity: 0; transform: translateY(6px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes glow-breathe {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
 @keyframes border-glow {
   0%, 100% { border-color: rgba(94,106,210,0.2); }
   50%       { border-color: rgba(94,106,210,0.5); }
@@ -347,8 +389,11 @@ button[style*="padding: 0"], button[style*="padding:0"] {
 .animate-pulse-red   { animation: pulse-red 2s ease-in-out infinite; }
 .animate-float       { animation: float 3s ease-in-out infinite; }
 .animate-streak      { animation: streak-pulse 2s ease-in-out infinite; }
-.animate-score-pop   { animation: score-pop 0.5s cubic-bezier(0.175,0.885,0.32,1.275) forwards; }
+.animate-score-pop   { animation: score-pop 0.5s var(--ease-spring) forwards; }
 .animate-border-glow { animation: border-glow 3s ease-in-out infinite; }
+.animate-num-rise    { animation: num-rise 0.45s var(--ease-spring) both; }
+.animate-card-enter  { animation: card-enter 0.4s var(--ease-out) both; }
+.animate-glow-breathe { animation: glow-breathe 2.5s ease-in-out infinite; }
 
 /* ── Status badges ── */
 .status-go       { color: var(--green); background: rgba(0,232,122,0.08); border: 1px solid rgba(0,232,122,0.25); }
@@ -359,11 +404,13 @@ button[style*="padding: 0"], button[style*="padding:0"] {
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 12px;
-  transition: border-color 0.15s;
+  border-radius: var(--r-md);
+  transition: border-color var(--duration-fast), transform var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
 }
 .card-hover:hover {
   border-color: var(--border-bright);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.45);
 }
 .card-glow-green {
   background: linear-gradient(135deg, rgba(0,232,122,0.06) 0%, var(--surface) 60%);
@@ -444,7 +491,10 @@ button[style*="padding: 0"], button[style*="padding:0"] {
   background: #fff;
   transform: translateY(-1px);
 }
-.btn-primary:active { transform: translateY(0); }
+.btn-primary:active {
+  transform: scale(0.96) translateY(0);
+  transition-duration: 80ms;
+}
 .btn-primary:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -474,6 +524,10 @@ button[style*="padding: 0"], button[style*="padding:0"] {
   color: var(--text);
   background: rgba(255,255,255,0.03);
 }
+.btn-ghost:active {
+  transform: scale(0.96);
+  transition-duration: 80ms;
+}
 
 /* ── Inputs ── */
 input, select, textarea {
@@ -492,6 +546,11 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(94,106,210,0.15);
 }
 input::placeholder { color: var(--text-muted); }
+
+/* ── Hide number input spinners ── */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
 
 /* ── Range slider ── */
 input[type="range"] {
@@ -714,8 +773,43 @@ input[type="range"]::-webkit-slider-thumb:hover {
     min-width: 40px;
   }
 
+  .bottom-nav a { position: relative; }
+
   .bottom-nav a.active { color: var(--blue); }
   .bottom-nav a:hover  { color: var(--text); }
+
+  /* Active indicator — pill that slides in under the icon */
+  .bottom-nav a::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 24px;
+    height: 3px;
+    border-radius: 0 0 var(--r-sm) var(--r-sm);
+    background: var(--blue);
+    box-shadow: 0 0 10px rgba(94,106,210,0.7);
+    transition: transform 0.28s var(--ease-spring);
+  }
+  .bottom-nav a.active::after {
+    transform: translateX(-50%) scaleX(1);
+  }
+  /* No pill on the primary circular button */
+  .bottom-nav a.nav-primary::after { display: none; }
+
+  /* Icon scale + glow on active */
+  .bottom-nav a .nav-icon {
+    transition: transform 0.25s var(--ease-spring), filter 0.2s ease;
+  }
+  .bottom-nav a.active .nav-icon {
+    transform: scale(1.15) translateY(-1px);
+    filter: drop-shadow(0 0 5px rgba(94,106,210,0.55));
+  }
+  .bottom-nav a.nav-primary .nav-icon {
+    transform: none !important;
+    filter: none !important;
+  }
 
   /* Primary (Check-in) item: circular blue button */
   .bottom-nav a.nav-primary {

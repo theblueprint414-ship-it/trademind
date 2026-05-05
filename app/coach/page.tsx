@@ -1,17 +1,99 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 
+function renderMarkdown(text: string, showCursor = false): React.ReactNode {
+  if (!text) return null;
+
+  function inlineStyles(raw: string): React.ReactNode[] {
+    const parts = raw.split(/(\*\*[^*]+?\*\*|\*[^*]+?\*)/g);
+    return parts.map((p, i) => {
+      if (p.startsWith("**") && p.endsWith("**"))
+        return <strong key={i} style={{ color: "var(--text)", fontWeight: 700 }}>{p.slice(2, -2)}</strong>;
+      if (p.startsWith("*") && p.endsWith("*"))
+        return <em key={i}>{p.slice(1, -1)}</em>;
+      return p;
+    });
+  }
+
+  const paragraphs = text.split(/\n\n+/);
+  return (
+    <>
+      {paragraphs.map((para, pIdx) => {
+        const lines = para.split("\n");
+        const bulletLines = lines.filter(l => l.trim());
+        const isBulletList = bulletLines.length > 0 && bulletLines.every(l => /^[-•*]\s/.test(l.trim()));
+        const isLastPara = pIdx === paragraphs.length - 1;
+
+        if (isBulletList) {
+          return (
+            <ul key={pIdx} style={{ margin: pIdx === 0 ? 0 : "8px 0 0", paddingLeft: 0, listStyle: "none" }}>
+              {bulletLines.map((line, lIdx) => {
+                const content = line.replace(/^[-•*]\s+/, "");
+                const isLastItem = lIdx === bulletLines.length - 1;
+                return (
+                  <li key={lIdx} style={{ display: "flex", gap: 8, marginBottom: 3, alignItems: "flex-start" }}>
+                    <span style={{ color: "var(--blue)", flexShrink: 0, marginTop: 2 }}>•</span>
+                    <span>
+                      {inlineStyles(content)}
+                      {showCursor && isLastPara && isLastItem && <span className="coach-cursor" />}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          );
+        }
+
+        return (
+          <p key={pIdx} style={{ margin: pIdx === 0 ? 0 : "8px 0 0" }}>
+            {lines.map((line, lIdx) => (
+              <React.Fragment key={lIdx}>
+                {lIdx > 0 && <br />}
+                {inlineStyles(line)}
+              </React.Fragment>
+            ))}
+            {showCursor && isLastPara && <span className="coach-cursor" />}
+          </p>
+        );
+      })}
+    </>
+  );
+}
+
 type Message = { role: "user" | "assistant"; content: string };
 
-const STARTERS = [
-  "Why do I keep losing on Mondays?",
-  "Should I trade today?",
+const BASE_STARTERS = [
   "What's my biggest pattern holding me back?",
   "How can I improve my win rate?",
+  "Why do I keep losing on Mondays?",
+  "How do I handle drawdowns mentally?",
 ];
+
+function getContextStarters(context: { score: number; verdict: string } | null): string[] {
+  if (!context) return BASE_STARTERS;
+  const { score, verdict } = context;
+  if (verdict === "NO-TRADE") return [
+    "What should I do today instead of trading?",
+    "How do I reset after a low mental score day?",
+    "What's my biggest pattern holding me back?",
+    "How do I stop revenge trading?",
+  ];
+  if (verdict === "CAUTION") return [
+    `My score is ${score} — what's the best way to trade CAUTION days?`,
+    "How do I pick only A+ setups and ignore the rest?",
+    "What position size should I use today?",
+    "How do I know when to stop for the day?",
+  ];
+  return [
+    `Score is ${score} — GO day. What should I prioritize today?`,
+    "How do I execute my best trades without second-guessing?",
+    "What's my biggest pattern holding me back?",
+    "How do I protect a good run from overtrading?",
+  ];
+}
 
 export default function CoachPage() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -19,6 +101,7 @@ export default function CoachPage() {
   const [loading, setLoading] = useState(false);
   const [ready, setReady] = useState(false);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
+  const [context, setContext] = useState<{ score: number; verdict: string; color: string; history: Array<{ score: number }> } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -28,6 +111,19 @@ export default function CoachPage() {
         const premium = d.plan === "pro" || d.plan === "premium";
         setIsPremium(premium);
         if (!premium) { setReady(true); return; }
+        fetch("/api/checkin?date=history&limit=7")
+          .then((r) => r.json())
+          .then((d) => {
+            if (Array.isArray(d.history) && d.history.length > 0) {
+              const todayEntry = d.history[0] as { score: number };
+              const s = todayEntry.score;
+              const verdict = s >= 70 ? "GO" : s >= 45 ? "CAUTION" : "NO-TRADE";
+              const color = s >= 70 ? "var(--green)" : s >= 45 ? "var(--amber)" : "var(--red)";
+              setContext({ score: s, verdict, color, history: d.history.slice(0, 7) });
+            }
+          })
+          .catch(() => {});
+
         return fetch("/api/ai-coach", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -121,6 +217,11 @@ export default function CoachPage() {
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }} className="has-bottom-nav">
+      <style>{`
+        @keyframes coach-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        .coach-cursor { display:inline-block; width:2px; height:1em; background:currentColor; margin-left:2px; vertical-align:text-bottom; animation:coach-blink 0.75s step-end infinite; border-radius:1px; }
+        @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+      `}</style>
 
       <div className="app-header">
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
@@ -135,6 +236,30 @@ export default function CoachPage() {
 
       {/* Messages */}
       <div style={{ flex: 1, overflowY: "auto", padding: "24px 16px 16px", maxWidth: 680, margin: "0 auto", width: "100%" }}>
+
+        {/* Context strip */}
+        {context && (
+          <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 16px", borderRadius: 12, background: "var(--surface2)", border: "1px solid var(--border)", marginBottom: 20 }}>
+            <div style={{ textAlign: "center", flexShrink: 0 }}>
+              <div className="font-bebas" style={{ fontSize: 30, color: context.color, lineHeight: 1 }}>{context.score}</div>
+              <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>TODAY</div>
+            </div>
+            <div style={{ width: 1, height: 32, background: "var(--border)", flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: context.color, letterSpacing: "0.1em", marginBottom: 6 }}>{context.verdict}</div>
+              <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                {context.history.map((h, i) => {
+                  const c = h.score >= 70 ? "var(--green)" : h.score >= 45 ? "var(--amber)" : "var(--red)";
+                  return <div key={i} title={`${h.score}`} style={{ width: i === 0 ? 8 : 6, height: i === 0 ? 8 : 6, borderRadius: "50%", background: c, opacity: i === 0 ? 1 : 0.55, boxShadow: i === 0 ? `0 0 6px ${c}` : "none", flexShrink: 0 }} />;
+                })}
+                <span style={{ fontSize: 10, color: "var(--text-muted)", marginLeft: 2 }}>last {context.history.length} check-ins</span>
+              </div>
+            </div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)", textAlign: "right", flexShrink: 0 }}>
+              Alex has<br />your data
+            </div>
+          </div>
+        )}
 
         {/* Intro */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
@@ -175,13 +300,16 @@ export default function CoachPage() {
                 color: "var(--text-dim)",
                 lineHeight: 1.7,
               }}>
-                {m.content || (
-                  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                    {[0, 1, 2].map((j) => (
-                      <div key={j} style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--text-muted)", animation: `pulse 1.2s ease-in-out ${j * 0.2}s infinite` }} />
-                    ))}
-                  </div>
-                )}
+                {m.content
+                  ? renderMarkdown(m.content, loading && m.role === "assistant" && i === messages.length - 1)
+                  : (
+                    <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                      {[0, 1, 2].map((j) => (
+                        <div key={j} style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--text-muted)", animation: `pulse 1.2s ease-in-out ${j * 0.2}s infinite` }} />
+                      ))}
+                    </div>
+                  )
+                }
               </div>
             </div>
           ))}
@@ -190,11 +318,16 @@ export default function CoachPage() {
         {/* Starter questions */}
         {messages.length <= 1 && ready && (
           <div style={{ marginTop: 24 }}>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10, textAlign: "center" }}>SUGGESTED QUESTIONS</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10, textAlign: "center" }}>
+              {context ? `SUGGESTED FOR ${context.verdict} DAY` : "SUGGESTED QUESTIONS"}
+            </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {STARTERS.map((q) => (
+              {getContextStarters(context).map((q) => (
                 <button key={q} onClick={() => send(q)}
-                  style={{ textAlign: "left", padding: "12px 16px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text-dim)", fontSize: 13, cursor: "pointer", transition: "border-color 0.15s" }}>
+                  style={{ textAlign: "left", padding: "12px 16px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text-dim)", fontSize: 13, cursor: "pointer", transition: "all 0.15s ease" }}
+                  onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--blue)"; (e.currentTarget as HTMLElement).style.color = "var(--text)"; }}
+                  onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; (e.currentTarget as HTMLElement).style.color = "var(--text-dim)"; }}
+                >
                   {q}
                 </button>
               ))}

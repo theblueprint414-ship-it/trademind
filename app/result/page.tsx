@@ -485,7 +485,11 @@ function ResultContent() {
         <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
           onClick={() => setShowMilestone(false)}>
           <div style={{ maxWidth: 380, width: "100%", background: "var(--surface)", border: "1px solid rgba(255,176,32,0.4)", borderRadius: 20, padding: "48px 32px", textAlign: "center", boxShadow: "0 0 80px rgba(255,176,32,0.2)", animation: "milestone-in 0.6s cubic-bezier(0.175,0.885,0.32,1.275) forwards" }}>
-            <div style={{ fontSize: 56, marginBottom: 16 }}>🔥</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+              <div style={{ width: 72, height: 72, borderRadius: "50%", background: "rgba(255,176,32,0.15)", border: "2px solid rgba(255,176,32,0.4)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 4C18 4 26 10 26 18c0 2-1 4-2.5 5.5C22 25 20 26 18 26c-2 0-4-1-5.5-2.5C11 22 10 20 10 18c0-4 2-7 4-9-1 5 2 8 4 8 0-2 0-8 0-13z" fill="rgba(255,176,32,0.7)" stroke="rgba(255,176,32,0.9)" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+              </div>
+            </div>
             <div className="font-bebas" style={{ fontSize: 40, color: "var(--amber)", marginBottom: 12, lineHeight: 1, textShadow: "0 0 30px rgba(255,176,32,0.6)" }}>{milestone.title}</div>
             <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 28 }}>{milestone.sub}</p>
             <button onClick={() => setShowMilestone(false)} style={{ background: "linear-gradient(135deg, var(--amber), #FF8C00)", border: "none", borderRadius: 12, padding: "14px 32px", color: "#070B14", fontWeight: 700, fontSize: 15, cursor: "pointer" }}>
@@ -629,7 +633,9 @@ function ResultContent() {
             /* NO-TRADE: one-tap "sat out" */
             satOut ? (
               <div style={{ padding: "16px 20px", borderRadius: 14, background: "rgba(0,232,122,0.05)", border: "1px solid rgba(0,232,122,0.2)", display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 20 }}>✅</span>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,232,122,0.15)", border: "1px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--green)" }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5 6.5-6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--green)" }}>Discipline logged</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>You honored your NO-TRADE day</div>
@@ -661,7 +667,9 @@ function ResultContent() {
             /* GO / CAUTION: expandable inline trade form */
             qlSaved ? (
               <div style={{ padding: "16px 20px", borderRadius: 14, background: "rgba(0,232,122,0.05)", border: "1px solid rgba(0,232,122,0.2)", display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 20 }}>✅</span>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,232,122,0.15)", border: "1px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--green)" }}>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5 6.5-6.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--green)" }}>Trade logged</div>
                   <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 1 }}>Mental score attached automatically</div>
@@ -824,8 +832,14 @@ function ResultContent() {
             onClick={() => setShowStreakShare(true)}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 52, height: 52, borderRadius: "50%", background: streak >= 30 ? "rgba(139,92,246,0.15)" : streak >= 7 ? "rgba(255,176,32,0.15)" : "rgba(255,176,32,0.1)", border: `1px solid ${streak >= 30 ? "rgba(139,92,246,0.3)" : "rgba(255,176,32,0.25)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <span style={{ fontSize: 26 }}>{streak >= 30 ? "🏆" : streak >= 14 ? "⚡" : streak >= 7 ? "🔥" : "🔥"}</span>
+              <div style={{ width: 52, height: 52, borderRadius: "50%", background: streak >= 30 ? "rgba(139,92,246,0.15)" : streak >= 7 ? "rgba(255,176,32,0.15)" : "rgba(255,176,32,0.1)", border: `1px solid ${streak >= 30 ? "rgba(139,92,246,0.3)" : "rgba(255,176,32,0.25)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: streak >= 30 ? "#8B5CF6" : "var(--amber)" }}>
+                {streak >= 30 ? (
+                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 2l2.7 5.5L22 8.5l-4.5 4.4 1.1 6.1L13 16 6.4 19l1.1-6.1L3 8.5l6.3-.9L13 2z" fill="currentColor" opacity="0.85"/></svg>
+                ) : streak >= 14 ? (
+                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 3v8M9 7l4-4 4 4M5 14h16M9 19l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                ) : (
+                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 3C13 3 19 7.5 19 13c0 1.5-.75 3-1.875 4.125C16 18.5 14.5 19.5 13 19.5c-1.5 0-3-.75-4.125-1.875C7.75 16.5 7 15 7 13c0-3 1.5-5.25 3-6.75-.75 3.75 1.5 6 3 6 0-1.5 0-6 0-9.25z" fill="currentColor" opacity="0.85"/></svg>
+                )}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
@@ -841,7 +855,9 @@ function ResultContent() {
           </div>
         ) : (
           <div style={{ padding: "18px 20px", borderRadius: 14, background: "var(--surface2)", border: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 20 }}>📅</div>
+            <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--blue)" }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.4"/><path d="M2 8h16M6 2v4M14 2v4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            </div>
             <div style={{ flex: 1 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>Come back tomorrow</div>
               <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>Consecutive check-ins reveal patterns that single days can&apos;t show.</p>

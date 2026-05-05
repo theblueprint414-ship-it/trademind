@@ -47,7 +47,7 @@ function LoginInner() {
   }
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, animation: "page-in 0.28s cubic-bezier(0.16,1,0.3,1) both" }}>
       <Link href="/" style={{ textDecoration: "none", marginBottom: 40 }}>
         <img src="/logo.svg" alt="TradeMind" height="32" style={{ display: "block" }} />
       </Link>
@@ -55,10 +55,14 @@ function LoginInner() {
       <div className="card" style={{ width: "100%", maxWidth: 400, padding: 36 }}>
         {sent ? (
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>📧</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 20 }}>
+              <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1.5px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--green)" }}>
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="3" y="7" width="22" height="15" rx="3" stroke="currentColor" strokeWidth="1.6"/><path d="M3 10l11 7 11-7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </div>
+            </div>
             <h2 className="font-bebas" style={{ fontSize: 28, marginBottom: 8 }}>Check your email</h2>
             <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7 }}>
-              We sent a sign-in link to <strong style={{ color: "white" }}>{email}</strong>.
+              We sent a sign-in link to <strong style={{ color: "var(--text)" }}>{email}</strong>.
               Click it to sign in — no password needed.
             </p>
           </div>

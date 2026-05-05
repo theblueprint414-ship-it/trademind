@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
 
@@ -33,10 +33,13 @@ function ScoreBadge({ score }: { score: number }) {
 }
 
 function RankBadge({ rank }: { rank: number }) {
-  if (rank === 1) return <span style={{ fontSize: 20 }}>🥇</span>;
-  if (rank === 2) return <span style={{ fontSize: 20 }}>🥈</span>;
-  if (rank === 3) return <span style={{ fontSize: 20 }}>🥉</span>;
-  return <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-muted)", minWidth: 28, textAlign: "center", display: "inline-block" }}>#{rank}</span>;
+  const colors = ["#FFB020", "#A0AEC0", "#CD7C3B"];
+  if (rank <= 3) return (
+    <div style={{ width: 28, height: 28, borderRadius: "50%", background: `${colors[rank - 1]}20`, border: `1.5px solid ${colors[rank - 1]}60`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <span style={{ fontSize: 11, fontWeight: 800, color: colors[rank - 1] }}>{rank}</span>
+    </div>
+  );
+  return <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-muted)", minWidth: 28, textAlign: "center", display: "inline-block" }}>#{rank}</span>;
 }
 
 export default function LeaderboardPage() {
@@ -77,19 +80,23 @@ export default function LeaderboardPage() {
   const currentUserEntry = data?.currentUserEntry;
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", paddingBottom: 80 }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
+      <div className="app-header">
+        <Link href="/dashboard" style={{ textDecoration: "none" }}>
+          <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
+        </Link>
+        <div style={{ textAlign: "center" }}>
+          <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.05em", display: "block", lineHeight: 1.1 }}>LEADERBOARD</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>DISCIPLINE RANKINGS</span>
+        </div>
+        <div style={{ width: 80 }} />
+      </div>
+
       <div style={{ maxWidth: 640, margin: "0 auto", padding: "24px 16px 0" }}>
 
-        {/* Header */}
-        <div style={{ marginBottom: 28 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-            <Link href="/dashboard" style={{ color: "var(--text-muted)", textDecoration: "none", fontSize: 13 }}>← Dashboard</Link>
-          </div>
-          <h1 className="font-bebas" style={{ fontSize: 36, margin: 0 }}>Discipline Leaderboard</h1>
-          <p style={{ color: "var(--text-dim)", fontSize: 14, margin: "6px 0 0", lineHeight: 1.6 }}>
-            Ranked by consistency — not P&L. Check-in streaks, mental score quality, and discipline under pressure.
-          </p>
-        </div>
+        <p style={{ color: "var(--text-dim)", fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>
+          Ranked by consistency — not P&L. Streaks, mental score quality, and discipline under pressure.
+        </p>
 
         {/* Score explanation */}
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "14px 16px", marginBottom: 20, display: "flex", gap: 20, flexWrap: "wrap" }}>
@@ -144,7 +151,9 @@ export default function LeaderboardPage() {
           <div style={{ textAlign: "center", padding: "48px 0", color: "var(--text-muted)", fontSize: 14 }}>Loading...</div>
         ) : allEntries.length === 0 ? (
           <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "40px 24px", textAlign: "center" }}>
-            <div style={{ fontSize: 32, marginBottom: 12 }}>🏆</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 12, color: "var(--amber)" }}>
+            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 5l3.5 7 7.5 1.1-5.5 5.3 1.3 7.6L20 22l-6.8 3.5 1.3-7.6-5.5-5.3 7.5-1.1z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M13 33h14M20 26v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+          </div>
             <div style={{ fontWeight: 700, fontSize: 16, color: "var(--text)", marginBottom: 8 }}>No public traders yet</div>
             <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 20 }}>Be the first to join the leaderboard and show your discipline.</div>
             {publicProfile === false && (
@@ -187,7 +196,7 @@ export default function LeaderboardPage() {
                     )}
                   </div>
                   <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-                    <span style={{ fontSize: 11, color: "var(--amber)" }}>🔥 {entry.streak}d</span>
+                    <span style={{ fontSize: 11, color: "var(--amber)", display: "inline-flex", alignItems: "center", gap: 3 }}><svg width="9" height="10" viewBox="0 0 9 10" fill="currentColor"><path d="M4.5 0.5C4.5 0.5 7 2.5 7 5c0 .65-.3 1.3-.9 1.75C5.7 7.2 5.2 7.5 4.5 7.5c-.7 0-1.2-.3-1.6-.75C2.3 6.3 2 5.65 2 5 2 2.5 4.5.5 4.5.5z"/></svg>{entry.streak}d</span>
                     <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{entry.checkins30}/30 check-ins</span>
                     <span style={{ fontSize: 11, color: "var(--text-muted)" }}>avg {entry.avgScore}</span>
                   </div>
@@ -209,7 +218,7 @@ export default function LeaderboardPage() {
                       <span style={{ fontWeight: 700, fontSize: 14, color: "var(--text)" }}>{currentUserEntry.name}</span>
                     </div>
                     <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-                      <span style={{ fontSize: 11, color: "var(--amber)" }}>🔥 {currentUserEntry.streak}d</span>
+                      <span style={{ fontSize: 11, color: "var(--amber)", display: "inline-flex", alignItems: "center", gap: 3 }}><svg width="9" height="10" viewBox="0 0 9 10" fill="currentColor"><path d="M4.5 0.5C4.5 0.5 7 2.5 7 5c0 .65-.3 1.3-.9 1.75C5.7 7.2 5.2 7.5 4.5 7.5c-.7 0-1.2-.3-1.6-.75C2.3 6.3 2 5.65 2 5 2 2.5 4.5.5 4.5.5z"/></svg>{currentUserEntry.streak}d</span>
                       <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{currentUserEntry.checkins30}/30 check-ins</span>
                       <span style={{ fontSize: 11, color: "var(--text-muted)" }}>avg {currentUserEntry.avgScore}</span>
                     </div>

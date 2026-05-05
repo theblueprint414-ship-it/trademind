@@ -18,7 +18,7 @@ export async function POST(req: Request) {
 
   const cb = await db.circuitBreaker.findUnique({
     where: { extensionToken: token },
-    select: { userId: true, isActive: true, dailyLimit: true, scoreAdaptive: true, blockedNotifiedDate: true },
+    select: { userId: true, isActive: true, dailyLimit: true, scoreAdaptive: true, resetHour: true, blockedNotifiedDate: true, warningNotifiedDate: true },
   });
 
   if (!cb) return NextResponse.json({ error: "Invalid token" }, { status: 401, headers: CORS });
@@ -33,6 +33,14 @@ export async function POST(req: Request) {
 
   const today = new Date().toISOString().split("T")[0];
 
+  // Window start: most recent resetHour UTC before now
+  const now = new Date();
+  const windowStart = new Date(now);
+  windowStart.setUTCHours(cb.resetHour, 0, 0, 0);
+  if (now.getUTCHours() < cb.resetHour) {
+    windowStart.setUTCDate(windowStart.getUTCDate() - 1);
+  }
+
   await db.trade.create({ data: { userId: cb.userId, date: today } });
 
   if (symbol) {
@@ -41,23 +49,40 @@ export async function POST(req: Request) {
     }).catch(() => {});
   }
 
-  const tradeCount = await db.trade.count({ where: { userId: cb.userId, date: today } });
+  const tradeCount = await db.trade.count({ where: { userId: cb.userId, loggedAt: { gte: windowStart } } });
 
   let effectiveLimit = cb.dailyLimit;
   let verdict = "GO";
-  if (cb.scoreAdaptive) {
-    const checkin = await db.checkin.findUnique({
-      where: { userId_date: { userId: cb.userId, date: today } },
-      select: { verdict: true },
-    });
-    if (checkin) {
-      verdict = checkin.verdict;
+  const checkin = await db.checkin.findUnique({
+    where: { userId_date: { userId: cb.userId, date: today } },
+    select: { verdict: true },
+  });
+  if (checkin) {
+    verdict = checkin.verdict;
+    if (cb.scoreAdaptive) {
       if (checkin.verdict === "NO-TRADE") effectiveLimit = 0;
       else if (checkin.verdict === "CAUTION") effectiveLimit = Math.ceil(cb.dailyLimit * 0.5);
     }
+  } else {
+    // No check-in — 75% limit penalty
+    effectiveLimit = Math.ceil(cb.dailyLimit * 0.75);
   }
 
   const blocked = tradeCount >= effectiveLimit;
+  const remaining = Math.max(0, effectiveLimit - tradeCount);
+
+  // "1 trade left" warning — fires once when remaining drops to 1
+  if (!blocked && remaining === 1 && cb.warningNotifiedDate !== today) {
+    db.circuitBreaker.update({
+      where: { extensionToken: token },
+      data: { warningNotifiedDate: today },
+    }).catch(() => {});
+    sendPushToUser(cb.userId, {
+      title: "TradeMind — Last Trade",
+      body: `1 trade left for today (limit: ${effectiveLimit}). Make it count — or sit it out.`,
+      url: "/dashboard",
+    }).catch(() => {});
+  }
 
   // First time hitting the limit today — lock broker + send push
   if (blocked && cb.blockedNotifiedDate !== today) {

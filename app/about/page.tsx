@@ -24,22 +24,22 @@ export const metadata: Metadata = {
 
 const VALUES = [
   {
-    icon: "🧠",
+    icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 2.38 1.19 4.47 3 5.74V17a1 1 0 001 1h6a1 1 0 001-1v-2.26C17.81 13.47 19 11.38 19 9c0-3.87-3.13-7-7-7z" stroke="currentColor" strokeWidth="1.6"/><path d="M9 21h6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>,
     title: "Psychology first",
     body: "Every feature we build starts with a behavioral question: what mental state causes this mistake, and how can we catch it before the market does?",
   },
   {
-    icon: "📊",
+    icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: "Evidence over feeling",
     body: "Our check-in model is grounded in peer-reviewed research on sleep deprivation, decision fatigue, and emotional regulation — not trading folklore.",
   },
   {
-    icon: "🔒",
+    icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.6"/><path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>,
     title: "Privacy by design",
     body: "Your psychology scores and trading data are the most personal financial information you produce. We treat them that way. No ads. No data brokerage. Ever.",
   },
   {
-    icon: "⚡",
+    icon: <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H12L11 22l8.5-11.5H12L13 2z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: "Proactive, not reactive",
     body: "Every other trading tool tells you what went wrong. TradeMind tells you when something is likely to go wrong — before you risk a dollar.",
   },
@@ -134,7 +134,7 @@ export default function AboutPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
             {VALUES.map((v) => (
               <div key={v.title} className="card value-card" style={{ padding: "24px 24px", border: "1px solid rgba(94,106,210,0.12)" }}>
-                <div style={{ fontSize: 32, marginBottom: 14 }}>{v.icon}</div>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(94,106,210,0.08)", border: "1px solid rgba(94,106,210,0.18)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 14, color: "var(--blue)" }}>{v.icon}</div>
                 <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>{v.title}</div>
                 <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>{v.body}</p>
               </div>

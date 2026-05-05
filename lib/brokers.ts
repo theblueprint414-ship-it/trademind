@@ -158,15 +158,17 @@ async function binanceTodayTrades({ apiKey, apiSecret }: BrokerConfig): Promise<
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
   const timestamp = Date.now();
-  const query = `startTime=${startOfDay.getTime()}&timestamp=${timestamp}`;
+  // /fapi/v1/income works without a symbol — one entry per realized P&L event (= one closed trade).
+  // Spot /api/v3/myTrades requires a symbol, so futures endpoint is the only viable option here.
+  const query = `incomeType=REALIZED_PNL&startTime=${startOfDay.getTime()}&timestamp=${timestamp}&limit=1000`;
   const signature = await hmacSHA256(apiSecret, query);
   const res = await fetch(
-    `https://api.binance.com/api/v3/myTrades?${query}&signature=${signature}`,
+    `https://fapi.binance.com/fapi/v1/income?${query}&signature=${signature}`,
     { headers: { "X-MBX-APIKEY": apiKey }, signal: withTimeout(REQUEST_TIMEOUT_MS) }
   );
   if (!res.ok) return null;
-  const trades = await res.json();
-  return Array.isArray(trades) ? trades.length : null;
+  const data = await res.json();
+  return Array.isArray(data) ? data.length : null;
 }
 
 // ── Bybit ────────────────────────────────────────────────────────────────────
@@ -192,21 +194,24 @@ async function testBybit({ apiKey, apiSecret }: BrokerConfig): Promise<TestResul
 
 async function bybitTodayTrades({ apiKey, apiSecret }: BrokerConfig): Promise<number | null> {
   if (!apiSecret) return null;
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const timestamp = Date.now().toString();
-  const params = `category=spot&startTime=${startOfDay.getTime()}&limit=50`;
-  const sign = await hmacSHA256(apiSecret, timestamp + apiKey + "5000" + params);
-  const res = await fetch(`https://api.bybit.com/v5/execution/list?${params}`, {
-    headers: {
-      "X-BAPI-API-KEY": apiKey, "X-BAPI-TIMESTAMP": timestamp,
-      "X-BAPI-SIGN": sign, "X-BAPI-RECV-WINDOW": "5000",
-    },
-    signal: withTimeout(REQUEST_TIMEOUT_MS),
-  });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data.result?.list?.length ?? null;
+  const startTime = new Date().setHours(0, 0, 0, 0);
+
+  async function fetchCategory(category: string): Promise<number | null> {
+    const timestamp = Date.now().toString();
+    const params = `category=${category}&startTime=${startTime}&limit=200`;
+    const sign = await hmacSHA256(apiSecret!, timestamp + apiKey + "5000" + params);
+    const res = await fetch(`https://api.bybit.com/v5/execution/list?${params}`, {
+      headers: { "X-BAPI-API-KEY": apiKey, "X-BAPI-TIMESTAMP": timestamp, "X-BAPI-SIGN": sign, "X-BAPI-RECV-WINDOW": "5000" },
+      signal: withTimeout(REQUEST_TIMEOUT_MS),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Array.isArray(data.result?.list) ? data.result.list.length : null;
+  }
+
+  const [spot, linear] = await Promise.all([fetchCategory("spot"), fetchCategory("linear")]);
+  if (spot === null && linear === null) return null;
+  return (spot ?? 0) + (linear ?? 0);
 }
 
 // ── Coinbase Advanced Trade ──────────────────────────────────────────────────

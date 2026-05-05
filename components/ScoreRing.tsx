@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useId } from "react";
+import { useEffect, useRef, useId, useState } from "react";
 
 interface ScoreRingProps {
   score: number;
@@ -16,6 +16,11 @@ function getGradientColors(color: string): [string, string] {
   return [color, color];
 }
 
+// Ease-out cubic — matches the ring stroke animation feel
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
+}
+
 export default function ScoreRing({ score, color = "var(--red)", size = 120 }: ScoreRingProps) {
   const circleRef = useRef<SVGCircleElement>(null);
   const gradId = useId().replace(/:/g, "");
@@ -24,7 +29,9 @@ export default function ScoreRing({ score, color = "var(--red)", size = 120 }: S
   const targetOffset = circumference - (score / 100) * circumference;
   const strokeWidth = size * 0.065;
   const [colorA, colorB] = getGradientColors(color);
+  const [displayed, setDisplayed] = useState(0);
 
+  // Ring stroke animation
   useEffect(() => {
     if (!circleRef.current) return;
     const circle = circleRef.current;
@@ -37,6 +44,24 @@ export default function ScoreRing({ score, color = "var(--red)", size = 120 }: S
       });
     });
   }, [score, circumference, targetOffset]);
+
+  // Counter animation — counts from 0 to score in sync with the ring
+  useEffect(() => {
+    setDisplayed(0);
+    const duration = 1100;
+    let startTime: number | null = null;
+    let rafId: number;
+
+    function step(ts: number) {
+      if (!startTime) startTime = ts;
+      const progress = Math.min((ts - startTime) / duration, 1);
+      setDisplayed(Math.round(easeOutCubic(progress) * score));
+      if (progress < 1) rafId = requestAnimationFrame(step);
+    }
+
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, [score]);
 
   return (
     <div style={{ position: "relative", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
@@ -92,7 +117,7 @@ export default function ScoreRing({ score, color = "var(--red)", size = 120 }: S
           className="font-bebas score-number animate-score-pop"
           style={{ fontSize: size * 0.3, color: colorA, lineHeight: 1, textShadow: `0 0 20px ${colorA}60` }}
         >
-          {score}
+          {displayed}
         </span>
         <span style={{ fontSize: size * 0.1, color: "var(--text-muted)", fontFamily: "var(--font-geist-mono)", lineHeight: 1 }}>
           /100

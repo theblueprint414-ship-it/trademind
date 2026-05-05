@@ -205,7 +205,9 @@ export default function HelpPage() {
 
         {/* Still need help */}
         <div style={{ marginTop: 64, background: "linear-gradient(135deg, rgba(94,106,210,0.08), rgba(139,92,246,0.08))", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 20, padding: "40px 36px", textAlign: "center" }}>
-          <div style={{ fontSize: 28, marginBottom: 16 }}>💬</div>
+          <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--blue)" }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </div>
           <h2 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 10px" }}>Still need help?</h2>
           <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.8, margin: "0 0 24px" }}>
             We respond to every message, usually within a few hours.

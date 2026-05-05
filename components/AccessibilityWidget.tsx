@@ -82,7 +82,12 @@ export default function AccessibilityWidget() {
         onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
         onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
       >
-        ♿
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <circle cx="12" cy="4" r="2" fill="currentColor"/>
+          <path d="M12 7v6l3 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M9 11H6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+          <path d="M7 19c1.1 1.2 2.7 2 4.5 2a6.5 6.5 0 006.5-6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+        </svg>
       </button>
 
       {/* Panel */}
@@ -154,7 +159,10 @@ export default function AccessibilityWidget() {
                 gap: 8,
               }}
             >
-              <span>{highContrast ? "✓" : "○"}</span>
+              {highContrast
+                ? <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                : <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.8"/></svg>
+              }
               <span>Increase contrast</span>
             </button>
           </div>

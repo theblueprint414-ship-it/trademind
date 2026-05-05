@@ -39,22 +39,11 @@ const CoachIcon = () => (
   </svg>
 );
 
-const CirclesIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <circle cx="7" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
-    <circle cx="13" cy="8" r="3" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M2 17c0-2.21 2.239-4 5-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    <path d="M18 17c0-2.21-2.239-4-5-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-    <path d="M7 13c0-2.21 2.239-4 5-4s5 1.79 5 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-);
-
 const NAV_ITEMS = [
   { href: "/dashboard",  Icon: HomeIcon,      label: "Home"     },
   { href: "/journal",    Icon: JournalIcon,   label: "Journal"  },
   { href: "/checkin",    Icon: CheckinIcon,   label: "Check-in", primary: true },
   { href: "/analytics",  Icon: AnalyticsIcon, label: "Stats"    },
-  { href: "/circles",    Icon: CirclesIcon,   label: "Circles"  },
   { href: "/coach",      Icon: CoachIcon,     label: "Coach"    },
 ];
 

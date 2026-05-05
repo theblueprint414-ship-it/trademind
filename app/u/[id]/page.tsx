@@ -75,7 +75,13 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
   const firstName = profile.name?.split(" ")[0] ?? "Trader";
   const streakColor = profile.streak >= 30 ? "#8B5CF6" : profile.streak >= 14 ? "#5e6ad2" : "#FFB020";
-  const streakEmoji = profile.streak >= 60 ? "👑" : profile.streak >= 30 ? "🏆" : profile.streak >= 14 ? "⚡" : "🔥";
+  const streakIcon = profile.streak >= 60
+    ? <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3l2.5 5.5 6 .9-4.3 4.2 1 6-5.2-2.7-5.2 2.7 1-6L5.5 9.4l6-.9z" stroke={streakColor} strokeWidth="1.6" strokeLinejoin="round"/></svg>
+    : profile.streak >= 30
+    ? <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3l2.5 5.5 6 .9-4.3 4.2 1 6-5.2-2.7-5.2 2.7 1-6L5.5 9.4l6-.9z" stroke={streakColor} fill={`${streakColor}30`} strokeWidth="1.6" strokeLinejoin="round"/><path d="M10 22h8M14 19v3" stroke={streakColor} strokeWidth="1.6" strokeLinecap="round"/></svg>
+    : profile.streak >= 14
+    ? <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3v10M10 7l4-4 4 4M4 14h20M10 19l4 5 4-5" stroke={streakColor} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    : <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3C14 3 20 8 20 14c0 2-1 4-2.5 5.5C16 21 15 22 14 22c-1 0-2-.5-3.5-2.5C9 18 8 16 8 14c0-6 6-11 6-11z" fill={`${streakColor}60`} stroke={streakColor} strokeWidth="1.6" strokeLinejoin="round"/></svg>;
 
   // Build 30-day calendar grid
   const today = new Date();
@@ -108,8 +114,8 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
         {/* Profile header */}
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 32, flexWrap: "wrap" }}>
-          <div style={{ width: 72, height: 72, borderRadius: "50%", background: `linear-gradient(135deg, ${streakColor}30, ${streakColor}10)`, border: `2px solid ${streakColor}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, flexShrink: 0 }}>
-            {streakEmoji}
+          <div style={{ width: 72, height: 72, borderRadius: "50%", background: `linear-gradient(135deg, ${streakColor}30, ${streakColor}10)`, border: `2px solid ${streakColor}50`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            {streakIcon}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.01em", marginBottom: 4 }}>{firstName}</div>
@@ -117,7 +123,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
               Member since {new Date(profile.memberSince).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
               {profile.badgeEarned && (
                 <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: profile.badgeTier === "elite" ? "#8B5CF6" : "#FFB020", background: profile.badgeTier === "elite" ? "rgba(139,92,246,0.12)" : "rgba(255,176,32,0.1)", border: `1px solid ${profile.badgeTier === "elite" ? "rgba(139,92,246,0.3)" : "rgba(255,176,32,0.25)"}`, borderRadius: 6, padding: "2px 8px" }}>
-                  {profile.badgeTier === "elite" ? "⚡ ELITE EDGE" : "✓ VERIFIED MENTAL EDGE"}
+                  {profile.badgeTier === "elite" ? "ELITE EDGE" : "✓ VERIFIED MENTAL EDGE"}
                 </span>
               )}
             </div>
@@ -181,7 +187,12 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
         {/* Badge section */}
         {profile.badgeEarned && (
           <div style={{ background: profile.badgeTier === "elite" ? "rgba(139,92,246,0.06)" : "rgba(255,176,32,0.05)", border: `1px solid ${profile.badgeTier === "elite" ? "rgba(139,92,246,0.25)" : "rgba(255,176,32,0.2)"}`, borderRadius: 14, padding: "20px 24px", marginBottom: 24, display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ fontSize: 40 }}>{profile.badgeTier === "elite" ? "👑" : "🏆"}</div>
+            <div style={{ color: profile.badgeTier === "elite" ? "#8B5CF6" : "#FFB020", flexShrink: 0 }}>
+              {profile.badgeTier === "elite"
+                ? <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 4l3 6.5 7 1-5 4.9 1.2 7L20 20l-6.2 3.4 1.2-7-5-4.9 7-1z" fill="currentColor" opacity="0.7" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/></svg>
+                : <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 5l3 6.5 7 1-5 4.9 1.2 7L20 21l-6.2 3.4 1.2-7-5-4.9 7-1z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M14 32h12M20 27v5" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              }
+            </div>
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#E8F0FF", marginBottom: 2 }}>
                 {profile.badgeTier === "elite" ? "Elite Mental Edge" : "Verified Mental Edge"}

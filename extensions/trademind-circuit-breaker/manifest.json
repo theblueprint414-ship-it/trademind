@@ -73,6 +73,28 @@
         "https://*.tradestation.com/*",
         "https://*.ninjatrader.com/*"
       ],
+      "js": ["ws-intercept.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://*.tradingview.com/*",
+        "https://*.thinkorswim.com/*",
+        "https://*.tastyworks.com/*",
+        "https://*.tastytrade.com/*",
+        "https://*.interactivebrokers.com/*",
+        "https://*.ibkr.com/*",
+        "https://*.etrade.com/*",
+        "https://*.schwab.com/*",
+        "https://*.fidelity.com/*",
+        "https://*.tdameritrade.com/*",
+        "https://*.robinhood.com/*",
+        "https://*.webull.com/*",
+        "https://*.moomoo.com/*",
+        "https://*.tradestation.com/*",
+        "https://*.ninjatrader.com/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_start"
     }

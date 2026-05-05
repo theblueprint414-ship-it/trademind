@@ -75,7 +75,7 @@ export default function ReportPage() {
   });
 
   return (
-    <div style={{ background: "#070B14", minHeight: "100vh", color: "white", fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--text)" }}>
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -88,15 +88,15 @@ export default function ReportPage() {
       `}</style>
 
       {/* Nav — hidden on print */}
-      <div className="no-print" style={{ borderBottom: "1px solid #1E2D45", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+      <div className="no-print" style={{ borderBottom: "1px solid var(--border)", padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
-          <button style={{ background: "none", border: "1px solid #1E2D45", color: "#7A8BA8", padding: "8px 16px", borderRadius: 8, cursor: "pointer", fontSize: 13 }}>← Home</button>
+          <button className="btn-ghost" style={{ fontSize: 13 }}>← Home</button>
         </Link>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <select
             value={month}
             onChange={(e) => setMonth(e.target.value)}
-            style={{ background: "#0D1420", border: "1px solid #1E2D45", color: "white", padding: "8px 12px", borderRadius: 8, fontSize: 13, cursor: "pointer" }}
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text)", padding: "8px 12px", borderRadius: 8, fontSize: 13, cursor: "pointer" }}
           >
             {months.map((m) => (
               <option key={m} value={m}>
@@ -106,7 +106,7 @@ export default function ReportPage() {
           </select>
           <button
             onClick={() => window.print()}
-            style={{ background: "linear-gradient(135deg,#5e6ad2,#4a5bbd)", color: "white", border: "none", padding: "10px 20px", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 700 }}
+            className="btn-primary" style={{ fontSize: 13, fontWeight: 700 }}
           >
             Save as PDF
           </button>
@@ -139,7 +139,7 @@ export default function ReportPage() {
                 { val: caution, label: "CAUTION", color: "#FFB020" },
                 { val: noTrade, label: "NO-TRADE", color: "#FF3B5C" },
               ].map((s) => (
-                <div key={s.label} className="report-card" style={{ background: "#0D1420", border: "1px solid #1E2D45", borderRadius: 12, padding: "16px 12px", textAlign: "center" }}>
+                <div key={s.label} className="report-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "16px 12px", textAlign: "center" }}>
                   <div className="stat-val" style={{ fontSize: 32, fontWeight: 800, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.val}</div>
                   <div style={{ fontSize: 9, color: "#3D4F6A", letterSpacing: "0.08em" }}>{s.label}</div>
                 </div>
@@ -147,7 +147,7 @@ export default function ReportPage() {
             </div>
 
             {/* Calendar */}
-            <div className="report-card" style={{ background: "#0D1420", border: "1px solid #1E2D45", borderRadius: 14, padding: 24, marginBottom: 24 }}>
+            <div className="report-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 24, marginBottom: 24 }}>
               <div style={{ fontSize: 11, color: "#3D4F6A", letterSpacing: "0.08em", marginBottom: 16 }}>CHECK-IN CALENDAR</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 8 }}>
                 {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
@@ -160,7 +160,7 @@ export default function ReportPage() {
                   const day = i + 1;
                   const dateStr = `${month}-${String(day).padStart(2, "0")}`;
                   const entry = byDate[dateStr];
-                  const bg = entry ? verdictColor(entry.score) : "#1E2D45";
+                  const bg = entry ? verdictColor(entry.score) : "var(--border)";
                   const opacity = entry ? 0.85 : 0.25;
                   return (
                     <div key={day} title={entry ? `${verdictLabel(entry.score)} · ${entry.score}` : undefined}
@@ -171,9 +171,9 @@ export default function ReportPage() {
                 })}
               </div>
               <div style={{ display: "flex", gap: 16, marginTop: 14, justifyContent: "center" }}>
-                {[["#00E87A", "GO"], ["#FFB020", "CAUTION"], ["#FF3B5C", "NO-TRADE"], ["#1E2D45", "No check-in"]].map(([c, l]) => (
+                {[["#00E87A", "GO"], ["#FFB020", "CAUTION"], ["#FF3B5C", "NO-TRADE"], ["var(--border)", "No check-in"]].map(([c, l]) => (
                   <div key={l} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <div style={{ width: 10, height: 10, borderRadius: 2, background: c, opacity: c === "#1E2D45" ? 0.5 : 0.85 }} />
+                    <div style={{ width: 10, height: 10, borderRadius: 2, background: c, opacity: c === "var(--border)" ? 0.5 : 0.85 }} />
                     <span style={{ fontSize: 10, color: "#3D4F6A" }}>{l}</span>
                   </div>
                 ))}
@@ -182,7 +182,7 @@ export default function ReportPage() {
 
             {/* P&L section (only if trades exist) */}
             {withPnl.length > 0 && (
-              <div className="report-card" style={{ background: "#0D1420", border: "1px solid #1E2D45", borderRadius: 14, padding: 24, marginBottom: 24 }}>
+              <div className="report-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 24, marginBottom: 24 }}>
                 <div style={{ fontSize: 11, color: "#3D4F6A", letterSpacing: "0.08em", marginBottom: 16 }}>TRADING PERFORMANCE</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 16 }}>
                   {[
@@ -197,7 +197,7 @@ export default function ReportPage() {
                   ))}
                 </div>
                 {goTrades.length > 0 && ntTrades.length > 0 && (
-                  <div style={{ borderTop: "1px solid #1E2D45", paddingTop: 14, display: "flex", gap: 20 }}>
+                  <div style={{ borderTop: "1px solid var(--border)", paddingTop: 14, display: "flex", gap: 20 }}>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 10, color: "#00E87A", letterSpacing: "0.06em", marginBottom: 4 }}>GO DAYS ({goTrades.length} trades)</div>
                       <div style={{ fontSize: 20, fontWeight: 800, color: goPnl >= 0 ? "#00E87A" : "#FF3B5C" }}>{goPnl >= 0 ? "+" : ""}${Math.abs(Math.round(goPnl)).toLocaleString()}</div>
@@ -218,7 +218,7 @@ export default function ReportPage() {
               const ys = checkins.map((c) => pad + (1 - c.score / 100) * (H - pad * 2));
               const d = checkins.map((_, i) => `${i === 0 ? "M" : "L"} ${xs[i]} ${ys[i]}`).join(" ");
               return (
-                <div className="report-card" style={{ background: "#0D1420", border: "1px solid #1E2D45", borderRadius: 14, padding: 24, marginBottom: 24 }}>
+                <div className="report-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 24, marginBottom: 24 }}>
                   <div style={{ fontSize: 11, color: "#3D4F6A", letterSpacing: "0.08em", marginBottom: 16 }}>SCORE TREND</div>
                   <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 80 }}>
                     <defs>
@@ -238,7 +238,7 @@ export default function ReportPage() {
             })()}
 
             {/* Footer */}
-            <div style={{ textAlign: "center", paddingTop: 24, borderTop: "1px solid #1E2D45" }}>
+            <div style={{ textAlign: "center", paddingTop: 24, borderTop: "1px solid var(--border)" }}>
               <p style={{ color: "#3D4F6A", fontSize: 11, margin: 0 }}>
                 Generated by TradeMind · {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })} · trademindedge.com
               </p>

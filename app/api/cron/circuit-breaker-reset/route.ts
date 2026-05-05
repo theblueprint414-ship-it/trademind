@@ -2,38 +2,40 @@ import { db } from "@/lib/db";
 import { unlockBroker } from "@/lib/circuitBreakerLock";
 import { NextRequest, NextResponse } from "next/server";
 
-// Runs at midnight UTC via Vercel Cron.
-// Unlocks every user whose circuit breaker was triggered yesterday.
+// Runs every hour via Vercel Cron.
+// Resets each user at their configured resetHour (UTC), not just midnight.
 export async function GET(req: NextRequest) {
   const secret = req.headers.get("authorization")?.replace("Bearer ", "");
   if (secret !== process.env.CRON_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const currentHour = new Date().getUTCHours();
 
-  // Find all circuit breakers that were triggered before today
-  const blocked = await db.circuitBreaker.findMany({
+  // Find circuit breakers whose reset hour matches now and have an active block or warning flag
+  const due = await db.circuitBreaker.findMany({
     where: {
       isActive: true,
-      blockedNotifiedDate: { not: null, lt: today },
+      resetHour: currentHour,
+      OR: [
+        { blockedNotifiedDate: { not: null } },
+        { warningNotifiedDate: { not: null } },
+      ],
     },
     select: { userId: true, extensionToken: true },
   });
 
   let unlocked = 0;
   await Promise.allSettled(
-    blocked.map(async (cb) => {
-      // Unlock broker trading (Alpaca suspend_trade: false, etc.)
+    due.map(async (cb) => {
       await unlockBroker(cb.userId);
-      // Reset notification dedup so next block sends a fresh push
       await db.circuitBreaker.update({
         where: { extensionToken: cb.extensionToken },
-        data: { blockedNotifiedDate: null, blockedAt: null },
+        data: { blockedNotifiedDate: null, warningNotifiedDate: null, blockedAt: null },
       });
       unlocked++;
     })
   );
 
-  return NextResponse.json({ ok: true, unlocked, date: today });
+  return NextResponse.json({ ok: true, unlocked, resetHour: currentHour });
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
+import { showToast } from "@/components/Toast";
 
 type ChallengeAttempt = {
   id: string;
@@ -69,6 +70,16 @@ export default function SettingsPage() {
   const [archiveNotes, setArchiveNotes] = useState("");
   const [archiving, setArchiving] = useState(false);
 
+  const limitTrackRef = useRef<HTMLDivElement>(null);
+  const limitDragging = useRef(false);
+
+  function updateLimitFromPointer(e: React.PointerEvent) {
+    if (!limitTrackRef.current) return;
+    const rect = limitTrackRef.current.getBoundingClientRect();
+    const pct = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setTradeLimit(Math.max(1, Math.min(5, Math.round(1 + pct * 4))));
+  }
+
   const FIRM_PRESETS: Record<string, { dailyLimit: string; maxDrawdown: string; profitTarget: string; tradingDays: string }> = {
     ftmo:        { dailyLimit: "5", maxDrawdown: "10", profitTarget: "10", tradingDays: "4" },
     apex:        { dailyLimit: "1", maxDrawdown: "2",  profitTarget: "6",  tradingDays: "7" },
@@ -85,7 +96,7 @@ export default function SettingsPage() {
   const [disconnecting, setDisconnecting] = useState(false);
 
   // Circuit Breaker
-  const [cb, setCb] = useState<{ isActive: boolean; dailyLimit: number; scoreAdaptive: boolean; extensionToken: string } | null>(null);
+  const [cb, setCb] = useState<{ isActive: boolean; dailyLimit: number; scoreAdaptive: boolean; extensionToken: string; resetHour: number } | null>(null);
   const [cbLoading, setCbLoading] = useState(true);
   const [cbSaving, setCbSaving] = useState(false);
   const [cbTokenCopied, setCbTokenCopied] = useState(false);
@@ -280,7 +291,11 @@ export default function SettingsPage() {
       });
       const d = await res.json();
       setCb(d);
-    } catch {}
+      if (patch && "isActive" in patch) showToast((patch as { isActive: boolean }).isActive ? "Circuit Breaker activated" : "Circuit Breaker paused", (patch as { isActive: boolean }).isActive ? "success" : "info");
+      else if (patch && ("dailyLimit" in patch || "scoreAdaptive" in patch || "resetHour" in patch)) showToast("Circuit Breaker updated", "success");
+    } catch {
+      showToast("Failed to save — check your connection", "error");
+    }
     setCbSaving(false);
   }
 
@@ -318,6 +333,7 @@ export default function SettingsPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ tradeLimit }),
     }).catch(() => {});
+    showToast(`Daily limit set to ${tradeLimit} trade${tradeLimit !== 1 ? "s" : ""}`, "success");
     setTimeout(() => setSaved(false), 2000);
   }
 
@@ -327,6 +343,7 @@ export default function SettingsPage() {
     await fetch("/api/broker", { method: "DELETE" });
     setBroker(null);
     setDisconnecting(false);
+    showToast("Broker disconnected", "info");
   }
 
   function scheduleReminder(timeStr: string) {
@@ -445,19 +462,54 @@ export default function SettingsPage() {
         </div>
 
         {/* Trade Limit */}
-        <section className="card" style={{ padding: 28, marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Daily Trade Limit</h2>
+        <section className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid var(--red)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--red)", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 13V8M7 13V5M11 13V3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><path d="M1 9.5h13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" opacity="0.5" strokeDasharray="2 1.5"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Daily Trade Limit</h2>
+          </div>
           <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 24, lineHeight: 1.6 }}>
             When reached — automatic 60-minute lock. Protects against overtrading.
           </p>
           <div style={{ marginBottom: 16 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <span style={{ fontSize: 14, color: "var(--text-dim)" }}>Current limit:</span>
-              <span className="font-bebas" style={{ fontSize: 36, color: "var(--red)" }}>{tradeLimit}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <span style={{ fontSize: 14, color: "var(--text-dim)" }}>Trades per day:</span>
+              <span className="font-bebas" style={{ fontSize: 40, color: "var(--red)", lineHeight: 1, textShadow: "0 0 20px rgba(255,59,92,0.4)", transition: "text-shadow 0.3s" }}>{tradeLimit}</span>
             </div>
-            <input type="range" min={1} max={5} value={tradeLimit} onChange={(e) => setTradeLimit(Number(e.target.value))} style={{ width: "100%", marginBottom: 8 }} />
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "var(--text-muted)" }}>
-              <span>1 trade</span><span>5 trades</span>
+            {/* Custom slider */}
+            <div
+              ref={limitTrackRef}
+              role="slider"
+              aria-valuemin={1}
+              aria-valuemax={5}
+              aria-valuenow={tradeLimit}
+              tabIndex={0}
+              style={{ position: "relative", height: 36, cursor: "grab", userSelect: "none", touchAction: "none", marginBottom: 10 }}
+              onPointerDown={(e) => {
+                limitDragging.current = true;
+                (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+                updateLimitFromPointer(e);
+              }}
+              onPointerMove={(e) => { if (limitDragging.current) updateLimitFromPointer(e); }}
+              onPointerUp={() => { limitDragging.current = false; }}
+              onPointerCancel={() => { limitDragging.current = false; }}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowRight" || e.key === "ArrowUp") setTradeLimit((v) => Math.min(5, v + 1));
+                if (e.key === "ArrowLeft" || e.key === "ArrowDown") setTradeLimit((v) => Math.max(1, v - 1));
+              }}
+            >
+              <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 6, transform: "translateY(-50%)", borderRadius: 99, background: "var(--surface3)" }} />
+              <div style={{ position: "absolute", top: "50%", left: 0, width: `${((tradeLimit - 1) / 4) * 100}%`, height: 6, transform: "translateY(-50%)", borderRadius: 99, background: "linear-gradient(90deg, rgba(255,59,92,0.5), var(--red))", boxShadow: "0 0 10px rgba(255,59,92,0.4)", transition: "background 0.3s" }} />
+              {/* Tick marks */}
+              {[1, 2, 3, 4, 5].map((n) => (
+                <div key={n} style={{ position: "absolute", top: "50%", left: `${((n - 1) / 4) * 100}%`, transform: "translate(-50%, -50%)", width: n === tradeLimit ? 26 : 10, height: n === tradeLimit ? 26 : 10, borderRadius: "50%", background: n <= tradeLimit ? "var(--red)" : "var(--surface3)", border: n === tradeLimit ? "2.5px solid rgba(255,255,255,0.15)" : "none", boxShadow: n === tradeLimit ? "0 0 18px rgba(255,59,92,0.7), 0 2px 8px rgba(0,0,0,0.5)" : "none", transition: "all 0.2s cubic-bezier(0.175,0.885,0.32,1.275)", pointerEvents: "none" }} />
+              ))}
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", padding: "0 2px" }}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <span key={n} style={{ color: n === tradeLimit ? "var(--red)" : "var(--text-muted)", fontWeight: n === tradeLimit ? 700 : 400, transition: "color 0.2s, font-weight 0.2s" }}>{n}</span>
+              ))}
             </div>
           </div>
           <button className="btn-primary" onClick={saveTradeLimit} style={{ width: "100%" }} disabled={tradeLimit === savedLimit}>
@@ -467,9 +519,14 @@ export default function SettingsPage() {
         </section>
 
         {/* Prop Firm Challenge Mode */}
-        <section id="challenge" className="card" style={{ padding: 28, marginBottom: 20 }}>
+        <section id="challenge" className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid var(--amber)" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700 }}>Prop Firm Challenge Mode</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,176,32,0.1)", border: "1px solid rgba(255,176,32,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 11v2M5.5 14h5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><path d="M4.5 2h7L10 8.5A2 2 0 018 10a2 2 0 01-2-1.5L4.5 2z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M4.5 3.5H3a1 1 0 000 2l1.2.5M11.5 3.5H13a1 1 0 010 2l-1.2.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+              </div>
+              <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Prop Firm Challenge Mode</h2>
+            </div>
             {!isPro && (
               <span style={{ fontSize: 11, background: "rgba(139,92,246,0.12)", color: "#8B5CF6", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 6, padding: "3px 8px", fontWeight: 700 }}>TradeMind</span>
             )}
@@ -773,8 +830,13 @@ export default function SettingsPage() {
         )}
 
         {/* Broker */}
-        <section className="card" style={{ padding: 28, marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Broker Connection</h2>
+        <section className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid var(--blue)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--blue)", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6.5 9.5L9.5 6.5M4.5 8L3.5 9a3.18 3.18 0 004.5 4.5l1-1M11.5 8l1-1a3.18 3.18 0 00-4.5-4.5l-1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Broker Connection</h2>
+          </div>
           {brokerLoading ? (
             <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Loading...</p>
           ) : broker ? (
@@ -819,10 +881,13 @@ export default function SettingsPage() {
         </section>
 
         {/* Circuit Breaker */}
-        <section id="circuit-breaker" className="card" style={{ padding: 28, marginBottom: 20, border: cb?.isActive ? "1px solid rgba(255,59,92,0.3)" : "1px solid var(--border)" }}>
+        <section id="circuit-breaker" className="card" style={{ padding: 28, marginBottom: 20, border: cb?.isActive ? "1px solid rgba(255,59,92,0.3)" : "1px solid var(--border)", borderLeft: "3px solid var(--red)" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--red)", flexShrink: 0 }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L2.5 4.5v4C2.5 12 5 14.5 8 15c3-.5 5.5-3 5.5-6.5v-4L8 2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                </div>
                 <h2 style={{ fontSize: 16, fontWeight: 700 }}>Circuit Breaker</h2>
                 {cb?.isActive && (
                   <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.1em", padding: "3px 9px", borderRadius: 20, background: "rgba(255,59,92,0.12)", color: "var(--red)", border: "1px solid rgba(255,59,92,0.3)" }}>ACTIVE</div>
@@ -895,6 +960,26 @@ export default function SettingsPage() {
                 </button>
               </div>
 
+              {/* Daily reset hour */}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "var(--surface2)", borderRadius: 10, marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 2 }}>Daily Reset Time</div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5 }}>
+                    UTC hour when trade count resets each day
+                  </div>
+                </div>
+                <select
+                  value={cb.resetHour ?? 0}
+                  onChange={(e) => saveCb({ resetHour: Number(e.target.value) })}
+                  disabled={cbSaving}
+                  style={{ background: "var(--surface3)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text)", fontSize: 13, fontWeight: 700, padding: "6px 10px", cursor: "pointer", flexShrink: 0 }}
+                >
+                  {Array.from({ length: 24 }, (_, h) => (
+                    <option key={h} value={h}>{String(h).padStart(2, "0")}:00 UTC</option>
+                  ))}
+                </select>
+              </div>
+
               {/* How platforms connect */}
               <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)", marginBottom: 20, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.9 }}>
                 <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6, fontSize: 12 }}>How to connect each platform</div>
@@ -965,8 +1050,13 @@ export default function SettingsPage() {
         </section>
 
         {/* Check-in reminder */}
-        <section className="card" style={{ padding: 28, marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Check-in Reminder</h2>
+        <section className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid #8B5CF6" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#8B5CF6", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2.5a4.5 4.5 0 014.5 4.5v2l1.2 2H2.3l1.2-2V7A4.5 4.5 0 018 2.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M6 13a2 2 0 004 0" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M8 2.5V1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Check-in Reminder</h2>
+          </div>
           <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 20 }}>When should we send your daily check-in notification?</p>
 
           {/* Email reminders toggle */}
@@ -1078,7 +1168,11 @@ export default function SettingsPage() {
                 <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: 28, maxWidth: 380, width: "100%" }}>
                   {pauseSuccess ? (
                     <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+                      <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+                        <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1.5px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--green)" }}>
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12l5.5 5.5 10.5-10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </div>
+                      </div>
                       <div style={{ fontWeight: 700, fontSize: 17, marginBottom: 8 }}>Subscription paused</div>
                       <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 20 }}>
                         Your subscription will pause at the end of the current billing period. You&apos;ll keep full access until then.
@@ -1089,12 +1183,18 @@ export default function SettingsPage() {
                     </div>
                   ) : (
                     <>
-                      <div style={{ fontSize: 22, marginBottom: 12 }}>⏸️ Pause your subscription?</div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                        <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "#FBB024", flexShrink: 0 }}>
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="3.5" height="10" rx="1" fill="currentColor"/><rect x="8.5" y="2" width="3.5" height="10" rx="1" fill="currentColor"/></svg>
+                        </div>
+                        <span style={{ fontSize: 16, fontWeight: 700 }}>Pause your subscription?</span>
+                      </div>
                       <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 20 }}>
                         Your subscription will pause at the <strong style={{ color: "var(--text)" }}>end of the current billing period</strong>. You keep full access until then — no charge during the pause.
                       </div>
-                      <div style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 20, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6 }}>
-                        💡 Your streaks, journal, and analytics are saved. Resume anytime from this page.
+                      <div style={{ background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.2)", borderRadius: 10, padding: "12px 14px", marginBottom: 20, fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "#8B5CF6", flexShrink: 0, marginTop: 1 }}><circle cx="7" cy="5.5" r="3.5" stroke="currentColor" strokeWidth="1.2"/><path d="M5 8.5h4M5.5 10h3M7 11v.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                        Your streaks, journal, and analytics are saved. Resume anytime from this page.
                       </div>
                       <div style={{ display: "flex", gap: 8 }}>
                         <button
@@ -1175,8 +1275,13 @@ export default function SettingsPage() {
         )}
 
         {/* Data & Tools */}
-        <section className="card" style={{ padding: 28, marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Data & Tools</h2>
+        <section className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid var(--text-muted)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(120,130,150,0.1)", border: "1px solid rgba(120,130,150,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1v9M5 7l3 3 3-3M2 11v1.5A1.5 1.5 0 003.5 14h9a1.5 1.5 0 001.5-1.5V11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Data & Tools</h2>
+          </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
             {[
               { label: "Monthly Report", desc: "Calendar heatmap + score trend. Save as PDF.", href: "/report", internal: true },
@@ -1212,8 +1317,13 @@ export default function SettingsPage() {
         </section>
 
         {/* Display */}
-        <section className="card" style={{ padding: 28, marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Display</h2>
+        <section className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid var(--blue)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--blue)", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5a6.5 6.5 0 100 13A6.5 6.5 0 008 1.5z" stroke="currentColor" strokeWidth="1.3"/><path d="M8 1.5C6 4 5 6 5 8s1 4 3 6.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M1.5 8h13" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Display</h2>
+          </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div>
               <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 3 }}>OLED Black mode</div>
@@ -1230,12 +1340,16 @@ export default function SettingsPage() {
         </section>
 
         {/* Referral */}
-        <section id="referral" className="card" style={{ padding: 28, marginBottom: 20, border: referral && referral.usedCount >= 3 ? "1px solid rgba(0,232,122,0.3)" : "1px solid var(--border)", background: referral && referral.usedCount >= 3 ? "rgba(0,232,122,0.03)" : undefined }}>
+        <section id="referral" className="card" style={{ padding: 28, marginBottom: 20, border: referral && referral.usedCount >= 3 ? "1px solid rgba(0,232,122,0.3)" : "1px solid var(--border)", background: referral && referral.usedCount >= 3 ? "rgba(0,232,122,0.03)" : undefined, borderLeft: "3px solid var(--green)" }}>
 
           {referral && referral.usedCount >= 3 ? (
             /* === REWARD EARNED STATE === */
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>🎉</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}>
+                <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1.5px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--green)" }}>
+                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 3l2 5h5l-4 3 1.5 5.5L13 14l-4.5 2.5L10 11 6 8h5z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><path d="M8 21h10M13 16v5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                </div>
+              </div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--green)", marginBottom: 8 }}>You&apos;ve earned a free month!</h2>
               <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 20 }}>
                 {referral.usedCount} traders joined using your link. Email us to claim your reward — we&apos;ll add 1 month free to your account.
@@ -1253,9 +1367,15 @@ export default function SettingsPage() {
             /* === DEFAULT STATE === */
             <>
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 4 }}>
-                <h2 style={{ fontSize: 16, fontWeight: 700 }}>Refer &amp; Earn</h2>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--green)", flexShrink: 0 }}>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="6" width="14" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M8 6V15" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M8 6H5a2 2 0 010-4c1.5 0 3 2 3 4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M8 6h3a2 2 0 000-4c-1.5 0-3 2-3 4z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M1 9h14" stroke="currentColor" strokeWidth="1.3"/></svg>
+                  </div>
+                  <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Refer &amp; Earn</h2>
+                </div>
                 <div style={{ fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 8, background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", color: "#8B5CF6", whiteSpace: "nowrap" }}>
-                  🎁 1 month free
+                  <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style={{ marginRight: 4 }}><rect x="0.5" y="4" width="10" height="6.5" rx="1" stroke="currentColor" strokeWidth="1.1"/><path d="M5.5 4v6.5" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/><path d="M5.5 4H3.5a1.5 1.5 0 010-3C4.5 1 5.5 2.5 5.5 4z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round"/><path d="M5.5 4h2a1.5 1.5 0 000-3C6.5 1 5.5 2.5 5.5 4z" stroke="currentColor" strokeWidth="1.1" strokeLinejoin="round"/><path d="M0.5 6.5h10" stroke="currentColor" strokeWidth="1.1"/></svg>
+                  1 month free
                 </div>
               </div>
               <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>
@@ -1287,7 +1407,7 @@ export default function SettingsPage() {
                     <p style={{ fontSize: 12, color: "#8B5CF6", marginTop: 8, fontWeight: 600 }}>1 trader joined — 2 more to earn your free month</p>
                   )}
                   {referral.usedCount === 2 && (
-                    <p style={{ fontSize: 12, color: "#8B5CF6", marginTop: 8, fontWeight: 600 }}>2 traders joined — 1 more and you&apos;re there 🔥</p>
+                    <p style={{ fontSize: 12, color: "#8B5CF6", marginTop: 8, fontWeight: 600 }}>2 traders joined — 1 more and you&apos;re there</p>
                   )}
                 </div>
               ) : null}
@@ -1345,9 +1465,12 @@ export default function SettingsPage() {
         </section>
 
         {/* Public Profile */}
-        <section className="card" style={{ padding: 28, marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700 }}>Public Profile</h2>
+        <section className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid var(--blue)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--blue)", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/><path d="M2.5 13c0-2.485 2.462-4.5 5.5-4.5s5.5 2.015 5.5 4.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Public Profile</h2>
             {!isPro && <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", padding: "2px 8px", borderRadius: 6, background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.25)", color: "var(--blue)" }}>PRO</span>}
           </div>
           <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 20, lineHeight: 1.6 }}>
@@ -1440,8 +1563,13 @@ export default function SettingsPage() {
         </section>
 
         {/* Privacy & Data */}
-        <section className="card" style={{ padding: 28, marginBottom: 20 }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4 }}>Privacy & Data</h2>
+        <section className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid #8B5CF6" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "#8B5CF6", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1.5L2 4v4c0 3.5 2.5 6.3 6 7 3.5-.7 6-3.5 6-7V4L8 1.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M5.5 8l1.5 1.5L10 6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Privacy & Data</h2>
+          </div>
           <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 20, lineHeight: 1.6 }}>
             Your data belongs to you. Export a full copy at any time, or delete your account permanently.
           </p>
@@ -1472,8 +1600,13 @@ export default function SettingsPage() {
         </section>
 
         {/* Danger zone */}
-        <section className="card" style={{ padding: 28, border: "1px solid rgba(255,45,45,0.15)" }}>
-          <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 4, color: "var(--red)" }}>Danger Zone</h2>
+        <section className="card" style={{ padding: 28, border: "1px solid rgba(255,45,45,0.15)", borderLeft: "3px solid var(--red)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--red)", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2L1.5 13h13L8 2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M8 6.5v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11" r="0.6" fill="currentColor"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: "var(--red)" }}>Danger Zone</h2>
+          </div>
           <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 20 }}>These actions are permanent and cannot be undone.</p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>

@@ -686,7 +686,11 @@ function PremiumUpsell() {
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
           <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
         </Link>
-        <span className="font-bebas" style={{ fontSize: 20, color: "var(--text-muted)", letterSpacing: "0.05em" }}>ANALYTICS</span>
+        <div style={{ textAlign: "center" }}>
+          <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.05em", display: "block", lineHeight: 1.1 }}>ANALYTICS</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>YOUR EDGE IN DATA</span>
+        </div>
+        <div style={{ width: 80 }} />
       </div>
       <div style={{ maxWidth: 520, margin: "60px auto", padding: "0 24px", textAlign: "center" }}>
         <div style={{ marginBottom: 20, display: "flex", justifyContent: "center", color: "var(--blue)" }}><svg width="56" height="56" viewBox="0 0 56 56" fill="none"><path d="M8 42l12-16 10 10 14-24 10 13" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/><path d="M8 48h40" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg></div>

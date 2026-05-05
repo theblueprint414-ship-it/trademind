@@ -1,6 +1,31 @@
 import { db } from "./db";
 import { safeDecrypt } from "./crypto";
 
+// ─── Retry helper ─────────────────────────────────────────────────────────────
+
+async function withRetry<T>(fn: () => Promise<T>, attempts = 3, delayMs = 600): Promise<T> {
+  let lastErr: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try { return await fn(); } catch (e) {
+      lastErr = e;
+      if (i < attempts - 1) await new Promise((r) => setTimeout(r, delayMs * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
+async function logBrokerError(userId: string, broker: string, action: string, err: unknown) {
+  db.appError.create({
+    data: {
+      userId,
+      message: `lockBroker(${broker}) ${action} failed: ${String(err)}`,
+      level: "warn",
+      route: "/lib/circuitBreakerLock",
+      context: JSON.stringify({ broker, action }),
+    },
+  }).catch(() => {});
+}
+
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export async function lockBroker(userId: string): Promise<void> {
@@ -14,11 +39,23 @@ export async function lockBroker(userId: string): Promise<void> {
   const secret = conn.apiSecret ? safeDecrypt(conn.apiSecret) : undefined;
 
   switch (conn.broker) {
-    case "alpaca":   await alpacaSuspend(key, secret, conn.environment, true);   break;
-    case "metaapi":  await metaApiCancelPending(key);                            break;
-    case "binance":  await binanceCancelAll(key, secret!);                       break;
-    case "bybit":    await bybitCancelAll(key, secret!);                         break;
-    // Others: Chrome extension network blocking covers web UI access
+    case "alpaca":
+      await withRetry(() => alpacaSuspend(key, secret, conn.environment, true))
+        .catch((e) => logBrokerError(userId, "alpaca", "suspend_trade", e));
+      break;
+    case "metaapi":
+      await withRetry(() => metaApiCancelPending(key))
+        .catch((e) => logBrokerError(userId, "metaapi", "cancel_pending", e));
+      break;
+    case "binance":
+      await withRetry(() => binanceCancelAll(key, secret!))
+        .catch((e) => logBrokerError(userId, "binance", "cancel_all", e));
+      break;
+    case "bybit":
+      await withRetry(() => bybitCancelAll(key, secret!))
+        .catch((e) => logBrokerError(userId, "bybit", "cancel_all", e));
+      break;
+    // Others: Chrome extension network blocking is the active layer
   }
 }
 
@@ -52,7 +89,7 @@ async function alpacaSuspend(
     ? "https://paper-api.alpaca.markets"
     : "https://api.alpaca.markets";
 
-  await fetch(`${base}/v2/account/configurations`, {
+  const res = await fetch(`${base}/v2/account/configurations`, {
     method: "PATCH",
     headers: {
       "APCA-API-KEY-ID": apiKey,
@@ -61,7 +98,8 @@ async function alpacaSuspend(
     },
     body: JSON.stringify({ suspend_trade: suspend }),
     signal: AbortSignal.timeout(8000),
-  }).catch(() => {}); // non-critical — Chrome extension still blocks network
+  });
+  if (!res.ok) throw new Error(`Alpaca ${res.status}`);
 }
 
 // ─── MetaAPI ──────────────────────────────────────────────────────────────────
@@ -115,11 +153,12 @@ async function binanceCancelAll(apiKey: string, apiSecret: string): Promise<void
   const signature = await hmacSha256(apiSecret, queryString);
   const url = `https://api.binance.com/api/v3/openOrders?${queryString}&signature=${signature}`;
 
-  await fetch(url, {
+  const res = await fetch(url, {
     method: "DELETE",
     headers: { "X-MBX-APIKEY": apiKey },
     signal: AbortSignal.timeout(8000),
-  }).catch(() => {});
+  });
+  if (!res.ok) throw new Error(`Binance ${res.status}`);
 }
 
 // ─── Bybit ────────────────────────────────────────────────────────────────────
@@ -132,7 +171,7 @@ async function bybitCancelAll(apiKey: string, apiSecret: string): Promise<void> 
   const preSign = `${timestamp}${apiKey}${recv}${body}`;
   const signature = await hmacSha256(apiSecret, preSign);
 
-  await fetch("https://api.bybit.com/v5/order/cancel-all", {
+  const res = await fetch("https://api.bybit.com/v5/order/cancel-all", {
     method: "POST",
     headers: {
       "X-BAPI-API-KEY": apiKey,
@@ -143,7 +182,8 @@ async function bybitCancelAll(apiKey: string, apiSecret: string): Promise<void> 
     },
     body,
     signal: AbortSignal.timeout(8000),
-  }).catch(() => {});
+  });
+  if (!res.ok) throw new Error(`Bybit ${res.status}`);
 }
 
 // ─── Shared crypto helper ─────────────────────────────────────────────────────

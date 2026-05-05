@@ -9,6 +9,7 @@ import TradeLimit from "@/components/TradeLimit";
 import ChallengeTracker from "@/components/ChallengeTracker";
 import PositionSizing from "@/components/PositionSizing";
 import BottomNav from "@/components/BottomNav";
+import StatCard from "@/components/StatCard";
 import { Skeleton, SkeletonCard, SkeletonStat } from "@/components/Skeleton";
 
 type HistoryEntry = { date: string; score: number; verdict?: string };
@@ -77,6 +78,7 @@ export default function DashboardPage() {
   const [dashLoading, setDashLoading] = useState(true);
   const [showQuickTrade, setShowQuickTrade] = useState(false);
   const [showUpgradeNudge, setShowUpgradeNudge] = useState(false);
+  const [dataError, setDataError] = useState(false);
   const [userId, setUserId] = useState("");
   const [publicProfile, setPublicProfile] = useState(false);
   const [profileLinkCopied, setProfileLinkCopied] = useState(false);
@@ -88,6 +90,8 @@ export default function DashboardPage() {
   const [qtSaving, setQtSaving] = useState(false);
   const [qtSaved, setQtSaved] = useState(false);
   const [qtError, setQtError] = useState<string | null>(null);
+  const [cbStatus, setCbStatus] = useState<{ isActive: boolean; tradeCount: number; effectiveLimit: number; dailyLimit: number; blocked: boolean; remaining: number; verdict: string; scoreAdaptive: boolean; checkinDone: boolean } | null>(null);
+  const [cbOverrides, setCbOverrides] = useState<Array<{ id: string; source: string; createdAt: string }>>([]);
 
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -166,6 +170,24 @@ export default function DashboardPage() {
         })
         .catch(() => {});
 
+      fetch("/api/circuit-breaker")
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => {
+          if (d?.extensionToken) {
+            fetch(`/api/circuit-breaker/status?token=${d.extensionToken}`)
+              .then((r) => r.ok ? r.json() : null)
+              .then((s) => {
+                if (s && typeof s.blocked === "boolean") {
+                  setCbStatus({ isActive: d.isActive, tradeCount: s.tradeCount, effectiveLimit: s.effectiveLimit, dailyLimit: s.dailyLimit, blocked: s.blocked, remaining: s.remaining, verdict: s.verdict, scoreAdaptive: d.scoreAdaptive, checkinDone: s.checkinDone ?? false });
+                }
+              }).catch(() => {});
+            fetch("/api/circuit-breaker/override")
+              .then((r) => r.ok ? r.json() : null)
+              .then((o) => { if (Array.isArray(o?.overrides)) setCbOverrides(o.overrides); })
+              .catch(() => {});
+          }
+        }).catch(() => {});
+
       try {
         const bRes = await fetch("/api/broker");
         if (bRes.ok) {
@@ -211,7 +233,7 @@ export default function DashboardPage() {
             }
           }
         }
-      } catch {} finally {
+      } catch { setDataError(true); } finally {
         setDashLoading(false);
       }
 
@@ -352,6 +374,7 @@ export default function DashboardPage() {
         @keyframes spin { to{transform:rotate(360deg)} }
         @keyframes brief-shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
         @keyframes fade-in { from{opacity:0} to{opacity:1} }
+        @keyframes cta-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(94,106,210,0.5)} 50%{box-shadow:0 0 0 8px rgba(94,106,210,0)} }
         .dash-section { animation: slide-up 0.5s ease both; }
         .s1{animation-delay:0.05s} .s2{animation-delay:0.12s} .s3{animation-delay:0.19s}
         .s4{animation-delay:0.26s} .s5{animation-delay:0.33s} .s6{animation-delay:0.40s}
@@ -381,7 +404,9 @@ export default function DashboardPage() {
       {showStreakCelebration && (
         <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(7,11,20,0.92)", backdropFilter: "blur(12px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={() => setShowStreakCelebration(false)}>
           <div style={{ maxWidth: 380, width: "100%", textAlign: "center", background: "var(--surface)", border: "1px solid rgba(255,176,32,0.3)", borderRadius: 20, padding: "48px 32px", boxShadow: "0 0 80px rgba(255,176,32,0.15)" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 64, marginBottom: 16, animation: "bounce 0.6s ease" }}>🔥</div>
+            <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(255,176,32,0.12)", border: "1.5px solid rgba(255,176,32,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--amber)", animation: "bounce 0.6s ease" }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c0 0 .5 3.5-1.5 6.5C10.5 8.5 9 6 7 5.5 5.5 8 4 11 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8c0-3-1.2-5.5-3-7.5 0 2-1.5 3-1.5 3C15 7 13.5 4 12 2z"/></svg>
+            </div>
             <div className="font-bebas" style={{ fontSize: 56, lineHeight: 1, color: "var(--amber)", marginBottom: 12, textShadow: "0 0 40px rgba(255,176,32,0.6)" }}>{streak} DAY STREAK</div>
             <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 32 }}>
               {streak === 7 ? "One week straight. Most traders quit before they build a habit — you didn't." : streak === 14 ? "Two weeks of mental discipline. Your data is now revealing real patterns." : "30 days. You've built something most traders never do: consistency."}
@@ -395,7 +420,9 @@ export default function DashboardPage() {
       {showUpgradeWelcome && (
         <div style={{ position: "fixed", inset: 0, zIndex: 400, background: "rgba(7,11,20,0.94)", backdropFilter: "blur(16px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={() => setShowUpgradeWelcome(false)}>
           <div style={{ maxWidth: 400, width: "100%", textAlign: "center", background: "var(--surface)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 20, padding: "48px 32px", boxShadow: "0 0 80px rgba(139,92,246,0.1)" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
+            <div style={{ width: 80, height: 80, borderRadius: "50%", background: "rgba(139,92,246,0.12)", border: "1.5px solid rgba(139,92,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "#8B5CF6" }}>
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+            </div>
             <div className="font-bebas" style={{ fontSize: 52, lineHeight: 1, marginBottom: 12, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
               Welcome to TradeMind
             </div>
@@ -481,6 +508,15 @@ export default function DashboardPage() {
       ) : (
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px", opacity: visible ? 1 : 0, transition: "opacity 0.4s ease" }}>
 
+        {/* Network error banner */}
+        {dataError && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 10, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.25)", marginBottom: 16 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><circle cx="7" cy="7" r="6" stroke="var(--red)" strokeWidth="1.3"/><path d="M7 4v3.5M7 10v.5" stroke="var(--red)" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            <span style={{ fontSize: 13, color: "var(--text-dim)", flex: 1 }}>Couldn&apos;t load your data — check your connection and <button onClick={() => { setDataError(false); window.location.reload(); }} style={{ background: "none", border: "none", color: "var(--red)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>retry</button></span>
+            <button onClick={() => setDataError(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, lineHeight: 1, padding: "0 2px" }}>×</button>
+          </div>
+        )}
+
         {/* TODAY HERO CARD */}
         <div className={`card dash-section s1 ${verdict?.cardClass ?? ""}`} style={{ padding: 0, marginBottom: 20, overflow: "hidden", position: "relative" }}>
           {verdict && (
@@ -528,7 +564,17 @@ export default function DashboardPage() {
                 </div>
               </>
             ) : (
-              <div style={{ width: "100%", padding: "40px 28px", display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap" }}>
+              <div style={{ width: "100%", padding: "36px 28px", display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap" }}>
+                {/* Animated ring graphic */}
+                <div style={{ flexShrink: 0, position: "relative", width: 96, height: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid rgba(94,106,210,0.15)", animation: "ring-breathe 3s ease-in-out infinite" }} />
+                  <div style={{ position: "absolute", inset: 8, borderRadius: "50%", border: "2px solid rgba(94,106,210,0.25)", animation: "ring-breathe 3s ease-in-out 0.8s infinite" }} />
+                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style={{ color: "rgba(94,106,210,0.6)" }}>
+                    <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="2" strokeOpacity="0.3" />
+                    <circle cx="20" cy="20" r="8" stroke="currentColor" strokeWidth="2" strokeOpacity="0.5" />
+                    <circle cx="20" cy="20" r="3" fill="currentColor" />
+                  </svg>
+                </div>
                 <div style={{ flex: 1, minWidth: 200 }}>
                   <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10 }}>
                     {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}
@@ -544,7 +590,7 @@ export default function DashboardPage() {
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
                   <Link href="/checkin">
-                    <button className="btn-primary" style={{ padding: "16px 32px", fontSize: 15, whiteSpace: "nowrap" }}>
+                    <button className="btn-primary" style={{ padding: "16px 32px", fontSize: 15, whiteSpace: "nowrap", animation: "cta-pulse 2.5s ease-in-out infinite" }}>
                       {history.length === 0 ? "Do Your First Check-in →" : "Start Check-in →"}
                     </button>
                   </Link>
@@ -626,70 +672,47 @@ export default function DashboardPage() {
 
         {/* STATS ROW — 4 cards */}
         <div className="dash-section s2 stats-grid">
-          {/* Streak */}
-          <div className="card stat-card" style={{ padding: 0, textAlign: "center", overflow: "hidden" }}>
-            <div style={{ height: 2, background: streak > 0 ? streakColor : "var(--border)" }} />
-            <div style={{ padding: "16px 12px 18px" }}>
-              <div className="font-bebas" style={{ fontSize: 32, color: streak > 0 ? streakColor : "var(--text-muted)", lineHeight: 1, marginBottom: streak >= 3 ? 3 : 6 }}>
-                {streak > 0 ? streak : "—"}
-              </div>
-              {streak >= 3 && <div style={{ fontSize: 9, color: streakColor, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>ON FIRE</div>}
-              <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>STREAK</div>
-            </div>
-          </div>
-
-          {/* 7-day avg */}
-          <div className="card stat-card" style={{ padding: 0, textAlign: "center", overflow: "hidden" }}>
-            <div style={{ height: 2, background: avg7 !== null ? avg7Color : "var(--border)" }} />
-            <div style={{ padding: "16px 12px 18px" }}>
-              <div className="font-bebas" style={{ fontSize: 32, color: avg7 !== null ? avg7Color : "var(--text-muted)", lineHeight: 1, marginBottom: 4 }}>
-                {avg7 !== null ? avg7 : "—"}
-              </div>
-              {history.length >= 3 && (() => {
-                const pts = [...history].reverse();
-                const W = 48; const H = 14; const pad = 2;
-                const xs = pts.map((_, i) => pad + (i / Math.max(pts.length - 1, 1)) * (W - pad * 2));
-                const ys = pts.map((p) => pad + (1 - p.score / 100) * (H - pad * 2));
-                const d = pts.map((_, i) => `${i === 0 ? "M" : "L"} ${xs[i]} ${ys[i]}`).join(" ");
-                return (
-                  <svg viewBox={`0 0 ${W} ${H}`} style={{ width: 44, height: 13, display: "block", margin: "0 auto 4px", opacity: 0.7 }}>
-                    <path d={d} fill="none" stroke={avg7Color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                );
-              })()}
-              <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em" }}>7-DAY AVG</div>
-            </div>
-          </div>
-
-          {/* Monthly */}
-          <div className="card stat-card" style={{ padding: 0, textAlign: "center", overflow: "hidden" }}>
-            <div style={{ height: 2, background: monthlyCount > 0 ? "var(--blue)" : "var(--border)" }} />
-            <div style={{ padding: "16px 12px 18px" }}>
-              <div className="font-bebas" style={{ fontSize: 32, color: monthlyCount > 0 ? "var(--blue)" : "var(--text-muted)", lineHeight: 1, marginBottom: 4 }}>
-                {monthlyCount > 0 ? monthlyCount : "—"}
-              </div>
-              <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em", marginBottom: weeklyGoalCount > 0 ? 3 : 0 }}>THIS MONTH</div>
-              {weeklyGoalCount > 0 && (
-                <div style={{ fontSize: 9, color: weeklyGoalCount >= weeklyGoal ? "var(--green)" : "var(--text-muted)", fontWeight: 600 }}>
-                  {weeklyGoalCount}/{weeklyGoal} this week{weeklyGoalCount >= weeklyGoal ? " ✓" : ""}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* GO days */}
-          <div className="card stat-card" style={{ padding: 0, textAlign: "center", overflow: "hidden" }}>
-            <div style={{ height: 2, background: goCount > 0 ? "var(--green)" : "var(--border)" }} />
-            <div style={{ padding: "16px 12px 18px" }}>
-              <div className="font-bebas" style={{ fontSize: 32, color: goCount > 0 ? "var(--green)" : "var(--text-muted)", lineHeight: 1, marginBottom: 4 }}>
-                {goCount > 0 ? goCount : "—"}
-              </div>
-              <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em", marginBottom: monthlyCount > 0 && goCount > 0 ? 3 : 0 }}>GO DAYS</div>
-              {monthlyCount > 0 && goCount > 0 && (
-                <div style={{ fontSize: 9, color: "var(--green)", fontWeight: 600 }}>{Math.round((goCount / monthlyCount) * 100)}% rate</div>
-              )}
-            </div>
-          </div>
+          <StatCard
+            value={streak}
+            label="STREAK"
+            color={streakColor}
+            delay={0}
+            badge={streak >= 3 ? "ON FIRE" : undefined}
+          />
+          <StatCard
+            value={avg7 ?? 0}
+            label="7-DAY AVG"
+            color={avg7Color}
+            delay={60}
+            sparkline={history.length >= 3 ? (() => {
+              const pts = [...history].reverse();
+              const W = 48; const H = 14; const pad = 2;
+              const xs = pts.map((_, i) => pad + (i / Math.max(pts.length - 1, 1)) * (W - pad * 2));
+              const ys = pts.map((p) => pad + (1 - p.score / 100) * (H - pad * 2));
+              const d = pts.map((_, i) => `${i === 0 ? "M" : "L"} ${xs[i]} ${ys[i]}`).join(" ");
+              return (
+                <svg viewBox={`0 0 ${W} ${H}`} style={{ width: 44, height: 13, display: "block", margin: "0 auto 4px", opacity: 0.7 }}>
+                  <path d={d} fill="none" stroke={avg7Color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              );
+            })() : undefined}
+          />
+          <StatCard
+            value={monthlyCount}
+            label="THIS MONTH"
+            color="var(--blue)"
+            delay={120}
+            subtext={weeklyGoalCount > 0 ? `${weeklyGoalCount}/${weeklyGoal} this week${weeklyGoalCount >= weeklyGoal ? " ✓" : ""}` : undefined}
+            subtextColor={weeklyGoalCount >= weeklyGoal ? "var(--green)" : undefined}
+          />
+          <StatCard
+            value={goCount}
+            label="GO DAYS"
+            color="var(--green)"
+            delay={180}
+            subtext={monthlyCount > 0 && goCount > 0 ? `${Math.round((goCount / monthlyCount) * 100)}% rate` : undefined}
+            subtextColor="var(--green)"
+          />
         </div>
 
         {/* Lifestyle correlation strip — premium */}
@@ -806,6 +829,96 @@ export default function DashboardPage() {
 
         {/* Trade Limit */}
         <div className="dash-section s3" style={{ marginBottom: 20 }}><TradeLimit /></div>
+
+        {/* Circuit Breaker Status Card */}
+        {cbStatus && cbStatus.isActive && (() => {
+          const pct = cbStatus.effectiveLimit > 0 ? Math.min((cbStatus.tradeCount / cbStatus.effectiveLimit) * 100, 100) : 100;
+          const barColor = cbStatus.blocked ? "var(--red)" : cbStatus.remaining === 1 ? "var(--amber)" : "var(--green)";
+          const borderColor = cbStatus.blocked ? "rgba(255,59,92,0.25)" : cbStatus.remaining === 1 ? "rgba(255,176,32,0.2)" : "rgba(255,59,92,0.12)";
+          const bgColor = cbStatus.blocked ? "rgba(255,59,92,0.04)" : "rgba(7,11,20,0)";
+          return (
+            <div className="card dash-section s3" style={{ padding: "16px 20px", marginBottom: 20, border: `1px solid ${borderColor}`, background: bgColor, transition: "all 0.3s" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                {/* Icon */}
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: cbStatus.blocked ? "rgba(255,59,92,0.12)" : "rgba(255,59,92,0.08)", border: `1px solid ${cbStatus.blocked ? "rgba(255,59,92,0.35)" : "rgba(255,59,92,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                    <path d="M7.5 1.5a6 6 0 100 12 6 6 0 000-12z" stroke={cbStatus.blocked ? "var(--red)" : "rgba(255,59,92,0.7)"} strokeWidth="1.3"/>
+                    <path d="M5 5l5 5M10 5l-5 5" stroke={cbStatus.blocked ? "var(--red)" : "rgba(255,59,92,0.7)"} strokeWidth="1.3" strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: cbStatus.blocked ? "var(--red)" : "var(--text-muted)" }}>CIRCUIT BREAKER</span>
+                    {cbStatus.blocked && (
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "var(--red)", background: "rgba(255,59,92,0.12)", border: "1px solid rgba(255,59,92,0.3)", borderRadius: 4, padding: "1px 6px" }}>ACTIVE</span>
+                    )}
+                    {!cbStatus.blocked && cbStatus.remaining === 1 && (
+                      <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.06em", color: "var(--amber)", background: "rgba(255,176,32,0.1)", border: "1px solid rgba(255,176,32,0.3)", borderRadius: 4, padding: "1px 6px" }}>LAST TRADE</span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 2 }}>
+                    {cbStatus.blocked
+                      ? "Daily limit reached — trading is blocked for today"
+                      : cbStatus.remaining === 1
+                      ? "1 trade remaining — make it count"
+                      : `${cbStatus.remaining} trade${cbStatus.remaining !== 1 ? "s" : ""} remaining today`}
+                  </div>
+                </div>
+                {/* Count display */}
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <div className="font-bebas" style={{ fontSize: 26, lineHeight: 1, color: cbStatus.blocked ? "var(--red)" : "var(--text)", letterSpacing: "0.02em" }}>
+                    {cbStatus.tradeCount}<span style={{ fontSize: 14, color: "var(--text-muted)", fontWeight: 400 }}>/{cbStatus.effectiveLimit}</span>
+                  </div>
+                  <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", marginTop: 1 }}>TRADES TODAY</div>
+                </div>
+              </div>
+              {/* No check-in warning */}
+              {!cbStatus.checkinDone && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "7px 10px", borderRadius: 8, background: "rgba(255,176,32,0.07)", border: "1px solid rgba(255,176,32,0.2)", marginBottom: 10 }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0 }}><path d="M6.5 1.5a5 5 0 100 10 5 5 0 000-10z" stroke="var(--amber)" strokeWidth="1.2"/><path d="M6.5 4.5v3M6.5 9h.01" stroke="var(--amber)" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                  <span style={{ fontSize: 11, color: "var(--amber)" }}>No check-in today — limit reduced to <strong>{cbStatus.effectiveLimit}</strong> (75% of {cbStatus.dailyLimit}). <a href="/checkin" style={{ color: "var(--amber)", fontWeight: 700 }}>Check in →</a></span>
+                </div>
+              )}
+              {/* Progress bar */}
+              <div style={{ height: 5, borderRadius: 3, background: "var(--surface2)", overflow: "hidden", marginBottom: 8 }}>
+                <div style={{ height: "100%", width: `${pct}%`, background: barColor, borderRadius: 3, transition: "width 0.8s cubic-bezier(0.4,0,0.2,1)", boxShadow: cbStatus.blocked ? "0 0 8px rgba(255,59,92,0.5)" : undefined }} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                  {cbStatus.scoreAdaptive && cbStatus.effectiveLimit !== cbStatus.dailyLimit && (
+                    <span>Limit adjusted: <strong style={{ color: cbStatus.verdict === "NO-TRADE" ? "var(--red)" : "var(--amber)" }}>{cbStatus.verdict}</strong> today ({cbStatus.dailyLimit} → {cbStatus.effectiveLimit})</span>
+                  )}
+                  {(!cbStatus.scoreAdaptive || cbStatus.effectiveLimit === cbStatus.dailyLimit) && (
+                    <span>Resets at midnight UTC</span>
+                  )}
+                </div>
+                <a href="/settings#circuit-breaker" style={{ fontSize: 11, color: "var(--text-muted)", textDecoration: "none", fontWeight: 700, letterSpacing: "0.06em", flexShrink: 0 }}>CONFIGURE →</a>
+              </div>
+              {/* Override audit trail */}
+              {cbOverrides.length > 0 && (
+                <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)" }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(255,59,92,0.6)", marginBottom: 6 }}>EMERGENCY OVERRIDES — LAST 30 DAYS</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {cbOverrides.slice(0, 5).map((ov) => {
+                      const d = new Date(ov.createdAt);
+                      const label = d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " at " + d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+                      return (
+                        <div key={ov.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ width: 5, height: 5, borderRadius: "50%", background: "rgba(255,59,92,0.5)", flexShrink: 0 }} />
+                          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{label}</span>
+                          <span style={{ fontSize: 10, color: "rgba(255,59,92,0.5)", marginLeft: "auto" }}>{ov.source}</span>
+                        </div>
+                      );
+                    })}
+                    {cbOverrides.length > 5 && (
+                      <div style={{ fontSize: 11, color: "var(--text-muted)", paddingLeft: 13 }}>+{cbOverrides.length - 5} more this month</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Challenge Tracker */}
         {challengeConfig && challengeConfig.accountSize > 0 && (
@@ -1186,7 +1299,9 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="card" style={{ padding: "24px 20px", display: "flex", alignItems: "center", gap: 16, border: "1px dashed var(--border)" }}>
-              <div style={{ fontSize: 28 }}>👥</div>
+              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--blue)" }}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+              </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Add accountability partners</div>
                 <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, lineHeight: 1.5 }}>Your trading partner sees your score every morning. Discipline is easier when someone&apos;s watching.</p>
@@ -1220,7 +1335,9 @@ export default function DashboardPage() {
 
             {qtSaved ? (
               <div style={{ textAlign: "center", padding: "20px 0 8px" }}>
-                <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+                <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1.5px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px", color: "var(--green)" }}>
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
                 <p style={{ fontSize: 14, color: "var(--text-dim)", marginBottom: 20 }}>Added to your journal. Keep tracking.</p>
                 <div style={{ display: "flex", gap: 10 }}>
                   <button className="btn-ghost" style={{ flex: 1, fontSize: 13 }} onClick={() => { setQtSaved(false); setQtSymbol(""); setQtPnl(""); setQtSetup(""); setQtError(null); }}>Add another</button>

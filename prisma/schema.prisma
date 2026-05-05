@@ -49,6 +49,7 @@ model User {
   invitesSent       PartnerInvite[]
   brokerConnection  BrokerConnection?
   circuitBreaker    CircuitBreaker?
+  cbOverrides       CircuitBreakerOverride[]
   circlesCreated    Circle[]
   circleMembers     CircleMember[]
   dailyRecaps       DailyRecap[]
@@ -287,11 +288,25 @@ model CircuitBreaker {
   extensionToken  String   @unique @default(cuid())
   blockedAt           DateTime?              // when limit was hit today
   tradeCountToday     Int      @default(0)   // cached count (refreshed on each check)
-  blockedNotifiedDate String?                // YYYY-MM-DD — last date a "blocked" push was sent (dedup)
+  blockedNotifiedDate  String?               // YYYY-MM-DD — last date a "blocked" push was sent (dedup)
+  warningNotifiedDate  String?               // YYYY-MM-DD — last date a "1 trade left" push was sent (dedup)
   updatedAt       DateTime @updatedAt
   createdAt       DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CircuitBreakerOverride {
+  id        String   @id @default(cuid())
+  userId    String
+  source    String   @default("extension") // "extension" | "dashboard"
+  reason    String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt])
 }
 
 model AppError {

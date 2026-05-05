@@ -157,21 +157,50 @@ export default function CirclesPage() {
   }
 
   if (loading) return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 28, height: 28, borderRadius: "50%", border: "3px solid var(--surface3)", borderTopColor: "var(--blue)", animation: "spin 0.8s linear infinite" }} />
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <div className="app-header">
+        <Link href="/dashboard" style={{ textDecoration: "none" }}>
+          <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
+        </Link>
+        <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.05em" }}>CIRCLES</span>
+        <div style={{ width: 80 }} />
+      </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", paddingTop: 80 }}>
+        <div style={{ width: 28, height: 28, borderRadius: "50%", border: "3px solid var(--surface3)", borderTopColor: "var(--blue)", animation: "spin 0.8s linear infinite" }} />
+      </div>
+      <BottomNav />
     </div>
   );
 
   if (error === "pro") return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", padding: "60px 20px" }}>
-      <div style={{ maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
-        <div style={{ fontSize: 40, marginBottom: 16 }}>👥</div>
-        <div style={{ fontWeight: 700, fontSize: 20, marginBottom: 10 }}>Circles is a TradeMind feature</div>
-        <p style={{ color: "var(--text-dim)", fontSize: 14, marginBottom: 24, lineHeight: 1.7 }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
+      <div className="app-header">
+        <Link href="/dashboard" style={{ textDecoration: "none" }}>
+          <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
+        </Link>
+        <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.05em" }}>CIRCLES</span>
+        <div style={{ width: 80 }} />
+      </div>
+      <div style={{ maxWidth: 480, margin: "60px auto", padding: "0 24px", textAlign: "center" }}>
+        <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(94,106,210,0.1)", border: "1.5px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--blue)" }}>
+          <svg width="30" height="30" viewBox="0 0 30 30" fill="none"><circle cx="10" cy="11" r="4" stroke="currentColor" strokeWidth="1.8"/><circle cx="20" cy="11" r="4" stroke="currentColor" strokeWidth="1.8"/><path d="M2 25c0-3.5 3.582-6 8-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M28 25c0-3.5-3.582-6-8-6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M10 19c0-3.5 3.582-6 8-6s8 2.5 8 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+        </div>
+        <div className="font-bebas" style={{ fontSize: 40, lineHeight: 1, marginBottom: 12 }}>Trading Circles</div>
+        <p style={{ color: "var(--text-dim)", fontSize: 14, marginBottom: 32, lineHeight: 1.7 }}>
           Create accountability groups with your trading partners. See each other&apos;s mental state every morning — the most effective way to stay consistent.
         </p>
-        <Link href="/pricing" style={{ display: "inline-block", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "#fff", padding: "12px 28px", borderRadius: 12, fontWeight: 700, textDecoration: "none" }}>
-          Start 7-Day Free Trial →
+        <div className="card" style={{ padding: 20, marginBottom: 24, border: "1px solid rgba(94,106,210,0.2)", textAlign: "left" }}>
+          {["See teammates' GO/CAUTION/NO-TRADE verdicts every morning", "Knowing others see your score keeps you honest", "Invite anyone via a shareable link", "No personal trade data is ever shared"].map((f) => (
+            <div key={f} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "9px 0", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)" }}>
+              <span style={{ color: "var(--blue)", flexShrink: 0 }}>✓</span>{f}
+            </div>
+          ))}
+        </div>
+        <Link href="/settings" style={{ display: "block" }}>
+          <button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 15, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>
+            Start 7-Day Free Trial →
+          </button>
         </Link>
       </div>
       <BottomNav />
@@ -179,24 +208,27 @@ export default function CirclesPage() {
   );
 
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh", paddingBottom: 100, color: "var(--text)" }}>
+    <div style={{ background: "var(--bg)", minHeight: "100vh", color: "var(--text)" }} className="has-bottom-nav">
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
-      <div style={{ maxWidth: 600, margin: "0 auto", padding: "24px 16px 0" }}>
-
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-          <div>
-            <div style={{ fontSize: 22, fontWeight: 800 }}>Circles</div>
-            <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>Your accountability groups</div>
-          </div>
-          <button
-            onClick={() => setCreating(true)}
-            style={{ background: "var(--blue)", color: "#fff", border: "none", borderRadius: 10, padding: "10px 18px", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
-          >
-            + New Circle
-          </button>
+      <div className="app-header">
+        <Link href="/dashboard" style={{ textDecoration: "none" }}>
+          <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
+        </Link>
+        <div style={{ textAlign: "center" }}>
+          <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.05em", display: "block", lineHeight: 1.1 }}>CIRCLES</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>ACCOUNTABILITY GROUPS</span>
         </div>
+        <button
+          onClick={() => setCreating(true)}
+          className="btn-primary"
+          style={{ fontSize: 12, padding: "7px 14px" }}
+        >
+          + New
+        </button>
+      </div>
+
+      <div style={{ maxWidth: 600, margin: "0 auto", padding: "24px 16px 0" }}>
 
         {/* Create form */}
         {creating && (
@@ -231,14 +263,19 @@ export default function CirclesPage() {
         {/* Empty state */}
         {circles.length === 0 && !creating && (
           <div style={{ textAlign: "center", padding: "60px 20px", border: "1px dashed var(--border)", borderRadius: 16 }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>👥</div>
-            <div style={{ fontWeight: 700, marginBottom: 8 }}>No circles yet</div>
-            <p style={{ color: "var(--text-dim)", fontSize: 14, marginBottom: 20, lineHeight: 1.7 }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--blue)" }}>
+                <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="9" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="17" cy="9" r="3.5" stroke="currentColor" strokeWidth="1.5"/><path d="M2 22c0-3 3.13-5 7-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M24 22c0-3-3.13-5-7-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M9 17c0-2.8 2.9-5 6.5-5S22 14.2 22 17" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+              </div>
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>No circles yet</div>
+            <p style={{ color: "var(--text-dim)", fontSize: 13, marginBottom: 20, lineHeight: 1.7, maxWidth: 300, margin: "0 auto 20px" }}>
               Create a circle with your trading group to see each other&apos;s mental state every morning.
             </p>
             <button
               onClick={() => setCreating(true)}
-              style={{ background: "var(--blue)", color: "#fff", border: "none", borderRadius: 10, padding: "12px 24px", fontWeight: 700, cursor: "pointer" }}
+              className="btn-primary"
+              style={{ padding: "12px 24px", fontSize: 14 }}
             >
               Create Your First Circle
             </button>

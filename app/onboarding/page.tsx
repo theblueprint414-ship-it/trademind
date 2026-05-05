@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { MT4Demo, TopstepXDemo, TradovateDemo, BinanceGuide, BybitGuide, CoinbaseGuide, KrakenGuide, AlpacaGuide } from "@/components/BrokerStepsDemo";
+import ScoreRing from "@/components/ScoreRing";
 
 type Step = "welcome" | "trader-type" | "limit" | "broker";
 
@@ -165,8 +166,18 @@ export default function OnboardingPage() {
         {/* ── Step: Welcome ── */}
         {step === "welcome" && (
           <div>
-            <div style={{ textAlign: "center", marginBottom: 40 }}>
-              <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}><svg width="56" height="56" viewBox="0 0 56 56" fill="none"><circle cx="28" cy="20" r="11" stroke="#5e6ad2" strokeWidth="2.5"/><path d="M9 52c0-8.284 8.506-15 19-15s19 6.716 19 15" stroke="#5e6ad2" strokeWidth="2.5" strokeLinecap="round"/><path d="M40 14l3-2.5M44 20h3M40 26l3 2.5" stroke="#5e6ad2" strokeWidth="2" strokeLinecap="round"/></svg></div>
+            <div style={{ textAlign: "center", marginBottom: 36 }}>
+              {/* Live preview of what the user will see after their first check-in */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 28 }}>
+                <ScoreRing score={82} color="var(--green)" size={130} />
+                <div style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 7, padding: "5px 16px", background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.28)", borderRadius: 99 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--green)", boxShadow: "0 0 7px var(--green)" }} />
+                  <span className="font-bebas" style={{ fontSize: 15, color: "var(--green)", letterSpacing: "0.08em" }}>GO · READY TO TRADE</span>
+                </div>
+                <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8, letterSpacing: "0.04em" }}>
+                  This is what you&apos;ll see after your first check-in
+                </p>
+              </div>
               <h1 className="font-bebas" style={{ fontSize: 44, lineHeight: 1, marginBottom: 12 }}>Your Mind Is Your Edge</h1>
               <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7 }}>
                 Most losses aren&apos;t about the market — they&apos;re about the mental state you were in when you entered.<br />
@@ -207,11 +218,11 @@ export default function OnboardingPage() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
               {([
-                { id: "scalper",    label: "Scalper",       desc: "Multiple trades per minute, pure execution speed.",  emoji: "⚡" },
-                { id: "day",        label: "Day Trader",    desc: "In and out same day, no overnight positions.",        emoji: "📈" },
-                { id: "swing",      label: "Swing Trader",  desc: "Hold for days or weeks, riding momentum.",           emoji: "🌊" },
-                { id: "prop",       label: "Prop Trader",   desc: "Trading a firm's capital with risk rules.",          emoji: "🏢" },
-                { id: "crypto",     label: "Crypto Trader", desc: "24/7 markets, high volatility, digital assets.",     emoji: "₿" },
+                { id: "scalper",    label: "Scalper",       desc: "Multiple trades per minute, pure execution speed.",  icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M13 2l-2 6h6l-8 14 2-8H5z" stroke="var(--amber)" strokeWidth="1.6" strokeLinejoin="round"/></svg> },
+                { id: "day",        label: "Day Trader",    desc: "In and out same day, no overnight positions.",        icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 17l5-6 4 4 9-12" stroke="var(--green)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 20h18" stroke="var(--green)" strokeWidth="1.8" strokeLinecap="round"/></svg> },
+                { id: "swing",      label: "Swing Trader",  desc: "Hold for days or weeks, riding momentum.",           icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 14c2-4 4-6 5-4s2 6 4 4 3-8 5-6" stroke="var(--blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+                { id: "prop",       label: "Prop Trader",   desc: "Trading a firm's capital with risk rules.",          icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="9" width="18" height="12" rx="2" stroke="#8B5CF6" strokeWidth="1.6"/><path d="M8 9V7a4 4 0 0 1 8 0v2" stroke="#8B5CF6" strokeWidth="1.6" strokeLinecap="round"/><path d="M12 14v2" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round"/></svg> },
+                { id: "crypto",     label: "Crypto Trader", desc: "24/7 markets, high volatility, digital assets.",     icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--amber)" strokeWidth="1.6"/><path d="M9 8h4.5a2 2 0 0 1 0 4H9m0-4v8m0-4h5a2 2 0 0 1 0 4H9" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> },
               ] as const).map((t) => (
                 <button
                   key={t.id}
@@ -228,7 +239,7 @@ export default function OnboardingPage() {
                     textAlign: "left",
                     transition: "all 0.15s",
                   }}>
-                  <span style={{ fontSize: 28, flexShrink: 0 }}>{t.emoji}</span>
+                  <span style={{ flexShrink: 0 }}>{t.icon}</span>
                   <div>
                     <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 2 }}>{t.label}</div>
                     <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.4 }}>{t.desc}</div>

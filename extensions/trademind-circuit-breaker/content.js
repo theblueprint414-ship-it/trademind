@@ -5,7 +5,6 @@
   "use strict";
 
   let overlayEl = null;
-  let currentStatus = null;
 
   // ─── Init ──────────────────────────────────────────────────────────────────
 
@@ -24,7 +23,8 @@
   // ─── Core logic ───────────────────────────────────────────────────────────
 
   function applyStatus(status) {
-    currentStatus = status;
+    // Relay blocked state to ws-intercept.js running in page context
+    window.postMessage({ type: "TM_CB_STATUS", blocked: status.blocked }, "*");
     if (status.blocked) {
       showOverlay(status);
     } else {
@@ -86,8 +86,17 @@
     }
 
     if (btn.dataset.confirmed === "1") {
-      // Log override intention then remove overlay
       chrome.storage.session.set({ overrideUntil: Date.now() + 3600000 });
+      // Audit log — fire-and-forget, don't block overlay removal
+      chrome.storage.sync.get("token", ({ token }) => {
+        if (token) {
+          fetch(`https://trademindedge.com/api/circuit-breaker/override?token=${token}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({}),
+          }).catch(() => {});
+        }
+      });
       removeOverlay();
     }
   }
@@ -97,6 +106,14 @@
     const limitMsg = status.scoreAdaptive && status.verdict !== "GO"
       ? `Limit reduced to <strong>${status.effectiveLimit}</strong> (${status.verdict} day)`
       : `Daily limit: <strong>${status.dailyLimit}</strong> trades`;
+
+    const host = window.location.hostname;
+    const isNetworkOnlyBroker = host.includes("binance") || host.includes("bybit") ||
+      host.includes("okx") || host.includes("kraken") || host.includes("gate.io") ||
+      host.includes("mexc") || host.includes("bitget");
+    const brokerWarning = isNetworkOnlyBroker
+      ? `<div id="tm-broker-note">Network blocking active on this platform — keep TradeMind extension enabled for full protection.</div>`
+      : "";
 
     return `
       <style>
@@ -117,6 +134,7 @@
         #tm-override-confirm { display: none; margin-top: 20px; font-size: 13px; color: #FF3B5C; max-width: 340px; line-height: 1.6; }
         #tm-override-confirm.visible { display: block; }
         #tm-limit-note { font-size: 13px; color: #3D4F6A; margin-top: 16px; }
+        #tm-broker-note { margin-top: 14px; font-size: 11px; color: #2A3A52; background: rgba(79,142,247,0.08); border: 1px solid rgba(79,142,247,0.18); border-radius: 8px; padding: 8px 14px; max-width: 360px; }
       </style>
 
       <div id="tm-logo">
@@ -156,6 +174,7 @@
       </div>
 
       <div id="tm-limit-note">${limitMsg}</div>
+      ${brokerWarning}
     `;
   }
 })();

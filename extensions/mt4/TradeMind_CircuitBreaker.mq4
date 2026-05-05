@@ -64,45 +64,45 @@ void OnDeinit(const int reason)
 void OnTimer() { Poll(); }
 
 //+------------------------------------------------------------------+
-// Detect new orders by comparing open order count
+// OnTrade fires on every order state change — scan ALL orders to
+// catch multiple simultaneous new tickets (e.g. basket orders).
 void OnTrade()
   {
    if(!ReportTrades) return;
-   // Find any new ticket higher than last known
-   for(int i = OrdersTotal() - 1; i >= 0; i--)
+   for(int i = 0; i < OrdersTotal(); i++)
      {
       if(!OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) continue;
+      if(OrderType() > OP_SELL) continue; // skip pending — only market fills
       int ticket = OrderTicket();
       if(ticket > g_lastTicket)
         {
          g_lastTicket = ticket;
-         ReportTrade(OrderSymbol(), OrderType() < 1 ? "long" : "short");
+         ReportTrade(OrderSymbol(), OrderType() == OP_BUY ? "long" : "short");
         }
      }
   }
 
 //+------------------------------------------------------------------+
+// OnTick: history fallback — catches fills that close immediately
+// (market orders filled-and-closed before OnTrade fires on slow feeds).
 void OnTick()
   {
-   // Detect new orders by watching order count changes (belt-and-suspenders with OnTrade)
-   static int prevCount = 0;
-   int curCount = OrdersTotal();
-   if(curCount > prevCount && ReportTrades)
+   if(!ReportTrades) return;
+   static int prevHistCount = 0;
+   int curHistCount = OrdersHistoryTotal();
+   if(curHistCount <= prevHistCount) { prevHistCount = curHistCount; return; }
+   prevHistCount = curHistCount;
+   for(int i = curHistCount - 1; i >= MathMax(curHistCount - 5, 0); i--)
      {
-      // Find the newest ticket
-      for(int i = curCount - 1; i >= 0; i--)
+      if(!OrderSelect(i, SELECT_BY_POS, MODE_HISTORY)) continue;
+      if(OrderType() > OP_SELL) continue;
+      int ticket = OrderTicket();
+      if(ticket > g_lastTicket)
         {
-         if(!OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) continue;
-         int ticket = OrderTicket();
-         if(ticket > g_lastTicket)
-           {
-            g_lastTicket = ticket;
-            ReportTrade(OrderSymbol(), OrderType() == OP_BUY ? "long" : "short");
-            break;
-           }
+         g_lastTicket = ticket;
+         ReportTrade(OrderSymbol(), OrderType() == OP_BUY ? "long" : "short");
         }
      }
-   prevCount = curCount;
   }
 
 //+------------------------------------------------------------------+
