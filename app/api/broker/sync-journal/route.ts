@@ -10,7 +10,10 @@ export async function POST(request: NextRequest) {
   const guard = await requirePlan(["pro", "premium"]);
   if (!guard.ok) return guard.response;
 
-  const result = await syncJournalForUser(guard.userId);
+  const { searchParams } = new URL(request.url);
+  const force = searchParams.get("force") === "true";
+
+  const result = await syncJournalForUser(guard.userId, { force });
 
   if (result === null) {
     return Response.json({ error: "Could not reach broker" }, { status: 502 });

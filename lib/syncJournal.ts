@@ -14,13 +14,13 @@ const COOLDOWN_MINUTES = 10;
 
 export async function syncJournalForUser(
   userId: string,
-  opts: { notify?: boolean } = {}
+  opts: { notify?: boolean; force?: boolean } = {}
 ): Promise<SyncResult | null> {
   const conn = await db.brokerConnection.findUnique({ where: { userId } });
   if (!conn) return null;
 
-  // Cooldown: skip if synced within 10 minutes
-  if (conn.lastSyncAt) {
+  // Cooldown: skip if synced within 10 minutes (bypass with force)
+  if (!opts.force && conn.lastSyncAt) {
     const minsSince = (Date.now() - conn.lastSyncAt.getTime()) / 60_000;
     if (minsSince < COOLDOWN_MINUTES) {
       return { imported: 0, total: 0, broker: conn.broker, skipped: true };
@@ -77,7 +77,11 @@ export async function syncJournalForUser(
         symbol: t.symbol.slice(0, 20),
         side: t.side,
         pnl: t.pnl,
-        // attach mental score only if this trade is from today
+        entryPrice: t.entryPrice ?? null,
+        exitPrice: t.exitPrice ?? null,
+        entryTime: t.entryTime ?? null,
+        exitTime: t.exitTime ?? null,
+        qty: t.qty ?? null,
         checkinScore: t.date === today ? (todayCheckin?.score ?? null) : null,
       })),
     });

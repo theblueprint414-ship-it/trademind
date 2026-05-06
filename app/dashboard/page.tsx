@@ -65,6 +65,8 @@ export default function DashboardPage() {
   const [isPro, setIsPro] = useState(false);
   const [savedLosses, setSavedLosses] = useState<number | null>(null);
   const [broker, setBroker] = useState<{ broker: string; status: string } | null>(null);
+  const [todaySession, setTodaySession] = useState<{ totalPnl: number; tradeCount: number; tradeLimit: number; winRate: number | null } | null>(null);
+  const [endingSession, setEndingSession] = useState(false);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [partnersLoading, setPartnersLoading] = useState(false);
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
@@ -209,6 +211,15 @@ export default function DashboardPage() {
               }
             }
           }
+        }
+      } catch {}
+
+      // Load today's session summary
+      try {
+        const sessionRes = await fetch(`/api/session?date=${new Date().toISOString().split("T")[0]}`);
+        if (sessionRes.ok) {
+          const sd = await sessionRes.json();
+          if (sd.tradeCount > 0) setTodaySession({ totalPnl: sd.totalPnl, tradeCount: sd.tradeCount, tradeLimit: sd.tradeLimit, winRate: sd.winRate });
         }
       } catch {}
 
@@ -367,6 +378,14 @@ export default function DashboardPage() {
   const worstDay = history.length >= 5 ? history.reduce((worst, h) => h.score < worst.score ? h : worst) : null;
   const nowHour = new Date().getHours();
   const isAfterMarket = nowHour >= 16;
+
+  async function handleEndSession() {
+    setEndingSession(true);
+    try {
+      if (broker) await fetch("/api/broker/sync-journal?force=true", { method: "POST" });
+    } catch { /* ignore */ }
+    window.location.href = `/session?date=${new Date().toISOString().split("T")[0]}`;
+  }
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
@@ -840,6 +859,58 @@ export default function DashboardPage() {
 
         {/* Trade Limit */}
         <div className="dash-section s3" style={{ marginBottom: 20 }}><TradeLimit /></div>
+
+        {/* Today's Session */}
+        <div className="dash-section s3" style={{ marginBottom: 20, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "18px 20px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: todaySession ? 14 : 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "#8B5CF6" }}>
+                <rect x="2" y="2" width="5" height="5" rx="1" fill="currentColor" opacity="0.5"/>
+                <rect x="9" y="2" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
+                <rect x="2" y="9" width="5" height="5" rx="1" fill="currentColor" opacity="0.7"/>
+                <rect x="9" y="9" width="5" height="5" rx="1" fill="currentColor"/>
+              </svg>
+              <span style={{ fontSize: 14, fontWeight: 700 }}>Today&apos;s Session</span>
+            </div>
+            <button
+              onClick={handleEndSession}
+              disabled={endingSession}
+              style={{ background: "linear-gradient(135deg,#5e6ad2,#8B5CF6)", border: "none", borderRadius: 8, padding: "7px 14px", fontSize: 12, fontWeight: 700, color: "white", cursor: endingSession ? "default" : "pointer", display: "flex", alignItems: "center", gap: 6, opacity: endingSession ? 0.7 : 1 }}
+            >
+              {endingSession ? (
+                <><div style={{ width: 10, height: 10, borderRadius: "50%", border: "1.5px solid rgba(255,255,255,0.4)", borderTopColor: "white", animation: "spin 0.8s linear infinite" }} />Syncing...</>
+              ) : (
+                <><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><rect x="1" y="1" width="3.5" height="9" rx="1" fill="white"/><rect x="6.5" y="1" width="3.5" height="9" rx="1" fill="white"/></svg>End Session</>
+              )}
+            </button>
+          </div>
+          {todaySession ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              <div style={{ background: "var(--surface2)", borderRadius: 10, padding: "12px", textAlign: "center" }}>
+                <div style={{ fontSize: 18, fontWeight: 900, color: todaySession.totalPnl >= 0 ? "var(--green)" : "var(--red)", lineHeight: 1, marginBottom: 4 }}>
+                  {todaySession.totalPnl >= 0 ? "+" : ""}${Math.abs(todaySession.totalPnl).toFixed(0)}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>P&amp;L</div>
+              </div>
+              <div style={{ background: "var(--surface2)", borderRadius: 10, padding: "12px", textAlign: "center" }}>
+                <div style={{ fontSize: 18, fontWeight: 900, lineHeight: 1, marginBottom: 4 }}>
+                  {todaySession.tradeCount}<span style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>/{todaySession.tradeLimit}</span>
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>Trades</div>
+              </div>
+              <div style={{ background: "var(--surface2)", borderRadius: 10, padding: "12px", textAlign: "center" }}>
+                <div style={{ fontSize: 18, fontWeight: 900, color: todaySession.winRate !== null && todaySession.winRate >= 50 ? "var(--green)" : "var(--red)", lineHeight: 1, marginBottom: 4 }}>
+                  {todaySession.winRate !== null ? `${todaySession.winRate}%` : "—"}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>Win Rate</div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 8 }}>
+              {broker ? "No trades synced yet today — click End Session when done trading." : "Connect a broker in Settings to auto-sync trades."}
+            </div>
+          )}
+        </div>
 
         {/* Circuit Breaker Status Card */}
         {cbStatus && cbStatus.isActive && (() => {
