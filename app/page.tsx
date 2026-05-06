@@ -39,7 +39,7 @@ const STEPS = [
     step: "03", color: "var(--green)",
     icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="8" y="4" width="12" height="16" rx="2" stroke="var(--green)" strokeWidth="1.5"/><path d="M11 10h6M11 14h4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/><path d="M5 20l4 4 10-10" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: "Trade Journal",
-    desc: "Log every trade. See exactly which mental states make you money — and which destroy your edge. Most losing streaks have a pattern. This is where you find it.",
+    desc: "Log every trade — or let TradeMind auto-import from MT4, MT5, and TopstepX. See exactly which mental states make you money. Most losing streaks have a pattern. This is where you find it.",
   },
   {
     step: "04", color: "var(--purple)",
@@ -58,6 +58,12 @@ const STEPS = [
     icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 20l5-7 4 4 4-8 5 6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="4" width="20" height="16" rx="2" stroke="#8B5CF6" strokeWidth="1.5"/></svg>,
     title: "Deep Analytics",
     desc: "See your psychology vs P&L correlation, 90-day heatmap, and estimated losses you avoided. When you see the number, you stop skipping your check-in.",
+  },
+  {
+    step: "07", color: "var(--red)",
+    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="8" y="13" width="12" height="10" rx="2" stroke="var(--red)" strokeWidth="1.5"/><path d="M10 13V10a4 4 0 018 0v3" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/><circle cx="14" cy="18" r="1.5" fill="var(--red)"/></svg>,
+    title: "Circuit Breaker",
+    desc: "Set a daily trade limit. When you hit it, TradeMind hard-blocks your trading platforms — MT4, MT5, TopstepX — at the network level. No override. Resets at midnight. The lock is the point.",
   },
 ];
 
@@ -747,7 +753,7 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="reveal" style={{ textAlign: "center", marginBottom: 56 }}>
             <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>How TradeMind works</h2>
-            <p style={{ color: "var(--text-dim)", fontSize: 16 }}>Six layers of mental protection. One goal: stop losing money on days you should have stayed out.</p>
+            <p style={{ color: "var(--text-dim)", fontSize: 16 }}>Seven layers of mental protection. One goal: stop losing money on days you should have stayed out.</p>
           </div>
           <div className="how-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
             {STEPS.map((item, idx) => (
@@ -756,6 +762,97 @@ export default function LandingPage() {
                 <div className="font-bebas" style={{ fontSize: 36, color: item.color, lineHeight: 1, marginBottom: 8, textShadow: `0 0 20px ${item.color}40` }}>{item.step}</div>
                 <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, color: "var(--text)" }}>{item.title}</h3>
                 <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.7 }}>{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Platform Features */}
+      <section id="features" style={{ background: "var(--bg)", borderTop: "1px solid var(--border)", padding: "80px 24px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div className="reveal" style={{ textAlign: "center", marginBottom: 52 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,59,92,0.08)", border: "1px solid rgba(255,59,92,0.2)", borderRadius: 20, padding: "6px 16px", marginBottom: 20 }}>
+              <span style={{ fontSize: 12, color: "var(--red)", fontWeight: 700, letterSpacing: "0.1em" }}>THE FULL PLATFORM</span>
+            </div>
+            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>Every tool. One subscription.</h2>
+            <p style={{ color: "var(--text-dim)", fontSize: 16, maxWidth: 520, margin: "0 auto" }}>
+              TradeMind isn&apos;t a check-in app. It&apos;s a complete trading psychology platform — built for traders who take their edge seriously.
+            </p>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))", gap: 12 }}>
+            {[
+              {
+                bg: "rgba(255,59,92,0.08)", bd: "rgba(255,59,92,0.18)", color: "var(--red)", tag: "HARD ENFORCEMENT",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="6" y="10" width="12" height="11" rx="2" stroke="var(--red)" strokeWidth="1.5"/><path d="M9 10V7a3 3 0 016 0v3" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/><circle cx="12" cy="15.5" r="1.5" fill="var(--red)"/></svg>,
+                title: "Circuit Breaker",
+                desc: "Hit your daily limit and every connected broker gets hard-blocked — MT4, MT5, TopstepX — at the network level. Resets at midnight. No override exists by design.",
+              },
+              {
+                bg: "rgba(94,106,210,0.08)", bd: "rgba(94,106,210,0.18)", color: "var(--blue)", tag: "AUTOMATION",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/><path d="M9 4L12 1l3 3M15 20l-3 3-3-3" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                title: "Live Broker Sync",
+                desc: "Connect MT4, MT5, and TopstepX. Trades auto-import in real time — no manual logging, no missed entries, no data gaps.",
+              },
+              {
+                bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.18)", color: "var(--green)", tag: "REFLECTION",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="17" rx="2" stroke="var(--green)" strokeWidth="1.5"/><path d="M9 9h6M9 13h4M9 16.5l2 2 4-4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                title: "Session Recap",
+                desc: "Close your session with a structured debrief — mood rating, reflection note, and one thing to carry into tomorrow. Builds the data that makes insights real.",
+              },
+              {
+                bg: "rgba(255,176,32,0.08)", bd: "rgba(255,176,32,0.18)", color: "var(--amber)", tag: "COMPETITION",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="5" height="9" rx="1" stroke="var(--amber)" strokeWidth="1.5"/><rect x="9.5" y="8" width="5" height="13" rx="1" stroke="var(--amber)" strokeWidth="1.5"/><rect x="16" y="14" width="5" height="7" rx="1" stroke="var(--amber)" strokeWidth="1.5"/></svg>,
+                title: "Leaderboard",
+                desc: "Ranked by mental discipline — streaks, consistency score, check-in rate. The traders who do the work, visible at a glance.",
+              },
+              {
+                bg: "rgba(139,92,246,0.08)", bd: "rgba(139,92,246,0.18)", color: "#8B5CF6", tag: "ACCOUNTABILITY",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="#8B5CF6" strokeWidth="1.5"/><circle cx="17" cy="8" r="3" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M3 20c0-3.314 2.686-6 6-6h6c3.314 0 6 2.686 6 6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+                title: "Trading Circles",
+                desc: "Invite your group. Share morning scores, see who traded on a NO-TRADE day, and hold each other to a standard that actually sticks.",
+              },
+              {
+                bg: "rgba(94,106,210,0.08)", bd: "rgba(94,106,210,0.18)", color: "var(--blue)", tag: "REAL-TIME ALERTS",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2a6 6 0 016 6c0 3.5.7 5.5 2 7H4c1.3-1.5 2-3.5 2-7a6 6 0 016-6z" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/><path d="M10 19a2 2 0 104 0" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+                title: "Push Notifications",
+                desc: "Alerted when your circuit breaker trips, when your streak is at risk, when it&apos;s time to check in. Stays on you so you don&apos;t have to stay on yourself.",
+              },
+              {
+                bg: "rgba(255,176,32,0.08)", bd: "rgba(255,176,32,0.18)", color: "var(--amber)", tag: "CONSISTENCY",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-6l1-8z" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                title: "Streak Engine",
+                desc: "Daily streaks, at-risk warnings, and recovery nudges. Consistency is the compound interest of trading psychology — this makes it visible.",
+              },
+              {
+                bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.18)", color: "var(--green)", tag: "DISCIPLINE",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2" stroke="var(--green)" strokeWidth="1.5"/><path d="M8 7h8M8 11h8M8 15h5" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+                title: "Trading Playbook",
+                desc: "Write your rules. Review them pre-trade. Tag violations when you break them. Your playbook is the contract you make with yourself — enforced daily.",
+              },
+              {
+                bg: "rgba(94,106,210,0.08)", bd: "rgba(94,106,210,0.18)", color: "var(--blue)", tag: "DEEP ANALYSIS",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="14" height="18" rx="2" stroke="var(--blue)" strokeWidth="1.5"/><path d="M8 9h8M8 13h5M7 18l4-5 3 3 3-4" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                title: "Monthly Report",
+                desc: "Score trends, P&L correlation, win rate by mental state, most expensive patterns. A full behavioral summary — auto-generated, shareable.",
+              },
+              {
+                bg: "rgba(139,92,246,0.08)", bd: "rgba(139,92,246,0.18)", color: "#8B5CF6", tag: "CROSS-PLATFORM",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="3" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M9 18h6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/><path d="M9 8l2 2 4-4" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                title: "Works Everywhere",
+                desc: "Install as a PWA on iOS or Android from your browser — no app store needed. Works offline. Opens from your home screen like a native app.",
+              },
+            ].map((feature, i) => (
+              <div key={feature.title} className={`card card-lift reveal reveal-delay-${Math.min(i + 1, 4)}`} style={{ padding: "22px 24px", borderColor: feature.bd, display: "flex", gap: 16, alignItems: "flex-start" }}>
+                <div style={{ width: 42, height: 42, borderRadius: 10, background: feature.bg, border: `1px solid ${feature.bd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  {feature.icon}
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, color: feature.color, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>{feature.tag}</div>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>{feature.title}</h3>
+                  <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>{feature.desc}</p>
+                </div>
               </div>
             ))}
           </div>
