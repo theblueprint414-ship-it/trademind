@@ -48,9 +48,9 @@ function getVerdict(score: number) {
     glowHex: "#00E87A",
     bg: "rgba(0,232,122,0.06)",
     border: "rgba(0,232,122,0.25)",
-    desc: "Your mind is ready to trade. Stick to your plan and your trade limit.",
+    desc: "Your mind is sharp today. Execute your plan — no deviations.",
     iconType: "go" as const,
-    message: "You're in peak state. Execute with precision.",
+    message: "Peak state. Execute with full conviction.",
   };
   if (score >= 45) return {
     label: "CAUTION",
@@ -61,7 +61,7 @@ function getVerdict(score: number) {
     border: "rgba(255,176,32,0.25)",
     desc: "You can trade — A+ setups only. Consider cutting position size in half.",
     iconType: "caution" as const,
-    message: "Reduced size. High conviction only.",
+    message: "Trade smaller. Your A+ setups only.",
   };
   return {
     label: "NO-TRADE",
@@ -79,7 +79,7 @@ function getVerdict(score: number) {
 function getTips(score: number): { iconType: string; text: string }[] {
   if (score >= 70) return [
     { iconType: "plan", text: "Stick to your trade plan — no impulsive entries" },
-    { iconType: "break", text: "Take a 5-minute break every 90 minutes of screen time" },
+    { iconType: "break", text: "GO days are when overconfidence kills accounts — execute, don't improvise" },
     { iconType: "journal", text: "Journal every trade: entry reason, exit reason, emotion" },
   ];
   if (score >= 45) return [
@@ -88,9 +88,9 @@ function getTips(score: number): { iconType: string; text: string }[] {
     { iconType: "limit", text: "Set a tighter daily loss limit — stop early if you hit it" },
   ];
   return [
-    { iconType: "stop", text: "Do not open any trades today" },
-    { iconType: "write", text: "Write down what caused your low score" },
-    { iconType: "rest", text: "Rest, reset, and return stronger tomorrow" },
+    { iconType: "stop", text: "Do not open any trades today — the market will be there tomorrow" },
+    { iconType: "write", text: "Write down what's affecting your state — awareness is the first edge" },
+    { iconType: "rest", text: "Use today to review your playbook and study — that's not wasted time" },
   ];
 }
 
