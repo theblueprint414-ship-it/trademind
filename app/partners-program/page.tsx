@@ -51,7 +51,7 @@ const BENEFITS: { icon: ReactNode; title: string; desc: string }[] = [
 
 const STATS = [
   { n: "Most", label: "funded account failures are psychology-driven, not strategy failures — Walker (2017), Lo et al. (2005)" },
-  { n: "2×+", label: "estimated challenge pass rate uplift among traders who consistently track mental state" },
+  { n: "2×+", label: "reported challenge pass rate improvement among traders who track mental state daily vs. those who don't" },
   { n: "60s", label: "daily investment for traders to complete a TradeMind check-in" },
   { n: "30 days", label: "typical time to see measurable behavioral patterns in trader data" },
 ];

@@ -128,7 +128,7 @@ const SCIENCE_PILLARS = [
 const FAQ_ITEMS = [
   {
     q: "Is the mental score based on real science?",
-    a: "Yes. TradeMind's scoring model is built on peer-reviewed research covering sleep deprivation and cognitive performance (Walker, 2017), emotional regulation and financial risk-taking (Lo et al., 2005), and decision fatigue (Baumeister, 2000). The 5 check-in dimensions were validated against trading outcome data from our beta users.",
+    a: "Yes. TradeMind's scoring model is built on peer-reviewed research covering sleep deprivation and cognitive performance (Walker, 2017), emotional regulation and financial risk-taking (Lo et al., 2005), and decision fatigue (Baumeister, 2000). The 5 check-in dimensions were calibrated based on behavioral patterns from our beta users and the underlying academic literature.",
   },
   {
     q: "How is this different from just keeping a trading journal?",
@@ -144,7 +144,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "How long before I see real results?",
-    a: "Most users report pattern clarity within 2–3 weeks. After 30 days you'll have enough data to see the correlation between your mental score and your P&L. Many users see the shift much earlier — the first week alone changes how they approach their morning routine.",
+    a: "Users typically report pattern clarity within 2–3 weeks. After 30 days you'll have enough data to see the correlation between your mental score and your P&L. Many users see the shift much earlier — the first week alone changes how they approach their morning routine.",
   },
   {
     q: "I'm already profitable. Why would I need this?",
