@@ -5,7 +5,7 @@
   "crons": [
     {
       "path": "/api/cron/circuit-breaker-reset",
-      "schedule": "0 * * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/cron/reminder",
@@ -29,7 +29,7 @@
     },
     {
       "path": "/api/cron/auto-sync-journal",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }
