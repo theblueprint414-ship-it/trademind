@@ -702,7 +702,8 @@ function PremiumUpsell() {
           <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "#8B5CF6", marginBottom: 16 }}>TRADEMIND INCLUDES</div>
           {["Mental score trend (30/90 day)", "Psychology vs P&L correlation chart", "90-day calendar heatmap", "Estimated saved losses counter", "Discipline % and streak tracking", "AI Coach Alex, broker sync & behavioral pattern detection"].map((f) => (
             <div key={f} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 14, color: "var(--text-dim)", textAlign: "left" }}>
-              <span style={{ color: "var(--green)", flexShrink: 0 }}>✓</span>{f}
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "var(--green)", flexShrink: 0 }}><path d="M2.5 7l3 3 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              {f}
             </div>
           ))}
           <div style={{ marginTop: 20, display: "flex", alignItems: "baseline", gap: 6 }}>

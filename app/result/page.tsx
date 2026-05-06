@@ -210,7 +210,12 @@ function ShareCardModal({ score, verdict, onClose }: { score: number; verdict: R
             onClick={copyText}
             style={{ padding: "14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--text)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}
           >
-            {copied ? "✓ Copied!" : "Copy text"}
+            {copied ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Copied
+              </span>
+            ) : "Copy text"}
           </button>
         </div>
 
@@ -659,7 +664,12 @@ function ResultContent() {
                   disabled={satOutSaving}
                   style={{ width: "100%", padding: "13px", borderRadius: 10, background: "transparent", border: `1.5px solid ${verdict.color}`, color: verdict.color, fontSize: 14, fontWeight: 700, cursor: satOutSaving ? "not-allowed" : "pointer", opacity: satOutSaving ? 0.6 : 1 }}
                 >
-                  {satOutSaving ? "Saving..." : "I sat out today ✓"}
+                  {satOutSaving ? "Saving..." : (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                      I sat out today
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5 6.5-6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    </span>
+                  )}
                 </button>
               </div>
             )
@@ -705,7 +715,12 @@ function ResultContent() {
                 <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
                   {(["long", "short"] as const).map((s) => (
                     <button key={s} onClick={() => setQlSide(s)} style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${qlSide === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--border)"}`, background: qlSide === s ? (s === "long" ? "rgba(0,232,122,0.08)" : "rgba(255,59,92,0.08)") : "var(--surface2)", color: qlSide === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 700, transition: "all 0.15s" }}>
-                      {s === "long" ? "↑ Long" : "↓ Short"}
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                        <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">
+                          {s === "long" ? <path d="M4.5 1L8.5 8H.5L4.5 1z"/> : <path d="M4.5 8L.5 1H8.5L4.5 8z"/>}
+                        </svg>
+                        {s === "long" ? "Long" : "Short"}
+                      </span>
                     </button>
                   ))}
                 </div>

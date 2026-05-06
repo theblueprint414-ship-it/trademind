@@ -202,7 +202,7 @@ export default function LeaderboardPage() {
                       <span style={{ fontSize: 10, fontWeight: 700, color: "var(--blue)", background: "rgba(94,106,210,0.15)", borderRadius: 4, padding: "2px 6px" }}>YOU</span>
                     )}
                     {entry.checkedInToday && (
-                      <span style={{ fontSize: 10, color: "var(--green)" }}>✓ today</span>
+                      <span style={{ fontSize: 10, color: "var(--green)", display: "inline-flex", alignItems: "center", gap: 3 }}><svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M1.5 5l2 2 5-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>today</span>
                     )}
                   </div>
                   <div style={{ display: "flex", gap: 12, marginTop: 4 }}>

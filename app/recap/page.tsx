@@ -7,11 +7,19 @@ import BottomNav from "@/components/BottomNav";
 type Step = "mood" | "playbook" | "pnl" | "lesson" | "done";
 
 const MOODS = [
-  { value: 0, emoji: "😤", label: "Rough", sub: "Hard day, better tomorrow", color: "var(--red)" },
-  { value: 1, emoji: "😐", label: "Okay",  sub: "Nothing special",           color: "var(--text-muted)" },
-  { value: 2, emoji: "🙂", label: "Good",  sub: "Solid, stayed disciplined",  color: "var(--blue)" },
-  { value: 3, emoji: "🔥", label: "Great", sub: "In the zone all session",     color: "var(--green)" },
+  { value: 0, label: "Rough", sub: "Hard day, better tomorrow",   color: "var(--red)"        },
+  { value: 1, label: "Okay",  sub: "Nothing special",             color: "var(--text-muted)" },
+  { value: 2, label: "Good",  sub: "Solid, stayed disciplined",   color: "var(--blue)"       },
+  { value: 3, label: "Great", sub: "In the zone all session",     color: "var(--green)"      },
 ];
+
+function MoodIcon({ value, size = 28 }: { value: number; size?: number }) {
+  const s = { width: size, height: size, viewBox: "0 0 28 28", fill: "none" as const };
+  if (value === 0) return <svg {...s}><circle cx="14" cy="14" r="11" stroke="currentColor" strokeWidth="1.6"/><path d="M9.5 10.5L11.5 12.5M11.5 10.5L9.5 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M16.5 10.5L18.5 12.5M18.5 10.5L16.5 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><path d="M9.5 19C11 17 17 17 18.5 19" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>;
+  if (value === 1) return <svg {...s}><circle cx="14" cy="14" r="11" stroke="currentColor" strokeWidth="1.6"/><circle cx="10" cy="12" r="1.4" fill="currentColor"/><circle cx="18" cy="12" r="1.4" fill="currentColor"/><path d="M10 18h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>;
+  if (value === 2) return <svg {...s}><circle cx="14" cy="14" r="11" stroke="currentColor" strokeWidth="1.6"/><circle cx="10" cy="12" r="1.4" fill="currentColor"/><circle cx="18" cy="12" r="1.4" fill="currentColor"/><path d="M10 17C11.5 19.5 16.5 19.5 18 17" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>;
+  return <svg {...s}><circle cx="14" cy="14" r="11" stroke="currentColor" strokeWidth="1.6"/><circle cx="10" cy="11.5" r="1.6" fill="currentColor"/><circle cx="18" cy="11.5" r="1.6" fill="currentColor"/><path d="M9 16C10.5 20 17.5 20 19 16" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>;
+}
 
 const PLAYBOOK_OPTIONS = [
   { value: 2, label: "Followed them",  sub: "Stuck to my rules",      color: "var(--green)",  icon: <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M4 9l3.5 3.5 7-7" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
@@ -128,7 +136,9 @@ export default function RecapPage() {
             <div style={{ textAlign: "center", paddingTop: 20 }}>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 20, animation: "score-pop 0.5s cubic-bezier(0.34,1.56,0.64,1) both" }}>
                 {moodObj ? (
-                  <span style={{ fontSize: 56, lineHeight: 1 }}>{moodObj.emoji}</span>
+                  <div style={{ width: 72, height: 72, borderRadius: "50%", background: `${moodObj.color}18`, border: `1.5px solid ${moodObj.color}40`, display: "flex", alignItems: "center", justifyContent: "center", color: moodObj.color }}>
+                    <MoodIcon value={moodObj.value} size={40} />
+                  </div>
                 ) : (
                   <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1.5px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--green)" }}>
                     <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M5 14l6.5 6.5 11.5-11" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -147,7 +157,7 @@ export default function RecapPage() {
                   {moodObj && (
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={{ fontSize: 13, color: "var(--text-dim)" }}>Session mood</span>
-                      <span style={{ fontSize: 14, fontWeight: 700, color: moodObj.color }}>{moodObj.emoji} {moodObj.label}</span>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: moodObj.color }}>{moodObj.label}</span>
                     </div>
                   )}
                   {playbookObj && (
@@ -195,7 +205,7 @@ export default function RecapPage() {
                   style={{ color: mood === m.value ? m.color : "var(--text)" }}
                   onClick={() => { setMood(m.value); setTimeout(() => goTo("playbook"), 220); }}
                 >
-                  <span style={{ fontSize: 28, lineHeight: 1 }}>{m.emoji}</span>
+                  <span style={{ flexShrink: 0, color: mood === m.value ? m.color : "var(--text-muted)" }}><MoodIcon value={m.value} /></span>
                   <div style={{ textAlign: "left" }}>
                     <div style={{ fontSize: 15, fontWeight: 700 }}>{m.label}</div>
                     <div style={{ fontSize: 12, color: "var(--text-muted)" }}>{m.sub}</div>

@@ -517,7 +517,12 @@ export default function SettingsPage() {
             </div>
           </div>
           <button className="btn-primary" onClick={saveTradeLimit} style={{ width: "100%" }} disabled={tradeLimit === savedLimit}>
-            {saved ? "✓ Saved!" : "Save limit"}
+            {saved ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Saved
+              </span>
+            ) : "Save limit"}
           </button>
           {savedLimit !== tradeLimit && <p style={{ fontSize: 12, color: "var(--amber)", marginTop: 8, textAlign: "center" }}>Unsaved changes</p>}
         </section>
@@ -697,7 +702,12 @@ export default function SettingsPage() {
                   disabled={challengeSaving}
                   onClick={() => saveChallenge(true)}
                 >
-                  {challengeSaving ? "Saving..." : challengeSaved ? "✓ Saved!" : challengeEnabled ? "Update Challenge" : "Enable Challenge Mode"}
+                  {challengeSaving ? "Saving..." : challengeSaved ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      Saved
+                    </span>
+                  ) : challengeEnabled ? "Update Challenge" : "Enable Challenge Mode"}
                 </button>
                 {challengeEnabled && (
                   <button
@@ -778,11 +788,11 @@ export default function SettingsPage() {
                         <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                           <button onClick={() => updateAttemptOutcome(attempt.id, "passed")}
                             style={{ flex: 1, padding: "6px 0", borderRadius: 7, border: "1px solid rgba(0,232,122,0.3)", background: "rgba(0,232,122,0.08)", color: "var(--green)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                            ✓ Mark Passed
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M1.5 5.5l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>Mark Passed</span>
                           </button>
                           <button onClick={() => updateAttemptOutcome(attempt.id, "failed")}
                             style={{ flex: 1, padding: "6px 0", borderRadius: 7, border: "1px solid rgba(255,59,92,0.3)", background: "rgba(255,59,92,0.08)", color: "var(--red)", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
-                            ✗ Mark Failed
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 2l7 7M9 2l-7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>Mark Failed</span>
                           </button>
                         </div>
                       )}
@@ -800,7 +810,7 @@ export default function SettingsPage() {
             <div className="card" style={{ maxWidth: 420, width: "100%", padding: 28, border: "1px solid rgba(94,106,210,0.25)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                 <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>ARCHIVE CHALLENGE</div>
-                <button onClick={() => setShowArchiveModal(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20 }}>×</button>
+                <button onClick={() => setShowArchiveModal(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
               </div>
               <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 20 }}>
                 Save the current challenge to your history before starting a new one.
@@ -811,7 +821,11 @@ export default function SettingsPage() {
                   {(["passed", "failed"] as const).map((o) => (
                     <button key={o} onClick={() => setArchiveOutcome(o)}
                       style={{ flex: 1, padding: "10px 0", borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: "pointer", border: `1.5px solid ${archiveOutcome === o ? (o === "passed" ? "var(--green)" : "var(--red)") : "var(--border)"}`, background: archiveOutcome === o ? (o === "passed" ? "rgba(0,232,122,0.1)" : "rgba(255,59,92,0.1)") : "var(--surface2)", color: archiveOutcome === o ? (o === "passed" ? "var(--green)" : "var(--red)") : "var(--text-muted)", textTransform: "capitalize" }}>
-                      {o === "passed" ? "✓ Passed" : "✗ Failed"}
+                      {o === "passed" ? (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>Passed</span>
+                      ) : (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>Failed</span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -1032,7 +1046,7 @@ export default function SettingsPage() {
                       setTimeout(() => setCbTokenCopied(false), 2000);
                     }}
                   >
-                    {cbTokenCopied ? "✓ Copied!" : "Copy"}
+                    {cbTokenCopied ? <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>Copied</span> : "Copy"}
                   </button>
                 </div>
                 <p style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>Paste this into the Chrome extension or MT4/MT5 EA input. Regenerating invalidates the old token.</p>
@@ -1325,7 +1339,12 @@ export default function SettingsPage() {
                 <input type="text" placeholder="e.g. Did you review your watchlist?" value={customQuestion} onChange={(e) => setCustomQuestion(e.target.value)} style={{ marginBottom: 8, fontSize: 13 }} />
                 <div style={{ display: "flex", gap: 8 }}>
                   <button className="btn-primary" style={{ fontSize: 12, padding: "8px 16px" }} onClick={() => { localStorage.setItem("trademind_custom_q", customQuestion.trim()); setCustomQSaved(true); setTimeout(() => setCustomQSaved(false), 2000); }}>
-                    {customQSaved ? "✓ Saved!" : "Save"}
+                    {customQSaved ? (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        Saved
+                      </span>
+                    ) : "Save"}
                   </button>
                   {customQuestion && <button className="btn-ghost" style={{ fontSize: 12, padding: "8px 14px" }} onClick={() => { setCustomQuestion(""); localStorage.removeItem("trademind_custom_q"); }}>Remove</button>}
                 </div>
@@ -1445,7 +1464,7 @@ export default function SettingsPage() {
                         setReferralCopied(true);
                         setTimeout(() => setReferralCopied(false), 2000);
                       }}>
-                      {referralCopied ? "✓ Copied!" : "Copy"}
+                      {referralCopied ? <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>Copied</span> : "Copy"}
                     </button>
                   </div>
                   <div style={{ display: "flex", gap: 8 }}>
@@ -1516,7 +1535,7 @@ export default function SettingsPage() {
                     {typeof window !== "undefined" ? window.location.origin : "https://trademindedge.com"}/u/{userId}
                   </div>
                   <button className={profileLinkCopied ? "btn-primary" : "btn-ghost"} style={{ padding: "10px 16px", fontSize: 13, flexShrink: 0 }} onClick={copyProfileLink}>
-                    {profileLinkCopied ? "✓ Copied!" : "Copy"}
+                    {profileLinkCopied ? <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>Copied</span> : "Copy"}
                   </button>
                 </div>
               )}
@@ -1550,7 +1569,10 @@ export default function SettingsPage() {
             <div style={{ marginTop: 16 }}>
               {freezeUsed ? (
                 <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(0,232,122,0.06)", border: "1px solid rgba(0,232,122,0.2)", fontSize: 13, color: "var(--green)", fontWeight: 600 }}>
-                  ✓ Streak protected for today
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5 6.5-6.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    Streak protected for today
+                  </span>
                 </div>
               ) : freezeAvailable ? (
                 <button

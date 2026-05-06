@@ -201,7 +201,7 @@ export default function VsTradezellaPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 20, alignItems: "center", maxWidth: 700, margin: "0 auto 28px" }}>
             <div style={{ background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.2)", borderRadius: 12, padding: "20px 16px" }}>
               <div style={{ fontSize: 11, color: "var(--red)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 8 }}>BEFORE</div>
-              <div style={{ fontSize: 24 }}>😤</div>
+              <div style={{ display: "flex", justifyContent: "center" }}><svg width="32" height="32" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#FF3B5C" strokeWidth="1.6"/><path d="M10 11c0-1 .8-1.5 1.5-1.5M17.5 9.5c.7 0 1.5.5 1.5 1.5" stroke="#FF3B5C" strokeWidth="1.4" strokeLinecap="round"/><path d="M10.5 11l-1-1.5M17.5 11l1-1.5" stroke="#FF3B5C" strokeWidth="1.3" strokeLinecap="round"/><path d="M10 19.5c1-2 6.8-2 8 0" stroke="#FF3B5C" strokeWidth="1.5" strokeLinecap="round"/></svg></div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, lineHeight: 1.5 }}>Slept 5h. Down yesterday. Stressed. Open charts anyway.</div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
@@ -211,14 +211,14 @@ export default function VsTradezellaPage() {
             </div>
             <div style={{ background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.2)", borderRadius: 12, padding: "20px 16px" }}>
               <div style={{ fontSize: 11, color: "var(--red)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 8 }}>AFTER</div>
-              <div style={{ fontSize: 24 }}>📉</div>
+              <div style={{ display: "flex", justifyContent: "center" }}><svg width="32" height="32" viewBox="0 0 28 28" fill="none"><polyline points="4,8 10,16 16,12 24,20" stroke="#FF3B5C" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><path d="M20 20h4v-4" stroke="#FF3B5C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, lineHeight: 1.5 }}>Tradezella shows you the chart of what you did. The damage is done.</div>
             </div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 20, alignItems: "center", maxWidth: 700, margin: "0 auto" }}>
             <div style={{ background: "rgba(0,232,122,0.06)", border: "1px solid rgba(0,232,122,0.25)", borderRadius: 12, padding: "20px 16px" }}>
               <div style={{ fontSize: 11, color: "var(--green)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 8 }}>BEFORE</div>
-              <div style={{ fontSize: 24 }}>😤</div>
+              <div style={{ display: "flex", justifyContent: "center" }}><svg width="32" height="32" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="12" stroke="#FF3B5C" strokeWidth="1.6"/><path d="M10 11c0-1 .8-1.5 1.5-1.5M17.5 9.5c.7 0 1.5.5 1.5 1.5" stroke="#FF3B5C" strokeWidth="1.4" strokeLinecap="round"/><path d="M10.5 11l-1-1.5M17.5 11l1-1.5" stroke="#FF3B5C" strokeWidth="1.3" strokeLinecap="round"/><path d="M10 19.5c1-2 6.8-2 8 0" stroke="#FF3B5C" strokeWidth="1.5" strokeLinecap="round"/></svg></div>
               <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, lineHeight: 1.5 }}>Slept 5h. Down yesterday. Stressed.</div>
             </div>
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>

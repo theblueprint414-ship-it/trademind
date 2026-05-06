@@ -118,7 +118,7 @@ export default function JoinCirclePage() {
 
         {state === "done" && (
           <div style={{ textAlign: "center" }}>
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(0,208,132,0.15)", border: "2px solid var(--green)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", fontSize: 28 }}>✓</div>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(0,208,132,0.15)", border: "2px solid var(--green)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 20px", color: "var(--green)" }}><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M5 14l6.5 6.5 11.5-11" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
             <div className="font-bebas" style={{ fontSize: 32, color: "var(--green)", marginBottom: 8 }}>You&apos;re in!</div>
             <p style={{ fontSize: 14, color: "var(--text-dim)" }}>Redirecting to Partners...</p>
           </div>

@@ -15,10 +15,10 @@ interface RecapEntry {
 }
 
 const MOODS = [
-  { label: "Rough", emoji: "😔", color: "#FF3B5C" },
-  { label: "Okay", emoji: "😐", color: "#FFB020" },
-  { label: "Good", emoji: "🙂", color: "#5e6ad2" },
-  { label: "Great", emoji: "😄", color: "#00E87A" },
+  { label: "Rough", color: "#FF3B5C" },
+  { label: "Okay", color: "#FFB020" },
+  { label: "Good", color: "#5e6ad2" },
+  { label: "Great", color: "#00E87A" },
 ];
 
 const PLAYBOOK = [
@@ -82,7 +82,9 @@ export default function RecapHistoryPage() {
             <div className="card" style={{ padding: "14px 16px", textAlign: "center" }}>
               <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", marginBottom: 4 }}>AVG MOOD</div>
               <div style={{ fontSize: 24, lineHeight: 1 }}>
-                {avgMood !== null ? MOODS[Math.round(avgMood)]?.emoji ?? "—" : "—"}
+                {avgMood !== null
+                  ? <span style={{ fontSize: 13, fontWeight: 700, color: MOODS[Math.round(avgMood)]?.color }}>{MOODS[Math.round(avgMood)]?.label ?? "—"}</span>
+                  : <span style={{ color: "var(--text-muted)" }}>—</span>}
               </div>
             </div>
           </div>
@@ -123,7 +125,11 @@ export default function RecapHistoryPage() {
                           {(recap.pnl ?? 0) >= 0 ? "+" : ""}${Math.abs(recap.pnl ?? 0).toFixed(0)}
                         </span>
                       )}
-                      {mood && <span style={{ fontSize: 20 }}>{mood.emoji}</span>}
+                      {mood && (
+                        <span style={{ fontSize: 11, fontWeight: 700, color: mood.color, background: `${mood.color}18`, border: `1px solid ${mood.color}40`, borderRadius: 6, padding: "2px 7px", letterSpacing: "0.04em" }}>
+                          {mood.label}
+                        </span>
+                      )}
                     </div>
                   </div>
 

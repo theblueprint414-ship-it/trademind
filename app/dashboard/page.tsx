@@ -517,7 +517,7 @@ export default function DashboardPage() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 10, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.25)", marginBottom: 16 }}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><circle cx="7" cy="7" r="6" stroke="var(--red)" strokeWidth="1.3"/><path d="M7 4v3.5M7 10v.5" stroke="var(--red)" strokeWidth="1.4" strokeLinecap="round"/></svg>
             <span style={{ fontSize: 13, color: "var(--text-dim)", flex: 1 }}>Couldn&apos;t load your data — check your connection and <button onClick={() => { setDataError(false); window.location.reload(); }} style={{ background: "none", border: "none", color: "var(--red)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>retry</button></span>
-            <button onClick={() => setDataError(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 16, lineHeight: 1, padding: "0 2px" }}>×</button>
+            <button onClick={() => setDataError(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex" }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg></button>
           </div>
         )}
 
@@ -770,9 +770,9 @@ export default function DashboardPage() {
                   setShowUpgradeNudge(false);
                   localStorage.setItem("trademind_upgrade_nudge_dismissed", String(Date.now()));
                 }}
-                style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20, lineHeight: 1, padding: "6px 8px" }}
+                style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "6px 8px", display: "flex", alignItems: "center", justifyContent: "center" }}
                 aria-label="Dismiss"
-              >×</button>
+              ><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
             </div>
           </div>
         )}
@@ -1340,8 +1340,17 @@ export default function DashboardPage() {
         <div style={{ position: "fixed", inset: 0, zIndex: 500, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", display: "flex", alignItems: "flex-end", justifyContent: "center", padding: "0 0 env(safe-area-inset-bottom, 0px)" }} onClick={() => setShowQuickTrade(false)}>
           <div style={{ background: "var(--surface)", borderRadius: "20px 20px 0 0", padding: "24px 24px 32px", width: "100%", maxWidth: 520, border: "1px solid var(--border)", borderBottom: "none", animation: "slide-up 0.25s ease" }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <div style={{ fontSize: 16, fontWeight: 700 }}>{qtSaved ? "Trade logged ✓" : "Quick-Add Trade"}</div>
-              <button onClick={() => setShowQuickTrade(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 20, cursor: "pointer", lineHeight: 1, padding: 4 }}>×</button>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>
+                {qtSaved ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    Trade logged
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="var(--green)" strokeWidth="1.3" strokeOpacity="0.5"/><path d="M5 8l2.5 2.5 3.5-4" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  </span>
+                ) : "Quick-Add Trade"}
+              </div>
+              <button onClick={() => setShowQuickTrade(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M5 5l8 8M13 5l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+              </button>
             </div>
 
             {qtSaved ? (
@@ -1375,7 +1384,12 @@ export default function DashboardPage() {
                   <div style={{ display: "flex", gap: 8 }}>
                     {(["long", "short"] as const).map((s) => (
                       <button key={s} onClick={() => setQtSide(s)} style={{ flex: 1, padding: "10px 0", borderRadius: 8, border: `1.5px solid ${qtSide === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--border)"}`, background: qtSide === s ? (s === "long" ? "rgba(0,232,122,0.08)" : "rgba(255,59,92,0.08)") : "var(--surface2)", color: qtSide === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 700, textTransform: "capitalize", transition: "all 0.15s" }}>
-                        {s === "long" ? "↑ Long" : "↓ Short"}
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">
+                            {s === "long" ? <path d="M4.5 1L8.5 8H.5L4.5 1z"/> : <path d="M4.5 8L.5 1H8.5L4.5 8z"/>}
+                          </svg>
+                          {s === "long" ? "Long" : "Short"}
+                        </span>
                       </button>
                     ))}
                   </div>

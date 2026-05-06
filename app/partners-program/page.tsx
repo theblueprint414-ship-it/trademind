@@ -166,7 +166,7 @@ export default function PartnersProgram() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
                   {t.features.map((f) => (
                     <div key={f} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 13, color: "var(--text-dim)" }}>
-                      <span style={{ color: "var(--green)", fontWeight: 700, flexShrink: 0 }}>✓</span>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "var(--green)", flexShrink: 0 }}><path d="M2.5 7l3 3 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       {f}
                     </div>
                   ))}

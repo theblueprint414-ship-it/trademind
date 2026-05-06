@@ -193,7 +193,8 @@ export default function CirclesPage() {
         <div className="card" style={{ padding: 20, marginBottom: 24, border: "1px solid rgba(94,106,210,0.2)", textAlign: "left" }}>
           {["See teammates' GO/CAUTION/NO-TRADE verdicts every morning", "Knowing others see your score keeps you honest", "Invite anyone via a shareable link", "No personal trade data is ever shared"].map((f) => (
             <div key={f} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "9px 0", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)" }}>
-              <span style={{ color: "var(--blue)", flexShrink: 0 }}>✓</span>{f}
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "var(--blue)", flexShrink: 0 }}><path d="M2.5 7l3 3 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              {f}
             </div>
           ))}
         </div>
@@ -333,7 +334,7 @@ export default function CirclesPage() {
                       cursor: "pointer",
                     }}
                   >
-                    {inviteCopied === circle.id ? "✓ Copied!" : "Invite"}
+                    {inviteCopied === circle.id ? <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>Copied</span> : "Invite"}
                   </button>
                   {circle.isCreator ? (
                     <>

@@ -62,7 +62,11 @@ export default function ContactPage() {
         {/* Contact form */}
         {sent ? (
           <div style={{ background: "rgba(0,232,122,0.06)", border: "1px solid rgba(0,232,122,0.2)", borderRadius: 14, padding: "32px 24px", textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>✓</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1.5px solid rgba(0,232,122,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--green)" }}>
+                <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M5 13l6 6 10-10" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </div>
+            </div>
             <div style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>Email client opened</div>
             <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>
               Your message is pre-filled — just hit send. If your email client didn&apos;t open,{" "}

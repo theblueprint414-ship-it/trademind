@@ -525,7 +525,7 @@ export default function JournalPage() {
       <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(94,106,210,0.2)" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>{label}</div>
-          <button onClick={onCancel} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20 }}>×</button>
+          <button onClick={onCancel} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -881,7 +881,7 @@ export default function JournalPage() {
               <div className="card" style={{ maxWidth: 420, width: "100%", padding: 28, border: "1px solid rgba(94,106,210,0.25)" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                   <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em", color: "var(--blue)" }}>PRE-TRADE CHECK</div>
-                  <button onClick={() => setShowPreCheck(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20 }}>×</button>
+                  <button onClick={() => setShowPreCheck(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 20 }}>
                   {PRE_QUESTIONS.map((item, i) => (
@@ -957,7 +957,7 @@ export default function JournalPage() {
             <div className="card" style={{ maxWidth: 440, width: "100%", padding: 28, border: "1px solid rgba(94,106,210,0.25)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
                 <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>IMPORT CSV</div>
-                <button onClick={() => { setShowCsvImport(false); setCsvResult(null); setCsvError(null); }} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 20 }}>×</button>
+                <button onClick={() => { setShowCsvImport(false); setCsvResult(null); setCsvError(null); }} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
               </div>
 
               {!csvResult ? (

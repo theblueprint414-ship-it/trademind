@@ -294,7 +294,7 @@ export default function PartnersPage() {
             {inviteLink ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, color: "var(--green)", fontSize: 14 }}>
-                  <span style={{ fontSize: 20 }}>✓</span>
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7.5" stroke="currentColor" strokeWidth="1.4" strokeOpacity="0.5"/><path d="M5.5 9l2.5 2.5 5-5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   Link created and sent to WhatsApp
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
@@ -303,7 +303,7 @@ export default function PartnersPage() {
                     style={{ fontSize: 12, padding: "8px 16px", color: copiedInvite ? "var(--green)" : undefined }}
                     onClick={() => { navigator.clipboard.writeText(inviteLink); setCopiedInvite(true); setTimeout(() => setCopiedInvite(false), 2000); }}
                   >
-                    {copiedInvite ? "✓ Copied!" : "Copy link"}
+                    {copiedInvite ? <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>Copied</span> : "Copy link"}
                   </button>
                   <button
                     className="btn-ghost"
@@ -445,7 +445,7 @@ export default function PartnersPage() {
                             style={{ fontSize: 12, padding: "6px 12px", color: copiedCircle === circle.id ? "var(--green)" : undefined }}
                             onClick={() => { navigator.clipboard.writeText(circleInviteLinks[circle.id]); setCopiedCircle(circle.id); setTimeout(() => setCopiedCircle(null), 2000); }}
                           >
-                            {copiedCircle === circle.id ? "✓ Copied!" : "Copy link"}
+                            {copiedCircle === circle.id ? <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>Copied</span> : "Copy link"}
                           </button>
                         )}
                         <button

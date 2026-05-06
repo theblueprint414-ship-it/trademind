@@ -123,7 +123,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
               Member since {new Date(profile.memberSince).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
               {profile.badgeEarned && (
                 <span style={{ marginLeft: 10, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: profile.badgeTier === "elite" ? "#8B5CF6" : "#FFB020", background: profile.badgeTier === "elite" ? "rgba(139,92,246,0.12)" : "rgba(255,176,32,0.1)", border: `1px solid ${profile.badgeTier === "elite" ? "rgba(139,92,246,0.3)" : "rgba(255,176,32,0.25)"}`, borderRadius: 6, padding: "2px 8px" }}>
-                  {profile.badgeTier === "elite" ? "ELITE EDGE" : "✓ VERIFIED MENTAL EDGE"}
+                  {profile.badgeTier === "elite" ? "ELITE EDGE" : "VERIFIED MENTAL EDGE"}
                 </span>
               )}
             </div>

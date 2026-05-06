@@ -399,7 +399,12 @@ export default function CheckinPage() {
             </div>
 
             <button className="btn-primary" onClick={handleSliderNext} style={{ width: "100%", fontSize: 16, padding: 16 }}>
-              {isLast ? "Finish ✓" : "Continue →"}
+              {isLast ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  Finish
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" strokeOpacity="0.5"/><path d="M5 8l2.5 2.5 3.5-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </span>
+              ) : "Continue →"}
             </button>
           </div>
         )}

@@ -430,12 +430,12 @@ export default function LandingPage() {
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, flexWrap: "wrap" }} className="hero-stat-row">
               {[
-                { icon: "✓", text: "7-day free trial — cancel before day 8, pay nothing" },
-                { icon: "✓", text: "Popular with FTMO, TopStep, Apex & other funded traders" },
-              ].map((item) => (
-                <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-muted)", letterSpacing: "-0.011em" }}>
-                  <span style={{ color: "var(--green)", fontWeight: 700 }}>{item.icon}</span>
-                  {item.text}
+                "7-day free trial — cancel before day 8, pay nothing",
+                "Popular with FTMO, TopStep, Apex & other funded traders",
+              ].map((text) => (
+                <div key={text} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-muted)", letterSpacing: "-0.011em" }}>
+                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: "var(--green)", flexShrink: 0 }}><path d="M2 6.5l3 3 6-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  {text}
                 </div>
               ))}
             </div>
