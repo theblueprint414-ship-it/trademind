@@ -70,7 +70,7 @@ export default function DrawdownRecovery() {
                 "Set a 'recovery target' — arbitrary goals create deadline pressure that degrades decisions",
               ].map((s, i) => (
                 <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", fontSize: 13, color: "var(--text-dim)" }}>
-                  <span style={{ color: "var(--red)", fontWeight: 700, flexShrink: 0 }}>✕</span>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M3 3l8 8M11 3l-8 8" stroke="var(--red)" strokeWidth="1.6" strokeLinecap="round"/></svg>
                   {s}
                 </div>
               ))}

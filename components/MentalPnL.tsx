@@ -51,7 +51,9 @@ export default function MentalPnL() {
 
   if (error === "premium") return (
     <div style={{ textAlign: "center", padding: "32px 20px", border: "1px solid rgba(139,92,246,0.2)", borderRadius: 14, background: "rgba(139,92,246,0.04)" }}>
-      <div style={{ fontSize: 28, marginBottom: 12 }}>🧠</div>
+      <div style={{ marginBottom: 12, display: "flex", justifyContent: "center", color: "#8B5CF6" }}>
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 6C11.6 6 8 9.6 8 14c0 2 .7 3.8 1.9 5.2C8.7 20.3 8 21.9 8 23.6V26h16v-2.4c0-1.7-.7-3.3-1.9-4.4C23.3 17.8 24 16 24 14c0-4.4-3.6-8-8-8z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/><path d="M12 18h8M13 21h6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+      </div>
       <div style={{ fontWeight: 700, marginBottom: 8 }}>Mental P&L is a Premium feature</div>
       <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 20, lineHeight: 1.6 }}>
         See exactly how much your mental state costs you — or earns you — in real dollars.

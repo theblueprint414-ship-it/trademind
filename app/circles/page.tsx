@@ -309,9 +309,9 @@ export default function CirclesPage() {
                       </button>
                       <button
                         onClick={() => { setRenaming(null); setRenameValue(""); }}
-                        style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12, color: "var(--text-muted)", cursor: "pointer" }}
+                        style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12, color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                       >
-                        ✕
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
                       </button>
                     </div>
                   ) : (
@@ -340,17 +340,17 @@ export default function CirclesPage() {
                     <>
                       <button
                         onClick={() => { setRenaming(circle.id); setRenameValue(circle.name); }}
-                        style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12, color: "var(--text-muted)", cursor: "pointer" }}
+                        style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12, color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                         title="Rename circle"
                       >
-                        ✎
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 9.5l1.5-1.5 5-5L10 4.5l-5 5L3.5 11 2 9.5z" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/><path d="M7.5 2.5l2 2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
                       </button>
                       <button
                         onClick={() => setDeleteConfirm(circle.id)}
-                        style={{ background: "transparent", border: "1px solid rgba(255,59,92,0.25)", borderRadius: 8, padding: "6px 10px", fontSize: 12, color: "var(--red)", cursor: "pointer" }}
+                        style={{ background: "transparent", border: "1px solid rgba(255,59,92,0.25)", borderRadius: 8, padding: "6px 10px", fontSize: 12, color: "var(--red)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}
                         title="Delete circle"
                       >
-                        ✕
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
                       </button>
                     </>
                   ) : (

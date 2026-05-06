@@ -150,7 +150,7 @@ export default function LeaderboardPage() {
         {loading ? (
           <div style={{ textAlign: "center", padding: "48px 0", color: "var(--text-muted)", fontSize: 14 }}>Loading...</div>
         ) : allEntries.length === 0 ? (
-          <div style={{ background: "var(--surface)", border: "1px solid rgba(255,176,32,0.2)", borderRadius: 14, padding: "44px 28px", textAlign: "center", background: "linear-gradient(135deg, rgba(255,176,32,0.04), var(--surface))" }}>
+          <div style={{ background: "linear-gradient(135deg, rgba(255,176,32,0.04), var(--surface))", border: "1px solid rgba(255,176,32,0.2)", borderRadius: 14, padding: "44px 28px", textAlign: "center" }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
               <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(255,176,32,0.1)", border: "1px solid rgba(255,176,32,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg width="30" height="30" viewBox="0 0 30 30" fill="none">

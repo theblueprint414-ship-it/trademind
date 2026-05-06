@@ -409,8 +409,9 @@ function BestDaysCard({ data }: { data: DayOfWeekEntry[] }) {
               boxShadow: isBest ? "0 0 16px rgba(0,232,122,0.1)" : "none",
             }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                <div style={{ width: 36, fontSize: 12, fontWeight: 700, color: isBest ? "var(--green)" : "var(--text-muted)", flexShrink: 0 }}>
-                  {d.day}{isBest ? " ★" : ""}
+                <div style={{ width: 36, fontSize: 12, fontWeight: 700, color: isBest ? "var(--green)" : "var(--text-muted)", flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
+                  {d.day}
+                  {isBest && <svg width="9" height="9" viewBox="0 0 9 9" fill="var(--green)"><path d="M4.5 1l.9 2.1 2.1.2-1.5 1.4.4 2.1-1.9-1-1.9 1 .4-2.1L1.5 3.3l2.1-.2z"/></svg>}
                 </div>
                 <div style={{ flex: 1, height: 8, background: "var(--surface3)", borderRadius: 4, overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${barPct}%`, background: barColor, borderRadius: 4, transition: "width 0.6s ease" }} />
@@ -492,7 +493,7 @@ function BehavioralPatternsCard({ data }: { data: BehavioralPatterns }) {
           const border = p.severity === "red" ? "rgba(255,59,92,0.2)" : "rgba(255,176,32,0.2)";
           return (
             <div key={p.label} style={{ padding: "16px 20px", borderRadius: 12, background: bg, border: `1px solid ${border}`, display: "flex", gap: 14, alignItems: "flex-start" }}>
-              <span style={{ fontSize: 20, flexShrink: 0 }}>{p.icon}</span>
+              <span style={{ flexShrink: 0, display: "flex", alignItems: "center", color: c }}>{p.icon}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
                   <span style={{ fontWeight: 700, fontSize: 14 }}>{p.label}</span>
@@ -582,8 +583,9 @@ function CohortBenchmarkCard({ data }: { data: BenchmarkData }) {
             <div key={m.label}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-muted)", marginBottom: 6 }}>
                 <span style={{ fontWeight: 700, letterSpacing: "0.06em" }}>{m.label.toUpperCase()}</span>
-                <span style={{ color: youBetter ? "var(--green)" : "var(--red)", fontWeight: 700 }}>
-                  {youBetter ? "▲" : "▼"} {diff}{m.suffix} vs avg
+                <span style={{ color: youBetter ? "var(--green)" : "var(--red)", fontWeight: 700, display: "inline-flex", alignItems: "center", gap: 3 }}>
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor">{youBetter ? <path d="M4 1l3.5 6H.5z"/> : <path d="M4 7L.5 1h7z"/>}</svg>
+                  {diff}{m.suffix} vs avg
                 </span>
               </div>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
@@ -724,6 +726,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
   const [trendRange, setTrendRange] = useState<30 | 90>(30);
+  const [networkError, setNetworkError] = useState(false);
 
   useEffect(() => {
     fetch("/api/analytics")
@@ -736,10 +739,9 @@ export default function AnalyticsPage() {
         if (!d) return;
         setIsPremium(true);
         setData(d);
-        // Fetch benchmarks in parallel after analytics loads
         fetch("/api/benchmarks").then((r) => r.json()).then((b) => setBenchmarks(b)).catch(() => {});
       })
-      .catch(() => { setIsPremium(true); })
+      .catch(() => { setNetworkError(true); setIsPremium(true); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -900,6 +902,15 @@ export default function AnalyticsPage() {
       </div>
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
+
+        {/* Network error banner */}
+        {networkError && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 10, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.25)", marginBottom: 16 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><circle cx="7" cy="7" r="6" stroke="var(--red)" strokeWidth="1.3"/><path d="M7 4v3.5M7 10v.5" stroke="var(--red)" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            <span style={{ fontSize: 13, color: "var(--text-dim)", flex: 1 }}>Couldn&apos;t load analytics — check your connection and <button onClick={() => { setNetworkError(false); window.location.reload(); }} style={{ background: "none", border: "none", color: "var(--red)", fontWeight: 700, cursor: "pointer", padding: 0, fontSize: 13 }}>retry</button></span>
+            <button onClick={() => setNetworkError(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex" }}><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg></button>
+          </div>
+        )}
 
         {/* Top KPI row */}
         <div className="analytics-kpi-grid">

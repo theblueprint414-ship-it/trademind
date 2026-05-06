@@ -280,7 +280,6 @@ export default function CoachPage() {
                   {[0, 1, 2].map((i) => (
                     <div key={i} style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--text-muted)", animation: `pulse 1.2s ease-in-out ${i * 0.2}s infinite` }} />
                   ))}
-                  <style>{`@keyframes pulse{0%,100%{opacity:0.3}50%{opacity:1}}`}</style>
                 </div>
               </div>
             </div>

@@ -292,7 +292,7 @@ export default function ChallengeTracker({ config, verdict }: { config: Challeng
           onClick={savePnl}
           style={{ height: 36, padding: "0 14px", background: saved ? "rgba(0,232,122,0.1)" : "var(--surface2)", border: `1px solid ${saved ? "rgba(0,232,122,0.3)" : "var(--border)"}`, borderRadius: 8, fontSize: 12, color: saved ? "var(--green)" : "var(--text-dim)", cursor: "pointer", whiteSpace: "nowrap", fontWeight: 600, minHeight: "unset", minWidth: "unset", transition: "all 0.2s" }}
         >
-          {saved ? "Saved ✓" : "Update"}
+          {saved ? <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>Saved</span> : "Update"}
         </button>
       </div>
     </div>

@@ -291,7 +291,7 @@ export default function PlaybookPage() {
                           autoFocus style={{ flex: 1, fontSize: 14 }}
                         />
                         <button onClick={() => saveEdit(rule.id)} className="btn-primary" style={{ padding: "6px 14px", fontSize: 12 }}>Save</button>
-                        <button onClick={() => setEditingId(null)} style={{ background: "none", border: "1px solid var(--border)", borderRadius: 6, color: "var(--text-muted)", cursor: "pointer", padding: "6px 10px", fontSize: 12 }}>✕</button>
+                        <button onClick={() => setEditingId(null)} style={{ background: "none", border: "1px solid var(--border)", borderRadius: 6, color: "var(--text-muted)", cursor: "pointer", padding: "6px 10px", display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
                       </div>
                     ) : (
                       <div style={{ fontSize: 14, color: rule.enabled ? "var(--text)" : "var(--text-muted)", lineHeight: 1.5 }}>

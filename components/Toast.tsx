@@ -26,8 +26,17 @@ export default function Toast() {
 
   if (toasts.length === 0) return null;
 
-  const icon = (type: ToastItem["type"]) =>
-    type === "success" ? "✓" : type === "error" ? "✕" : "·";
+  const icon = (type: ToastItem["type"]) => {
+    if (type === "success") return (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="var(--green)" strokeWidth="1.3"/><path d="M4 7l2 2 4-4" stroke="var(--green)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+    );
+    if (type === "error") return (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="#ff6b6b" strokeWidth="1.3"/><path d="M7 4v3.5M7 10v.5" stroke="#ff6b6b" strokeWidth="1.4" strokeLinecap="round"/></svg>
+    );
+    return (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="var(--text-muted)" strokeWidth="1.3"/><path d="M7 6.5v4M7 4v.5" stroke="var(--text-muted)" strokeWidth="1.4" strokeLinecap="round"/></svg>
+    );
+  };
 
   const borderColor = (type: ToastItem["type"]) =>
     type === "success" ? "rgba(0,232,122,0.28)" : type === "error" ? "rgba(255,59,92,0.28)" : "rgba(255,255,255,0.1)";
@@ -70,7 +79,7 @@ export default function Toast() {
             gap: 10,
           }}
         >
-          <span style={{ fontSize: 15, flexShrink: 0, fontWeight: 700 }}>{icon(t.type)}</span>
+          <span style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>{icon(t.type)}</span>
           {t.message}
         </div>
       ))}
