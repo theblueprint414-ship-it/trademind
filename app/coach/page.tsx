@@ -35,7 +35,7 @@ function renderMarkdown(text: string, showCursor = false): React.ReactNode {
                 const isLastItem = lIdx === bulletLines.length - 1;
                 return (
                   <li key={lIdx} style={{ display: "flex", gap: 8, marginBottom: 3, alignItems: "flex-start" }}>
-                    <span style={{ color: "var(--blue)", flexShrink: 0, marginTop: 2 }}>•</span>
+                    <span style={{ color: "var(--blue)", flexShrink: 0, marginTop: 6, lineHeight: 1 }}><svg width="5" height="5" viewBox="0 0 5 5" fill="none"><circle cx="2.5" cy="2.5" r="2.5" fill="currentColor"/></svg></span>
                     <span>
                       {inlineStyles(content)}
                       {showCursor && isLastPara && isLastItem && <span className="coach-cursor" />}

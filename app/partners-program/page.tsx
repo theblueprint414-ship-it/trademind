@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -15,34 +16,34 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://trademindedge.com/partners-program" },
 };
 
-const BENEFITS = [
+const BENEFITS: { icon: ReactNode; title: string; desc: string }[] = [
   {
-    icon: "📈",
+    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><polyline points="4,24 12,14 18,18 28,8" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M22 8h6v6" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: "Higher trader success rates",
     desc: "Traders who track mental state pass funded challenges at measurably higher rates. Partnering firms offer TradeMind as a recommended tool — helping their traders outperform the industry average.",
   },
   {
-    icon: "🔗",
+    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M13 19a5 5 0 007.07 0l4-4a5 5 0 00-7.07-7.07l-2 2" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round"/><path d="M19 13a5 5 0 00-7.07 0l-4 4a5 5 0 007.07 7.07l2-2" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round"/></svg>,
     title: "Co-branded onboarding",
     desc: "Your traders onboard to TradeMind with your firm's branding, rules pre-loaded, and a custom challenge tracker calibrated to your specific drawdown limits and profit targets.",
   },
   {
-    icon: "📊",
+    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="5" y="20" width="5" height="7" rx="1" fill="#8B5CF6" opacity="0.7"/><rect x="13.5" y="13" width="5" height="14" rx="1" fill="#8B5CF6" opacity="0.85"/><rect x="22" y="7" width="5" height="20" rx="1" fill="#8B5CF6"/></svg>,
     title: "Aggregate performance insights",
     desc: "Anonymous, aggregate data on your trader cohort's mental state patterns and their correlation with rule violations and challenge failures. Actionable intelligence for your risk and education teams.",
   },
   {
-    icon: "🎓",
+    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M16 6L4 12l12 6 12-6-12-6z" stroke="#8B5CF6" strokeWidth="1.8" strokeLinejoin="round"/><path d="M8 15v7c0 2 3.6 4 8 4s8-2 8-4v-7" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round"/><path d="M28 12v6" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round"/></svg>,
     title: "Educational content collaboration",
     desc: "Co-produce blog posts, webinars, and email sequences specifically for your trader community. Position your firm as a leader in trader development, not just capital allocation.",
   },
   {
-    icon: "💡",
+    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="14" r="7" stroke="#8B5CF6" strokeWidth="1.8"/><path d="M13 21.5h6M14 25h4" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round"/><path d="M16 11v3l2 2" stroke="#8B5CF6" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: "Referral revenue sharing",
     desc: "Earn revenue on every TradeMind subscription generated through your partnership. Your traders get a discounted rate; you earn on each one. Transparent, monthly payouts.",
   },
   {
-    icon: "🤝",
+    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="11" cy="11" r="4" stroke="#8B5CF6" strokeWidth="1.8"/><circle cx="21" cy="11" r="4" stroke="#8B5CF6" strokeWidth="1.8"/><path d="M4 26c0-4 3.1-7 7-7h10c3.9 0 7 3 7 7" stroke="#8B5CF6" strokeWidth="1.8" strokeLinecap="round"/></svg>,
     title: "Listed on TradeMind's partner page",
     desc: "Featured placement on TradeMind's broker connection page and partner directory. Reach traders actively looking for prop firm opportunities.",
   },
@@ -141,7 +142,7 @@ export default function PartnersProgram() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20 }}>
             {BENEFITS.map((b) => (
               <div key={b.title} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "22px 24px" }}>
-                <div style={{ fontSize: 28, marginBottom: 12 }}>{b.icon}</div>
+                <div style={{ marginBottom: 12 }}>{b.icon}</div>
                 <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 8 }}>{b.title}</div>
                 <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>{b.desc}</p>
               </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "Security & Data Privacy — TradeMind",
@@ -36,9 +37,9 @@ const Check = () => (
   </svg>
 );
 
-const sections = [
+const sections: { icon: ReactNode; title: string; badge: string; body: string; points: string[] }[] = [
   {
-    icon: "🔐",
+    icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="9" y="17" width="18" height="13" rx="3" stroke="var(--green)" strokeWidth="1.6"/><path d="M12 17v-5a6 6 0 0112 0v5" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round"/><circle cx="18" cy="23.5" r="1.5" fill="var(--green)"/></svg>,
     title: "No Passwords, Ever",
     badge: "Zero-knowledge auth",
     body: "TradeMind uses magic-link authentication only. We never create, store, or transmit a password on your behalf. Your email is used solely to send a one-time login link — after that, your session is managed by a signed, httpOnly cookie that we cannot read the contents of. If someone breaches our database, there are no passwords to steal.",
@@ -49,7 +50,7 @@ const sections = [
     ],
   },
   {
-    icon: "🏦",
+    icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M6 15h24M9 15V27M15 15V27M21 15V27M27 15V27M6 27h24M18 6l12 9H6l12-9z" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: "Broker Credentials Never Touch Our Servers",
     badge: "Third-party OAuth",
     body: "When you connect your broker via the MetaAPI integration, your brokerage username and password are entered directly on MetaAPI's encrypted OAuth flow — they are never transmitted to or stored on TradeMind servers. We only receive a read-only access token, scoped to trade data. We never have the ability to place trades on your behalf.",
@@ -60,7 +61,7 @@ const sections = [
     ],
   },
   {
-    icon: "💳",
+    icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="4" y="9" width="28" height="18" rx="3" stroke="var(--green)" strokeWidth="1.6"/><path d="M4 15h28" stroke="var(--green)" strokeWidth="1.6"/><rect x="8" y="21" width="6" height="2.5" rx="1" fill="var(--green)"/></svg>,
     title: "Payments via LemonSqueezy — We Never See Your Card",
     badge: "PCI DSS compliant",
     body: "All billing is handled by LemonSqueezy, a PCI DSS Level 1 certified payment processor — the highest standard in payment security. Your card number, CVV, and billing address are entered directly on LemonSqueezy's hosted checkout. TradeMind's servers never receive, process, or store any payment card data.",
@@ -72,7 +73,7 @@ const sections = [
     ],
   },
   {
-    icon: "🗄️",
+    icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><ellipse cx="18" cy="10" rx="12" ry="4" stroke="var(--green)" strokeWidth="1.6"/><path d="M6 10v6c0 2.2 5.4 4 12 4s12-1.8 12-4v-6" stroke="var(--green)" strokeWidth="1.6"/><path d="M6 16v6c0 2.2 5.4 4 12 4s12-1.8 12-4v-6" stroke="var(--green)" strokeWidth="1.6"/><circle cx="24" cy="22" r="1.5" fill="var(--green)"/></svg>,
     title: "Encrypted Database at Rest",
     badge: "Turso / LibSQL",
     body: "Your check-in scores, journal entries, and psychology data are stored in Turso (LibSQL), a distributed SQLite database with encryption at rest enabled by default. Data is replicated across multiple regions for durability. We do not store any data in plaintext on our servers.",
@@ -84,7 +85,7 @@ const sections = [
     ],
   },
   {
-    icon: "🏗️",
+    icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><rect x="5" y="7" width="26" height="7" rx="2" stroke="var(--green)" strokeWidth="1.6"/><rect x="5" y="18" width="26" height="7" rx="2" stroke="var(--green)" strokeWidth="1.6"/><circle cx="27" cy="10.5" r="1.5" fill="var(--green)"/><circle cx="27" cy="21.5" r="1.5" fill="var(--green)"/></svg>,
     title: "Hosted on Vercel — SOC 2 Type 2 Infrastructure",
     badge: "Enterprise cloud",
     body: "TradeMind is deployed on Vercel's infrastructure, which maintains SOC 2 Type 2 certification. This means independent auditors have verified Vercel's security controls for availability, confidentiality, and processing integrity. All traffic is served over HTTPS with automatic TLS certificate management.",
@@ -96,7 +97,7 @@ const sections = [
     ],
   },
   {
-    icon: "📦",
+    icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M5 12l13-7 13 7v14l-13 7-13-7V12z" stroke="var(--green)" strokeWidth="1.6" strokeLinejoin="round"/><path d="M5 12l13 7 13-7M18 19v12" stroke="var(--green)" strokeWidth="1.6"/><path d="M11.5 8.5l13 7" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round"/></svg>,
     title: "Your Data Belongs to You",
     badge: "Full portability",
     body: "You own your data, full stop. You can export everything — check-in history, scores, journal entries, and P&L — at any time from your Settings page. If you delete your account, all your data is permanently removed from our database within 30 days. We do not archive deleted accounts.",
@@ -108,7 +109,7 @@ const sections = [
     ],
   },
   {
-    icon: "🚫",
+    icon: <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><path d="M18 4L6 9v9c0 7 5.2 13.5 12 15.5C25.8 31.5 31 25 31 18V9L18 4z" stroke="var(--green)" strokeWidth="1.6" strokeLinejoin="round"/><path d="M13 18l3 3 7-7" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: "We Never Sell Your Data",
     badge: "Privacy first",
     body: "TradeMind's business model is subscriptions — not advertising, not data brokerage. Your trading psychology data, P&L figures, journal entries, and behavioral patterns are yours alone. We do not sell, license, or share identifiable user data with any third party, advertiser, or data broker. Period.",
@@ -178,7 +179,7 @@ export default function SecurityPage() {
           {sections.map((s) => (
             <div key={s.title} className="card sec-card" style={{ padding: "28px 28px", border: "1px solid rgba(0,232,122,0.1)" }}>
               <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
-                <div style={{ fontSize: 36, lineHeight: 1, flexShrink: 0, marginTop: -2 }}>{s.icon}</div>
+                <div style={{ flexShrink: 0, marginTop: -2 }}>{s.icon}</div>
                 <div style={{ flex: 1, minWidth: 240 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, flexWrap: "wrap" }}>
                     <h2 style={{ fontSize: 18, fontWeight: 700, margin: 0 }}>{s.title}</h2>

@@ -167,22 +167,22 @@ export default function HelpPage() {
         {/* Quick links */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 14, marginBottom: 64 }}>
           <a href="#score" className="help-card">
-            <div style={{ fontSize: 24, marginBottom: 10 }}>🚀</div>
+            <div style={{ marginBottom: 10, color: "var(--blue)" }}><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 3c0 0 6 5.5 6 11a6 6 0 01-12 0C8 8.5 14 3 14 3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><path d="M8 18l-4 4M20 18l4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><circle cx="14" cy="14" r="2" fill="currentColor"/></svg></div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Getting Started</div>
             <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Score, verdicts, streaks</div>
           </a>
           <a href="#journal" className="help-card">
-            <div style={{ fontSize: 24, marginBottom: 10 }}>📓</div>
+            <div style={{ marginBottom: 10, color: "var(--blue)" }}><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="6" y="3" width="16" height="22" rx="2" stroke="currentColor" strokeWidth="1.6"/><path d="M10 9h8M10 14h8M10 19h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><rect x="4" y="5" width="3" height="18" rx="1" fill="currentColor" opacity="0.3"/></svg></div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Trade Journal</div>
             <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Logging trades, CSV, sync</div>
           </a>
           <a href="#broker" className="help-card">
-            <div style={{ fontSize: 24, marginBottom: 10 }}>🔌</div>
+            <div style={{ marginBottom: 10, color: "var(--blue)" }}><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M10 14a4 4 0 005.66 0l4-4a4 4 0 00-5.66-5.66l-2 2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><path d="M18 14a4 4 0 01-5.66 0l-4 4a4 4 0 005.66 5.66l2-2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Broker Connection</div>
             <div style={{ fontSize: 12, color: "var(--text-dim)" }}>MT4/MT5 via MetaAPI</div>
           </a>
           <a href="#pricing" className="help-card">
-            <div style={{ fontSize: 24, marginBottom: 10 }}>💳</div>
+            <div style={{ marginBottom: 10, color: "var(--blue)" }}><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="3" y="7" width="22" height="14" rx="3" stroke="currentColor" strokeWidth="1.6"/><path d="M3 12h22" stroke="currentColor" strokeWidth="1.6"/><rect x="6" y="17" width="5" height="2" rx="1" fill="currentColor"/></svg></div>
             <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 4 }}>Plans &amp; Pricing</div>
             <div style={{ fontSize: 12, color: "var(--text-dim)" }}>Free · TradeMind $39/mo</div>
           </a>
