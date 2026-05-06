@@ -1094,7 +1094,7 @@ export default function DashboardPage() {
                 label: "Check-in",
                 sub: "Daily mental score",
                 color: "var(--blue)", hex: "#4F8EF7",
-                chip: todayScore !== null ? { label: verdict?.label ?? "Done", color: verdict?.color ?? "var(--green)" } : streak > 0 ? { label: `${streak}🔥`, color: "var(--amber)" } : null,
+                chip: todayScore !== null ? { label: verdict?.label ?? "Done", color: verdict?.color ?? "var(--green)" } : streak > 0 ? { label: `${streak}d`, color: "var(--amber)" } : null,
               },
               {
                 href: "/journal",

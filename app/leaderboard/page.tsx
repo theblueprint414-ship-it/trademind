@@ -150,19 +150,29 @@ export default function LeaderboardPage() {
         {loading ? (
           <div style={{ textAlign: "center", padding: "48px 0", color: "var(--text-muted)", fontSize: 14 }}>Loading...</div>
         ) : allEntries.length === 0 ? (
-          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "40px 24px", textAlign: "center" }}>
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: 12, color: "var(--amber)" }}>
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 5l3.5 7 7.5 1.1-5.5 5.3 1.3 7.6L20 22l-6.8 3.5 1.3-7.6-5.5-5.3 7.5-1.1z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M13 33h14M20 26v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-          </div>
-            <div style={{ fontWeight: 700, fontSize: 16, color: "var(--text)", marginBottom: 8 }}>No public traders yet</div>
-            <div style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 20 }}>Be the first to join the leaderboard and show your discipline.</div>
+          <div style={{ background: "var(--surface)", border: "1px solid rgba(255,176,32,0.2)", borderRadius: 14, padding: "44px 28px", textAlign: "center", background: "linear-gradient(135deg, rgba(255,176,32,0.04), var(--surface))" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+              <div style={{ width: 60, height: 60, borderRadius: "50%", background: "rgba(255,176,32,0.1)", border: "1px solid rgba(255,176,32,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="30" height="30" viewBox="0 0 30 30" fill="none">
+                  <rect x="5" y="14" width="6" height="11" rx="1.5" stroke="var(--amber)" strokeWidth="1.6"/>
+                  <rect x="12" y="10" width="6" height="15" rx="1.5" stroke="var(--amber)" strokeWidth="1.6"/>
+                  <rect x="19" y="16" width="6" height="9" rx="1.5" stroke="var(--amber)" strokeWidth="1.6"/>
+                  <path d="M15 6l1.2 2.4 2.6.4-1.9 1.8.5 2.6L15 12l-2.4 1.2.5-2.6-1.9-1.8 2.6-.4z" stroke="var(--amber)" strokeWidth="1.3" strokeLinejoin="round"/>
+                </svg>
+              </div>
+            </div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: "var(--text)", marginBottom: 10 }}>Be the first on the board</div>
+            <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.75, marginBottom: 24, maxWidth: 340, margin: "0 auto 24px" }}>
+              The leaderboard ranks traders by mental discipline — streaks, check-in rate, and consistency score. Not P&L. The traders who actually do the work.
+            </p>
             {publicProfile === false && (
               <button
                 onClick={togglePublic}
                 disabled={toggling}
-                style={{ padding: "10px 24px", borderRadius: 10, border: "none", background: "var(--blue)", color: "white", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
+                style={{ padding: "12px 28px", borderRadius: 10, border: "none", background: "linear-gradient(135deg, var(--amber), #e8960a)", color: "#0a0800", fontSize: 14, fontWeight: 700, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}
               >
-                Join Leaderboard
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.3 3 3.2.5-2.3 2.2.5 3.1L7 8.4 4.3 9.8l.5-3.1L2.5 4.5l3.2-.5L7 1z" fill="currentColor"/></svg>
+                Join the Leaderboard
               </button>
             )}
           </div>

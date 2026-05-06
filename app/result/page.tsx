@@ -95,11 +95,11 @@ function getTips(score: number): { iconType: string; text: string }[] {
 }
 
 const MILESTONE_MESSAGES: Record<number, { title: string; sub: string }> = {
-  7: { title: "7-Day Streak 🔥", sub: "One week of mental discipline. Most traders never make it this far." },
-  14: { title: "14 Days Straight 🔥🔥", sub: "Two weeks. You're building something real. Your data is getting sharper every day." },
-  30: { title: "30-Day Streak 🏆", sub: "One month of showing up. This consistency is rare — and it shows in your patterns." },
-  60: { title: "60 Days 🏆🏆", sub: "Two months of daily mental discipline. This is elite-level commitment." },
-  100: { title: "100-Day Legend 👑", sub: "100 consecutive check-ins. You are what consistency looks like." },
+  7:   { title: "7-Day Streak",    sub: "One week of mental discipline. Most traders never make it this far." },
+  14:  { title: "14 Days Straight", sub: "Two weeks. You're building something real. Your data is getting sharper every day." },
+  30:  { title: "30-Day Streak",   sub: "One month of showing up. This consistency is rare — and it shows in your patterns." },
+  60:  { title: "60 Days",         sub: "Two months of daily mental discipline. This is elite-level commitment." },
+  100: { title: "100-Day Legend",  sub: "100 consecutive check-ins. You are what consistency looks like." },
 };
 
 function AnimatedScoreRing({ score, color, glowHex }: { score: number; color: string; glowHex: string }) {
@@ -871,7 +871,14 @@ function ResultContent() {
             <div style={{ background: "var(--surface)", borderRadius: 20, padding: 28, width: "100%", maxWidth: 340, border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 20 }} onClick={(e) => e.stopPropagation()}>
               {/* Streak card preview */}
               <div style={{ borderRadius: 16, padding: "28px 24px", background: streak >= 30 ? "linear-gradient(135deg,rgba(139,92,246,0.15),rgba(99,102,241,0.1))" : streak >= 14 ? "linear-gradient(135deg,rgba(94,106,210,0.15),rgba(99,102,241,0.08))" : "linear-gradient(135deg,rgba(255,176,32,0.12),rgba(255,59,92,0.06))", border: `1px solid ${streak >= 30 ? "rgba(139,92,246,0.35)" : streak >= 14 ? "rgba(94,106,210,0.3)" : "rgba(255,176,32,0.3)"}`, textAlign: "center" }}>
-                <div style={{ fontSize: 52, marginBottom: 8 }}>{streak >= 30 ? "🏆" : streak >= 14 ? "⚡" : "🔥"}</div>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                  {streak >= 30
+                    ? <svg width="52" height="52" viewBox="0 0 52 52" fill="none"><path d="M26 6l4.5 9.5 10.5 1.5-7.5 7.5 1.8 10.5L26 30l-9.3 5 1.8-10.5L11 17l10.5-1.5z" stroke={streak >= 60 ? "#8B5CF6" : "#5e6ad2"} strokeWidth="2" strokeLinejoin="round" fill={streak >= 60 ? "rgba(139,92,246,0.15)" : "rgba(94,106,210,0.12)"}/><path d="M26 42v6M18 46h16" stroke={streak >= 60 ? "#8B5CF6" : "#5e6ad2"} strokeWidth="2" strokeLinecap="round"/></svg>
+                    : streak >= 14
+                    ? <svg width="52" height="52" viewBox="0 0 52 52" fill="none"><path d="M26 6L14 26h12l-2 20 18-24H30z" fill="rgba(94,106,210,0.15)" stroke="#5e6ad2" strokeWidth="2" strokeLinejoin="round"/></svg>
+                    : <svg width="52" height="52" viewBox="0 0 52 52" fill="none"><path d="M28 4C28 4 40 16 40 28a14 14 0 01-28 0c0-4 1.2-7 3-10 0 5 3 8.5 6 8.5C17 18 28 4 28 4z" fill="rgba(255,176,32,0.18)" stroke="var(--amber)" strokeWidth="2"/></svg>
+                  }
+                </div>
                 <div className="font-bebas" style={{ fontSize: 72, lineHeight: 1, color: streak >= 30 ? "#8B5CF6" : streak >= 14 ? "#5e6ad2" : "var(--amber)", textShadow: `0 0 30px ${streak >= 30 ? "rgba(139,92,246,0.5)" : streak >= 14 ? "rgba(94,106,210,0.5)" : "rgba(255,176,32,0.5)"}` }}>{streak}</div>
                 <div style={{ fontSize: 14, fontWeight: 800, letterSpacing: "0.12em", color: "var(--text)", marginBottom: 8 }}>DAY STREAK</div>
                 <div style={{ fontSize: 13, color: "var(--text-muted)" }}>

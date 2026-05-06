@@ -473,9 +473,9 @@ export default function LandingPage() {
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 10 }}>
-                  {[{ val: "7🔥", label: "STREAK", color: "var(--amber)" }, { val: "76", label: "7-DAY AVG", color: "var(--green)" }, { val: "14", label: "THIS MONTH", color: "var(--blue)" }].map((s) => (
+                  {[{ val: "7", label: "STREAK", color: "var(--amber)", suffix: <svg width="10" height="12" viewBox="0 0 10 12" fill="none" style={{ display:"inline-block",verticalAlign:"middle",marginLeft:1 }}><path d="M6 1C6 1 9 4 9 7a4 4 0 01-8 0c0-1.2.4-2 1-3 0 1.5 1 2.5 2 2.5C3.5 4 6 1 6 1z" fill="var(--amber)" opacity="0.85"/></svg> }, { val: "76", label: "7-DAY AVG", color: "var(--green)", suffix: null }, { val: "14", label: "THIS MONTH", color: "var(--blue)", suffix: null }].map((s) => (
                     <div key={s.label} style={{ background: "var(--surface2)", borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
-                      <div className="font-bebas" style={{ fontSize: 18, color: s.color, lineHeight: 1, marginBottom: 2 }}>{s.val}</div>
+                      <div className="font-bebas" style={{ fontSize: 18, color: s.color, lineHeight: 1, marginBottom: 2 }}>{s.val}{s.suffix}</div>
                       <div style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.06em" }}>{s.label}</div>
                     </div>
                   ))}
@@ -1211,13 +1211,15 @@ export default function LandingPage() {
           </div>
           <div className="reveal" style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 40 }}>
             {[
-              { icon: "❌", text: "Not a trading course — it won't teach you strategies or setups." },
-              { icon: "❌", text: "Not a strategy system — your edge is yours. This just tells you when to use it." },
-              { icon: "❌", text: "Not a journal that tells you what went wrong after the loss. You already know." },
-            ].map((item) => (
-              <div key={item.text} style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", background: "rgba(255,59,92,0.04)", border: "1px solid rgba(255,59,92,0.12)", borderRadius: 12 }}>
-                <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
-                <span style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.5, letterSpacing: "-0.011em" }}>{item.text}</span>
+              "Not a trading course — it won't teach you strategies or setups.",
+              "Not a strategy system — your edge is yours. This just tells you when to use it.",
+              "Not a journal that tells you what went wrong after the loss. You already know.",
+            ].map((text) => (
+              <div key={text} style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", background: "rgba(255,59,92,0.04)", border: "1px solid rgba(255,59,92,0.12)", borderRadius: 12 }}>
+                <span style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.25)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="var(--red)" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                </span>
+                <span style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.5, letterSpacing: "-0.011em" }}>{text}</span>
               </div>
             ))}
           </div>

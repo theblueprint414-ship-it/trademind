@@ -337,8 +337,16 @@ export default function PartnersPage() {
             {loadingPartners ? (
               <div style={{ fontSize: 14, color: "var(--text-muted)", padding: "16px 0" }}>Loading...</div>
             ) : partners.length === 0 ? (
-              <div className="card" style={{ padding: 24, textAlign: "center", border: "1px dashed var(--border)" }}>
-                <p style={{ fontSize: 14, color: "var(--text-dim)" }}>No partners yet. Invite someone above.</p>
+              <div className="card" style={{ padding: "32px 24px", textAlign: "center", border: "1px solid rgba(139,92,246,0.18)", background: "linear-gradient(135deg, rgba(139,92,246,0.04), var(--surface))" }}>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+                  <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="9" cy="9" r="4" stroke="#8B5CF6" strokeWidth="1.6"/><circle cx="19" cy="9" r="4" stroke="#8B5CF6" strokeWidth="1.6"/><path d="M2 23c0-3.866 3.134-7 7-7h8c3.866 0 7 3.134 7 7" stroke="#8B5CF6" strokeWidth="1.6" strokeLinecap="round"/></svg>
+                  </div>
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>No accountability partners yet</div>
+                <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 0, maxWidth: 300, margin: "0 auto" }}>
+                  When someone accepts your invite, their morning score shows here — and yours shows on theirs. Discipline compounds when someone is watching.
+                </p>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -359,7 +367,15 @@ export default function PartnersPage() {
                           transition: "all 0.2s",
                         }}
                       >
-                        {nudged[p.id] ? "✓ Nudged" : nudging[p.id] ? "..." : "Nudge 👋"}
+                        {nudged[p.id] ? (
+                          <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>Nudged
+                          </span>
+                        ) : nudging[p.id] ? "..." : (
+                          <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 1v3M5.5 7v.5M3 3.5L1.5 2M8 3.5L9.5 2M2 6.5H1M10 6.5H9M3.5 9l-1 1M7.5 9l1 1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>Nudge
+                          </span>
+                        )}
                       </button>
                     )}
                   </div>
@@ -395,9 +411,16 @@ export default function PartnersPage() {
 
             {/* Circle list */}
             {circles.length === 0 ? (
-              <div className="card" style={{ padding: 24, textAlign: "center", border: "1px dashed var(--border)" }}>
-                <div style={{ fontSize: 28, marginBottom: 8 }}>🔵</div>
-                <p style={{ fontSize: 14, color: "var(--text-dim)" }}>No circles yet. Create one and invite your group.</p>
+              <div className="card" style={{ padding: "28px 24px", textAlign: "center", border: "1px solid rgba(139,92,246,0.18)", background: "linear-gradient(135deg, rgba(139,92,246,0.04), var(--surface))" }}>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="9" stroke="#8B5CF6" strokeWidth="1.5"/><circle cx="7.5" cy="10" r="2" stroke="#8B5CF6" strokeWidth="1.3"/><circle cx="14.5" cy="10" r="2" stroke="#8B5CF6" strokeWidth="1.3"/><path d="M4 18c0-2 1.6-3.5 3.5-3.5h7c1.9 0 3.5 1.5 3.5 3.5" stroke="#8B5CF6" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                  </div>
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 8 }}>No circles yet</div>
+                <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, maxWidth: 300, margin: "0 auto 0" }}>
+                  Create a circle and invite your group. Everyone sees each other&apos;s morning score — making it impossible to pretend you&apos;re ready when you&apos;re not.
+                </p>
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
