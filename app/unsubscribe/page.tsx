@@ -52,7 +52,9 @@ function UnsubscribeContent() {
 
         {status === "error" && (
           <>
-            <div style={{ fontSize: 48, marginBottom: 16 }}>❌</div>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(255,59,92,0.1)", border: "1.5px solid rgba(255,59,92,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--red)" }}>
+              <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M6 6l16 16M22 6L6 22" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/></svg>
+            </div>
             <h1 className="font-bebas" style={{ fontSize: 32, marginBottom: 12 }}>Invalid Link</h1>
             <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 28 }}>
               This unsubscribe link is invalid or expired.<br />

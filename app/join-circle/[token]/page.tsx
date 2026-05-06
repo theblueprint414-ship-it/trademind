@@ -110,7 +110,9 @@ export default function JoinCirclePage() {
 
         {state === "error" && (
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 40, marginBottom: 16 }}>⚠️</div>
+            <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(255,176,32,0.1)", border: "1.5px solid rgba(255,176,32,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--amber)" }}>
+              <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 4l10.5 18H2.5L13 4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M13 11v5M13 18.5v.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/></svg>
+            </div>
             <h2 className="font-bebas" style={{ fontSize: 28, marginBottom: 8 }}>Circle unavailable</h2>
             <p style={{ fontSize: 14, color: "var(--text-dim)", marginBottom: 24 }}>{errorMsg}</p>
             <Link href="/dashboard"><button className="btn-ghost" style={{ width: "100%" }}>Go to Dashboard</button></Link>
@@ -183,7 +185,9 @@ export default function JoinCirclePage() {
 function CircleHeader({ circle }: { circle: CircleInfo }) {
   return (
     <div style={{ textAlign: "center", marginBottom: 24 }}>
-      <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(139,92,246,0.12)", border: "2px solid rgba(139,92,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 28 }}>🔵</div>
+      <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(139,92,246,0.12)", border: "2px solid rgba(139,92,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "rgba(139,92,246,0.9)" }}>
+        <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="10" r="4" stroke="currentColor" strokeWidth="1.8"/><circle cx="7" cy="24" r="3" stroke="currentColor" strokeWidth="1.8"/><circle cx="25" cy="24" r="3" stroke="currentColor" strokeWidth="1.8"/><path d="M11.5 13.5C9.5 15 8 18 8 21M20.5 13.5C22.5 15 24 18 24 21M12 22.5h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>
+      </div>
       <h1 className="font-bebas" style={{ fontSize: 32, marginBottom: 6 }}>{circle.name}</h1>
       <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7 }}>
         Created by <strong style={{ color: "white" }}>{circle.creatorName}</strong> · {circle.memberCount} {circle.memberCount === 1 ? "member" : "members"}

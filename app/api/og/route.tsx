@@ -159,9 +159,8 @@ export async function GET(req: NextRequest) {
                   border: "1px solid rgba(255,176,32,0.3)",
                 }}
               >
-                <span style={{ fontSize: 20 }}>🔥</span>
-                <span style={{ color: "#FFB020", fontSize: 16, fontWeight: 700 }}>
-                  {streak}-day streak
+                <span style={{ color: "#FFB020", fontSize: 14, fontWeight: 800, letterSpacing: "0.06em" }}>
+                  ▲ {streak}-DAY STREAK
                 </span>
               </div>
             )}

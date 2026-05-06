@@ -116,7 +116,7 @@ export default function ReportPage() {
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "40px 24px" }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <img src="https://trademindedge.com/logo.svg" alt="TradeMind" height="24" style={{ display: "block", margin: "0 auto 20px", opacity: 0.7 }} />
+          <img src="/logo.svg" alt="TradeMind" height="24" style={{ display: "block", margin: "0 auto 20px", opacity: 0.7 }} />
           <h1 className="report-title" style={{ fontSize: 32, fontWeight: 800, margin: "0 0 6px", color: "#E8F0FF" }}>
             {userName ? `${userName}'s ` : ""}Monthly Report
           </h1>

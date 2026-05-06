@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -219,7 +219,7 @@ function TradeCard({ trade, mentalScore }: { trade: TradeEntry; mentalScore: num
   );
 }
 
-export default function SessionPage() {
+function SessionContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const date = searchParams.get("date") ?? new Date().toISOString().split("T")[0];
@@ -440,5 +440,18 @@ Provide a brief JSON response with:
 
       <BottomNav />
     </div>
+  );
+}
+
+export default function SessionPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 32, height: 32, borderRadius: "50%", border: "2px solid var(--surface3)", borderTopColor: "#5e6ad2", animation: "spin 0.8s linear infinite" }} />
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    }>
+      <SessionContent />
+    </Suspense>
   );
 }
