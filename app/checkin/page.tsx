@@ -20,11 +20,11 @@ const CATEGORY_COLOR: Record<string, string> = {
 };
 
 const QUESTIONS = [
-  { id: "sleep", category: "Sleep", icon: "🌙", question: "How many hours did you sleep last night?", type: "scale", options: [{ label: "Less than 5h", value: 0 }, { label: "5–6h", value: 40 }, { label: "6–7h", value: 65 }, { label: "7–8h", value: 85 }, { label: "8h+", value: 100 }], weight: 0.25 },
-  { id: "emotion", category: "Emotional State", icon: "🧠", question: "How would you describe your emotional state right now?", type: "scale", options: [{ label: "Anxious / fearful", value: 0 }, { label: "Stressed", value: 25 }, { label: "Neutral", value: 75 }, { label: "Focused", value: 90 }, { label: "In the zone", value: 100 }], weight: 0.3 },
-  { id: "focus", category: "Focus", icon: "🎯", question: "How focused are you right now?", type: "slider", min: 0, max: 100, defaultVal: 50, weight: 0.2 },
-  { id: "financial_stress", category: "Financial Stress", icon: "💰", question: "Is there any external financial pressure affecting you today?", type: "scale", options: [{ label: "Yes, severe", value: 0 }, { label: "Yes, somewhat", value: 40 }, { label: "Not really", value: 70 }, { label: "None at all", value: 100 }], weight: 0.15 },
-  { id: "recent_performance", category: "Recent Performance", icon: "📊", question: "How were your results over the last 3 days?", type: "scale", options: [{ label: "Big losses", value: 0 }, { label: "Small losses", value: 35 }, { label: "Break even ±", value: 65 }, { label: "Small gains", value: 85 }, { label: "Strong gains", value: 100 }], weight: 0.1 },
+  { id: "sleep", category: "Sleep", question: "How many hours did you sleep last night?", type: "scale", options: [{ label: "Less than 5h", value: 0 }, { label: "5–6h", value: 40 }, { label: "6–7h", value: 65 }, { label: "7–8h", value: 85 }, { label: "8h+", value: 100 }], weight: 0.25 },
+  { id: "emotion", category: "Emotional State", question: "How would you describe your emotional state right now?", type: "scale", options: [{ label: "Anxious / fearful", value: 0 }, { label: "Stressed", value: 25 }, { label: "Neutral", value: 75 }, { label: "Focused", value: 90 }, { label: "In the zone", value: 100 }], weight: 0.3 },
+  { id: "focus", category: "Focus", question: "How focused are you right now?", type: "slider", min: 0, max: 100, defaultVal: 50, weight: 0.2 },
+  { id: "financial_stress", category: "Financial Stress", question: "Is there any external financial pressure affecting you today?", type: "scale", options: [{ label: "Yes, severe", value: 0 }, { label: "Yes, somewhat", value: 40 }, { label: "Not really", value: 70 }, { label: "None at all", value: 100 }], weight: 0.15 },
+  { id: "recent_performance", category: "Recent Performance", question: "How were your results over the last 3 days?", type: "scale", options: [{ label: "Big losses", value: 0 }, { label: "Small losses", value: 35 }, { label: "Break even ±", value: 65 }, { label: "Small gains", value: 85 }, { label: "Strong gains", value: 100 }], weight: 0.1 },
 ];
 
 type Answers = Record<string, number>;
@@ -170,7 +170,7 @@ export default function CheckinPage() {
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   {catRules.map((r) => (
                     <div key={r.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "12px 16px", borderRadius: 10, background: "var(--surface2)", border: `1px solid ${CATEGORY_COLOR[r.category] ?? "var(--border)"}20` }}>
-                      <span style={{ color: CATEGORY_COLOR[r.category] ?? "var(--text-muted)", fontSize: 14, flexShrink: 0, marginTop: 1 }}>✓</span>
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: CATEGORY_COLOR[r.category] ?? "var(--text-muted)", flexShrink: 0, marginTop: 1 }}><path d="M2.5 7l3 3 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                       <span style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.5 }}>{r.text}</span>
                     </div>
                   ))}

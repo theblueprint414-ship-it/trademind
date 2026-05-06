@@ -23,8 +23,15 @@ type TradeEntry = {
   createdAt: string;
 };
 
-const EMOTIONS = ["😖", "😟", "😐", "😊", "🔥"];
 const EMOTION_LABELS = ["Terrible", "Bad", "Neutral", "Good", "Great"];
+const EMOTION_COLORS = ["var(--red)", "#ff7240", "var(--amber)", "#66cc88", "var(--green)"];
+const EMOTION_SVGS = [
+  <svg key="1" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" strokeWidth="1.5"/><path d="M7.5 8.5L9 10M9 8.5L7.5 10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M13 8.5L14.5 10M14.5 8.5L13 10" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M7.5 14.5C8.5 13 13.5 13 14.5 14.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+  <svg key="2" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="9.5" r="1.1" fill="currentColor"/><circle cx="14" cy="9.5" r="1.1" fill="currentColor"/><path d="M8 14.5C9 13 13 13 14 14.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+  <svg key="3" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="9.5" r="1.1" fill="currentColor"/><circle cx="14" cy="9.5" r="1.1" fill="currentColor"/><path d="M8 13.5h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+  <svg key="4" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="9.5" r="1.1" fill="currentColor"/><circle cx="14" cy="9.5" r="1.1" fill="currentColor"/><path d="M8 13C9 14.5 13 14.5 14 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
+  <svg key="5" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="9" r="1.3" fill="currentColor"/><circle cx="14" cy="9" r="1.3" fill="currentColor"/><path d="M7 12.5C8 15 14 15 15 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+];
 
 const PREDEFINED_TAGS = ["FOMO", "Revenge", "Perfect Setup", "Off-plan", "Disciplined", "Breakout", "News", "Scalp", "Swing"];
 
@@ -60,30 +67,37 @@ function parseTags(raw: string | null): string[] {
 function EmotionPicker({ value, onChange }: { value: number | null; onChange: (v: number | null) => void }) {
   return (
     <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-      {EMOTIONS.map((e, i) => (
-        <button
-          key={i}
-          type="button"
-          onClick={() => onChange(value === i + 1 ? null : i + 1)}
-          title={EMOTION_LABELS[i]}
-          style={{
-            flex: 1, padding: "10px 0", borderRadius: 10, border: `1.5px solid ${value === i + 1 ? "var(--blue)" : "var(--border)"}`,
-            background: value === i + 1 ? "rgba(94,106,210,0.12)" : "var(--surface2)",
-            cursor: "pointer", fontSize: 20, transition: "all 0.15s",
-            boxShadow: value === i + 1 ? "0 0 12px rgba(94,106,210,0.25)" : "none",
-          }}
-        >
-          {e}
-        </button>
-      ))}
+      {EMOTION_SVGS.map((svg, i) => {
+        const isSelected = value === i + 1;
+        const color = EMOTION_COLORS[i];
+        return (
+          <button
+            key={i}
+            type="button"
+            onClick={() => onChange(isSelected ? null : i + 1)}
+            title={EMOTION_LABELS[i]}
+            style={{
+              flex: 1, padding: "10px 0", borderRadius: 10,
+              border: `1.5px solid ${isSelected ? color : "var(--border)"}`,
+              background: isSelected ? `${color}20` : "var(--surface2)",
+              color: isSelected ? color : "var(--text-muted)",
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "all 0.15s",
+              boxShadow: isSelected ? `0 0 12px ${color}40` : "none",
+            }}
+          >
+            {svg}
+          </button>
+        );
+      })}
       {value !== null && (
         <button
           type="button"
           onClick={() => onChange(null)}
           title="Clear"
-          style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, padding: "0 4px", flexShrink: 0, lineHeight: 1 }}
+          style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0 4px", flexShrink: 0 }}
         >
-          ✕
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
         </button>
       )}
     </div>
@@ -206,6 +220,7 @@ export default function JournalPage() {
   const [syncImported, setSyncImported] = useState<number>(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
@@ -434,7 +449,6 @@ export default function JournalPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Delete this trade? This cannot be undone.")) return;
     setDeletingId(id);
     try {
       await fetch(`/api/journal?id=${id}`, { method: "DELETE" });
@@ -445,6 +459,7 @@ export default function JournalPage() {
       showToast("Couldn't delete — try again", "error");
     }
     setDeletingId(null);
+    setDeleteConfirmId(null);
   }
 
   async function handleCsvUpload(file: File) {
@@ -529,7 +544,10 @@ export default function JournalPage() {
                 {(["long", "short"] as const).map((s) => (
                   <button key={s} type="button" onClick={() => setF({ ...f, side: s })}
                     style={{ padding: "10px 16px", borderRadius: 8, border: `1.5px solid ${f.side === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--border)"}`, background: f.side === s ? (s === "long" ? "rgba(0,232,122,0.1)" : "rgba(255,59,92,0.1)") : "var(--surface2)", color: f.side === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 700, textTransform: "uppercase" }}>
-                    {s === "long" ? "▲ Long" : "▼ Short"}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                      <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">{s === "long" ? <path d="M4.5 1L8.5 8H.5z"/> : <path d="M4.5 8L.5 1H8.5z"/>}</svg>
+                      {s === "long" ? "Long" : "Short"}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -787,7 +805,12 @@ export default function JournalPage() {
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: broker.status === "active" ? "var(--green)" : "var(--amber)", flexShrink: 0 }} />
               <span style={{ textTransform: "capitalize", fontWeight: 600, color: "var(--text)" }}>{broker.broker}</span>
               {syncStatus === "syncing" && <span>Syncing...</span>}
-              {syncStatus === "done" && <span style={{ color: "var(--green)" }}>✓ {syncImported > 0 ? `${syncImported} new trade${syncImported !== 1 ? "s" : ""} imported` : "Up to date"}</span>}
+              {syncStatus === "done" && (
+                <span style={{ color: "var(--green)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  {syncImported > 0 ? `${syncImported} new trade${syncImported !== 1 ? "s" : ""} imported` : "Up to date"}
+                </span>
+              )}
               {syncStatus === "error" && <span style={{ color: "var(--red)" }}>Sync failed</span>}
               {syncStatus === "idle" && broker.lastSyncAt && (
                 <span>Updated {(() => { const m = Math.round((Date.now() - new Date(broker.lastSyncAt).getTime()) / 60000); return m < 60 ? `${m}m ago` : `${Math.round(m/60)}h ago`; })()}</span>
@@ -808,7 +831,10 @@ export default function JournalPage() {
             </Link>
             <button onClick={() => { setShowCsvImport(true); setCsvResult(null); setCsvError(null); }}
               style={{ flex: 1, padding: "10px 14px", borderRadius: 10, border: "1px dashed rgba(94,106,210,0.4)", background: "rgba(94,106,210,0.05)", cursor: "pointer", textAlign: "center" }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--blue)" }}>📥 Import CSV</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--blue)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M1 10v1.5A1.5 1.5 0 002.5 13h9A1.5 1.5 0 0013 11.5V10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                Import CSV
+              </div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Tradovate, MT4, NinjaTrader</div>
             </button>
           </div>
@@ -877,8 +903,9 @@ export default function JournalPage() {
                   ))}
                 </div>
                 {allAnswered && hasRisk && (
-                  <div style={{ padding: "12px 14px", borderRadius: 8, background: "rgba(255,176,32,0.07)", border: "1px solid rgba(255,176,32,0.25)", marginBottom: 16, fontSize: 12, color: "var(--amber)", lineHeight: 1.6 }}>
-                    {emotional ? "⚠️ You're feeling emotional — high-risk state. Consider sitting this one out." : offPlan ? "⚠️ Off-plan trades have lower win rates. Proceed with caution." : "⚠️ No R/R defined means undefined risk. Set your stop before entering."}
+                  <div style={{ padding: "12px 14px", borderRadius: 8, background: "rgba(255,176,32,0.07)", border: "1px solid rgba(255,176,32,0.25)", marginBottom: 16, fontSize: 12, color: "var(--amber)", lineHeight: 1.6, display: "flex", alignItems: "flex-start", gap: 8 }}>
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M7 1.5L12.5 11H1.5L7 1.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M7 5.5v2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="7" cy="9.5" r="0.7" fill="currentColor"/></svg>
+                    <span>{emotional ? "You're feeling emotional — high-risk state. Consider sitting this one out." : offPlan ? "Off-plan trades have lower win rates. Proceed with caution." : "No R/R defined means undefined risk. Set your stop before entering."}</span>
                   </div>
                 )}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -895,7 +922,11 @@ export default function JournalPage() {
         {showWarning && (
           <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(7,11,20,0.9)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
             <div className="card" style={{ maxWidth: 400, width: "100%", padding: 28, border: "1px solid rgba(255,176,32,0.3)" }}>
-              <div style={{ fontSize: 36, textAlign: "center", marginBottom: 16 }}>⚠️</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+                <div style={{ width: 52, height: 52, borderRadius: "50%", background: "rgba(255,176,32,0.1)", border: "1.5px solid rgba(255,176,32,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)" }}>
+                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 3L23.5 21H2.5L13 3z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><path d="M13 10v5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/><circle cx="13" cy="17.5" r="1.1" fill="currentColor"/></svg>
+                </div>
+              </div>
               <div className="font-bebas" style={{ fontSize: 24, textAlign: "center", color: "var(--amber)", marginBottom: 12, letterSpacing: "0.04em" }}>
                 {todayScore === null ? "NO CHECK-IN YET" : "LOW MENTAL SCORE"}
               </div>
@@ -1006,7 +1037,10 @@ export default function JournalPage() {
               onClick={() => { setShowCsvImport(true); setCsvResult(null); setCsvError(null); }}
               style={{ padding: "14px 18px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text-muted)", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
             >
-              ↑ CSV
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 8V1M3.5 3.5L6 1 8.5 3.5M1 9v.5A1.5 1.5 0 002.5 11h7A1.5 1.5 0 0011 9.5V9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                CSV
+              </span>
             </button>
           </div>
         )}
@@ -1137,13 +1171,26 @@ export default function JournalPage() {
                           onClick={() => handleEdit(entry)}
                           style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, padding: "0 4px", marginLeft: entry.pnl === null ? "auto" : 0 }}
                           title="Edit"
-                        >✏</button>
-                        <button
-                          onClick={() => handleDelete(entry.id)}
-                          disabled={deletingId === entry.id}
-                          style={{ background: "none", border: "none", color: deletingId === entry.id ? "var(--surface3)" : "var(--text-muted)", cursor: deletingId === entry.id ? "default" : "pointer", fontSize: 16, padding: "0 4px" }}
-                          title="Delete"
-                        >{deletingId === entry.id ? "…" : "×"}</button>
+                        >
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9.5 2.5l2 2-6 6-2.5.5.5-2.5 6-6zM8 4l2 2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        </button>
+                        {deleteConfirmId === entry.id ? (
+                          <>
+                            <button onClick={() => handleDelete(entry.id)} disabled={deletingId === entry.id}
+                              style={{ background: "none", border: "none", color: "var(--red)", cursor: "pointer", fontSize: 12, fontWeight: 700, padding: "0 4px", whiteSpace: "nowrap" }}>
+                              {deletingId === entry.id ? "..." : "Delete?"}
+                            </button>
+                            <button onClick={() => setDeleteConfirmId(null)}
+                              style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, padding: "0 4px" }}>
+                              Cancel
+                            </button>
+                          </>
+                        ) : (
+                          <button onClick={() => setDeleteConfirmId(entry.id)}
+                            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "0 4px" }} title="Delete">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 3.5h10M5 3.5V2.5a.5.5 0 01.5-.5h3a.5.5 0 01.5.5v1M10.5 3.5l-.5 8h-6l-.5-8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                          </button>
+                        )}
                       </div>
 
                       {entryTags.length > 0 && (
@@ -1158,14 +1205,25 @@ export default function JournalPage() {
 
                       {(entry.emotionBefore || entry.emotionAfter) && (
                         <div style={{ display: "flex", gap: 16, fontSize: 13, color: "var(--text-muted)", marginBottom: entry.mistake || entry.notes ? 10 : 0 }}>
-                          {entry.emotionBefore && <span>Before: {EMOTIONS[entry.emotionBefore - 1]} {EMOTION_LABELS[entry.emotionBefore - 1]}</span>}
-                          {entry.emotionAfter && <span>After: {EMOTIONS[entry.emotionAfter - 1]} {EMOTION_LABELS[entry.emotionAfter - 1]}</span>}
+                          {entry.emotionBefore && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                              Before: <span style={{ width: 8, height: 8, borderRadius: "50%", background: EMOTION_COLORS[entry.emotionBefore - 1], display: "inline-block", flexShrink: 0 }} /> {EMOTION_LABELS[entry.emotionBefore - 1]}
+                            </span>
+                          )}
+                          {entry.emotionAfter && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                              After: <span style={{ width: 8, height: 8, borderRadius: "50%", background: EMOTION_COLORS[entry.emotionAfter - 1], display: "inline-block", flexShrink: 0 }} /> {EMOTION_LABELS[entry.emotionAfter - 1]}
+                            </span>
+                          )}
                         </div>
                       )}
 
                       {entry.mistake && (
                         <div style={{ fontSize: 12, color: "var(--amber)", background: "rgba(255,176,32,0.06)", border: "1px solid rgba(255,176,32,0.15)", borderRadius: 8, padding: "6px 12px", marginBottom: entry.notes ? 8 : 0 }}>
-                          ⚠️ {entry.mistake}
+                          <span style={{ display: "inline-flex", alignItems: "flex-start", gap: 6 }}>
+                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M6.5 1.5L12 11H1L6.5 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/><path d="M6.5 5v3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><circle cx="6.5" cy="9.5" r=".6" fill="currentColor"/></svg>
+                            {entry.mistake}
+                          </span>
                         </div>
                       )}
 
@@ -1175,7 +1233,10 @@ export default function JournalPage() {
 
                       {entry.reflection && (
                         <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-dim)", background: "rgba(94,106,210,0.05)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 8, padding: "8px 12px", fontStyle: "italic", lineHeight: 1.5 }}>
-                          💭 {entry.reflection}
+                          <span style={{ display: "inline-flex", alignItems: "flex-start", gap: 6 }}>
+                            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ flexShrink: 0, marginTop: 1 }}><path d="M2 2h9a1 1 0 011 1v5a1 1 0 01-1 1H7.5L5 11V9H2a1 1 0 01-1-1V3a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/></svg>
+                            {entry.reflection}
+                          </span>
                         </div>
                       )}
 

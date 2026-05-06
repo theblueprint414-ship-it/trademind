@@ -48,9 +48,30 @@ function LoginInner() {
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, animation: "page-in 0.28s cubic-bezier(0.16,1,0.3,1) both" }}>
-      <Link href="/" style={{ textDecoration: "none", marginBottom: 40 }}>
-        <img src="/logo.svg" alt="TradeMind" height="32" style={{ display: "block" }} />
+      <Link href="/" style={{ textDecoration: "none", marginBottom: 36 }}>
+        <img src="/logo.svg" alt="TradeMind" height="28" style={{ display: "block" }} />
       </Link>
+
+      <div style={{ textAlign: "center", marginBottom: 36, maxWidth: 380 }}>
+        <h1 className="font-bebas" style={{ fontSize: "clamp(38px, 9vw, 54px)", lineHeight: 1.05, marginBottom: 10, letterSpacing: "0.02em" }}>
+          Know Your Edge<br />Before You Trade
+        </h1>
+        <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.75, marginBottom: 20 }}>
+          The mental pre-flight check that separates disciplined traders from the rest.
+        </p>
+        <div style={{ display: "flex", justifyContent: "center", gap: 24, flexWrap: "wrap" }}>
+          {[
+            { icon: <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.3"/><path d="M7 4v3l2 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>, label: "60-sec check-in" },
+            { icon: <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5C7 1.5 11 4 11 7.5c0 2.21-1.79 4-4 4s-4-1.79-4-4C3 4 7 1.5 7 1.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>, label: "Daily streak" },
+            { icon: <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="5.5" r="2.5" stroke="currentColor" strokeWidth="1.3"/><path d="M2 12c0-2.761 2.239-5 5-5s5 2.239 5 5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/><path d="M10 3l1-1M11 5h1M10 7l1 1" stroke="currentColor" strokeWidth="1.1" strokeLinecap="round"/></svg>, label: "AI Coach" },
+          ].map(({ icon, label }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)" }}>
+              <span style={{ color: "var(--blue)" }}>{icon}</span>
+              {label}
+            </div>
+          ))}
+        </div>
+      </div>
 
       <div className="card" style={{ width: "100%", maxWidth: 400, padding: 36 }}>
         {sent ? (

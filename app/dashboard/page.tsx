@@ -45,9 +45,13 @@ function getGreeting() {
 function TrendArrow({ current, previous }: { current: number; previous: number }) {
   const diff = current - previous;
   if (Math.abs(diff) < 2) return <span style={{ fontSize: 10, color: "var(--text-muted)" }}>—</span>;
+  const color = diff > 0 ? "var(--green)" : "var(--red)";
   return (
-    <span style={{ fontSize: 11, color: diff > 0 ? "var(--green)" : "var(--red)", fontWeight: 700 }}>
-      {diff > 0 ? "↑" : "↓"}{Math.abs(diff)}
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 2, color, fontWeight: 700, fontSize: 11 }}>
+      <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">
+        {diff > 0 ? <path d="M4.5 1L8.5 8H.5L4.5 1z"/> : <path d="M4.5 8L.5 1H8.5L4.5 8z"/>}
+      </svg>
+      {Math.abs(diff)}
     </span>
   );
 }
@@ -615,7 +619,14 @@ export default function DashboardPage() {
               {morningBriefInsight.trend !== null && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <div style={{ width: 28, height: 28, borderRadius: 8, background: morningBriefInsight.trend > 0 ? "rgba(0,232,122,0.1)" : morningBriefInsight.trend < 0 ? "rgba(255,59,92,0.1)" : "rgba(255,176,32,0.1)", border: `1px solid ${morningBriefInsight.trend > 0 ? "rgba(0,232,122,0.25)" : morningBriefInsight.trend < 0 ? "rgba(255,59,92,0.25)" : "rgba(255,176,32,0.25)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: 13 }}>{morningBriefInsight.trend > 0 ? "↑" : morningBriefInsight.trend < 0 ? "↓" : "→"}</span>
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: morningBriefInsight.trend > 0 ? "var(--green)" : morningBriefInsight.trend < 0 ? "var(--red)" : "var(--amber)" }}>
+                      {morningBriefInsight.trend > 0
+                        ? <path d="M6.5 1.5L11 10H2L6.5 1.5z" fill="currentColor"/>
+                        : morningBriefInsight.trend < 0
+                        ? <path d="M6.5 11.5L2 3H11L6.5 11.5z" fill="currentColor"/>
+                        : <path d="M2 6.5h9M8.5 4l2.5 2.5L8.5 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                      }
+                    </svg>
                   </div>
                   <span style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.5 }}>
                     Your 3-day average is <strong style={{ color: morningBriefInsight.trend > 0 ? "var(--green)" : morningBriefInsight.trend < 0 ? "var(--red)" : "var(--amber)" }}>{morningBriefInsight.recentAvg}</strong>
@@ -702,7 +713,7 @@ export default function DashboardPage() {
             label="THIS MONTH"
             color="var(--blue)"
             delay={120}
-            subtext={weeklyGoalCount > 0 ? `${weeklyGoalCount}/${weeklyGoal} this week${weeklyGoalCount >= weeklyGoal ? " ✓" : ""}` : undefined}
+            subtext={weeklyGoalCount > 0 ? `${weeklyGoalCount}/${weeklyGoal} this week` : undefined}
             subtextColor={weeklyGoalCount >= weeklyGoal ? "var(--green)" : undefined}
           />
           <StatCard
@@ -772,7 +783,7 @@ export default function DashboardPage() {
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
               <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.06em" }}>WEEKLY GOAL</span>
               <span style={{ fontSize: 11, color: weeklyGoalCount >= weeklyGoal ? "var(--green)" : "var(--text-muted)", fontWeight: 700 }}>
-                {weeklyGoalCount}/{weeklyGoal} days {weeklyGoalCount >= weeklyGoal ? "✓" : ""}
+                {weeklyGoalCount}/{weeklyGoal} days {weeklyGoalCount >= weeklyGoal && <svg width="11" height="11" viewBox="0 0 11 11" fill="none" style={{ display: "inline", verticalAlign: "middle", marginLeft: 2 }}><path d="M1.5 5.5l2.5 2.5 5.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </span>
             </div>
             <div style={{ height: 6, borderRadius: 4, background: "var(--surface2)", overflow: "hidden" }}>
