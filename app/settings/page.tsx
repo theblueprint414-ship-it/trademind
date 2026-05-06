@@ -94,6 +94,7 @@ export default function SettingsPage() {
   const [broker, setBroker] = useState<{ broker: string; status: string; lastSyncAt: string | null } | null>(null);
   const [brokerLoading, setBrokerLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState(false);
+  const [disconnectConfirm, setDisconnectConfirm] = useState(false);
 
   // Circuit Breaker
   const [cb, setCb] = useState<{ isActive: boolean; dailyLimit: number; scoreAdaptive: boolean; extensionToken: string; resetHour: number } | null>(null);
@@ -338,11 +339,11 @@ export default function SettingsPage() {
   }
 
   async function disconnectBroker() {
-    if (!confirm("Disconnect broker? You can reconnect anytime from onboarding.")) return;
     setDisconnecting(true);
     await fetch("/api/broker", { method: "DELETE" });
     setBroker(null);
     setDisconnecting(false);
+    setDisconnectConfirm(false);
     showToast("Broker disconnected", "info");
   }
 
@@ -457,7 +458,10 @@ export default function SettingsPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 32 }}>
           <h1 className="font-bebas" style={{ fontSize: 40 }}>Settings</h1>
           {!planLoading && isPro && (
-            <div style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 10, padding: "4px 12px", fontSize: 12, color: "#8B5CF6", fontWeight: 700, letterSpacing: "0.06em" }}>TRADEMIND ✓</div>
+            <div style={{ background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 10, padding: "4px 12px", fontSize: 12, color: "#8B5CF6", fontWeight: 700, letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              TRADEMIND
+            </div>
           )}
         </div>
 
@@ -854,24 +858,36 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 10 }}>
-                <Link href="/onboarding" style={{ flex: 1 }}>
-                  <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }}>Change Broker</button>
-                </Link>
-                <button className="btn-ghost" style={{ fontSize: 13, color: "var(--red)", borderColor: "rgba(255,45,45,0.3)" }} onClick={disconnectBroker} disabled={disconnecting}>
-                  {disconnecting ? "Disconnecting..." : "Disconnect"}
-                </button>
-              </div>
+              {disconnectConfirm ? (
+                <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.2)" }}>
+                  <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 12, lineHeight: 1.5 }}>Disconnect your broker? You can reconnect anytime from onboarding.</p>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button className="btn-ghost" style={{ flex: 1, fontSize: 13 }} onClick={() => setDisconnectConfirm(false)}>Cancel</button>
+                    <button className="btn-ghost" style={{ flex: 1, fontSize: 13, color: "var(--red)", borderColor: "rgba(255,45,45,0.3)" }} onClick={disconnectBroker} disabled={disconnecting}>
+                      {disconnecting ? "Disconnecting..." : "Yes, disconnect"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", gap: 10 }}>
+                  <Link href="/onboarding" style={{ flex: 1 }}>
+                    <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }}>Change Broker</button>
+                  </Link>
+                  <button className="btn-ghost" style={{ fontSize: 13, color: "var(--red)", borderColor: "rgba(255,45,45,0.3)" }} onClick={() => setDisconnectConfirm(true)}>
+                    Disconnect
+                  </button>
+                </div>
+              )}
             </>
           ) : (
             <div>
               <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>No broker connected. Connect one to auto-count your trades and sync your journal automatically.</p>
               <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(94,106,210,0.05)", border: "1px solid rgba(94,106,210,0.15)", marginBottom: 16, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.9 }}>
                 <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Which platform should I connect?</div>
-                <div>🟠 <strong style={{ color: "var(--text)" }}>MT4/MT5</strong> — FTMO, IC Markets, Pepperstone, FxFlat, and any MT4/MT5 broker</div>
-                <div>🟢 <strong style={{ color: "var(--text)" }}>TopstepX</strong> — TopstepX funded accounts only</div>
-                <div>🔵 <strong style={{ color: "var(--text)" }}>Tradovate (CSV)</strong> — Apex, Funded Next, Lucid, TopStep futures</div>
-                <div>⭐ <strong style={{ color: "var(--text)" }}>Binance / Bybit / Kraken / Coinbase</strong> — crypto exchanges</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF6B35", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>MT4/MT5</strong> — FTMO, IC Markets, Pepperstone, FxFlat, and any MT4/MT5 broker</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#00C896", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>TopstepX</strong> — TopstepX funded accounts only</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--blue)", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>Tradovate (CSV)</strong> — Apex, Funded Next, Lucid, TopStep futures</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F0B90B", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>Binance / Bybit / Kraken / Coinbase</strong> — crypto exchanges</div>
               </div>
               <Link href="/onboarding">
                 <button className="btn-primary" style={{ fontSize: 14 }}>Connect Broker →</button>
@@ -1091,7 +1107,7 @@ export default function SettingsPage() {
                 <button className="btn-primary" onClick={handleEnableNotifications} style={{ width: "100%" }}>Enable Notifications</button>
               ) : (
                 <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--green)" }}>
-                  <span>✓</span>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   <span>{reminderSaved ? "Reminder updated!" : `Daily reminder set for ${reminderTime}`}</span>
                 </div>
               )}
@@ -1107,7 +1123,9 @@ export default function SettingsPage() {
             {/* Current plan badge */}
             {isPro && (
               <div className="card" style={{ padding: 20, marginBottom: 8, border: "1px solid rgba(139,92,246,0.3)", background: "rgba(139,92,246,0.05)", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>✓</div>
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#8B5CF6" }}>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10l4 4 8-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>TradeMind — Active</div>
                   <div style={{ fontSize: 13, color: "var(--text-muted)" }}>Full access to every feature in TradeMind</div>
@@ -1216,10 +1234,10 @@ export default function SettingsPage() {
                                 setPauseSuccess(true);
                               } else {
                                 const { error } = await r.json();
-                                alert(error ?? "Something went wrong. Please manage from your billing portal.");
+                                showToast(error ?? "Something went wrong — manage from your billing portal", "error");
                               }
                             } catch {
-                              alert("Something went wrong. Please try again.");
+                              showToast("Network error — please try again", "error");
                             } finally {
                               setPauseLoading(false);
                             }
@@ -1525,7 +1543,9 @@ export default function SettingsPage() {
                   Miss a day you didn&apos;t earn? Use your monthly freeze to protect your streak. One freeze available per month.
                 </p>
               </div>
-              <div style={{ fontSize: 24, flexShrink: 0 }}>🧊</div>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--blue)", flexShrink: 0 }}>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2v14M2 9h14M4.5 4.5l9 9M13.5 4.5l-9 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/><circle cx="9" cy="9" r="1.8" fill="currentColor"/></svg>
+              </div>
             </div>
             <div style={{ marginTop: 16 }}>
               {freezeUsed ? (
@@ -1589,7 +1609,7 @@ export default function SettingsPage() {
                   a.download = `trademind-export-${new Date().toISOString().split("T")[0]}.json`;
                   a.click();
                   URL.revokeObjectURL(url);
-                } catch { alert("Export failed. Try again."); }
+                } catch { showToast("Export failed — try again", "error"); }
                 setExporting(false);
               }}
             >
@@ -1615,7 +1635,7 @@ export default function SettingsPage() {
                 if (confirm("Delete all local history?")) {
                   localStorage.removeItem("trademind_history");
                   localStorage.removeItem("trademind_today");
-                  alert("Local history deleted.");
+                  showToast("Local cache cleared", "info");
                 }
               }}>
               Clear local cache
@@ -1632,7 +1652,10 @@ export default function SettingsPage() {
 
           {deleteConfirm && (
             <div style={{ padding: "20px", borderRadius: 12, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.2)" }}>
-              <p style={{ fontSize: 13, color: "var(--red)", fontWeight: 700, marginBottom: 8 }}>⚠ This will delete your account, all check-ins, journal entries, analytics data, and cancel your subscription.</p>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--red)", flexShrink: 0, marginTop: 1 }}><path d="M8 2L1.5 13h13L8 2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M8 6.5v3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="8" cy="11" r="0.6" fill="currentColor"/></svg>
+                <p style={{ fontSize: 13, color: "var(--red)", fontWeight: 700, margin: 0 }}>This will delete your account, all check-ins, journal entries, analytics data, and cancel your subscription.</p>
+              </div>
               <p style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 14 }}>Type <strong>DELETE</strong> to confirm:</p>
               <input
                 type="text"

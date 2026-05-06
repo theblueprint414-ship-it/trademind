@@ -201,7 +201,8 @@ export default function CoachPage() {
           <div className="card" style={{ padding: 24, marginBottom: 24, border: "1px solid rgba(139,92,246,0.2)", background: "rgba(139,92,246,0.04)", textAlign: "left" }}>
             {["Reads your full check-in + P&L history", "Identifies the ONE pattern costing you most", "Gives you a specific, actionable focus for today", "Available 24/7 — ask anything"].map((f) => (
               <div key={f} style={{ display: "flex", gap: 10, alignItems: "center", padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 14, color: "var(--text-dim)" }}>
-                <span style={{ color: "#8B5CF6", flexShrink: 0 }}>✓</span>{f}
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "#8B5CF6", flexShrink: 0 }}><path d="M2.5 7l3 3 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                {f}
               </div>
             ))}
             <div style={{ marginTop: 16, fontSize: 13, color: "var(--text-muted)" }}>Included in TradeMind · $39/mo · 7-day free trial</div>
