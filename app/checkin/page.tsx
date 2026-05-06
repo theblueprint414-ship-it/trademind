@@ -231,6 +231,7 @@ export default function CheckinPage() {
       <style>{`
         @keyframes option-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
         .opt-btn { animation: option-in 0.25s ease both; }
+        .opt-btn:not(.is-selected):hover { border-color: rgba(94,106,210,0.35) !important; background: rgba(94,106,210,0.05) !important; color: var(--text) !important; }
         .opt-btn:active { transform: scale(0.97) !important; }
         @keyframes ripple { 0%{transform:scale(0);opacity:0.4} 100%{transform:scale(3);opacity:0} }
         .has-ripple { position:relative; overflow:hidden; }
@@ -292,7 +293,7 @@ export default function CheckinPage() {
                 <button
                   key={opt.label}
                   onClick={() => handleSelect(opt.value)}
-                  className="opt-btn has-ripple"
+                  className={`opt-btn has-ripple${isSelected ? " is-selected" : ""}`}
                   style={{
                     background: isSelected ? "rgba(94,106,210,0.14)" : "var(--surface)",
                     border: isSelected ? "1.5px solid var(--blue)" : "1.5px solid var(--border)",

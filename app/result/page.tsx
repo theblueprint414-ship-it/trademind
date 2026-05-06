@@ -417,10 +417,11 @@ function ResultContent() {
         .card-stagger-2 { animation: card-in 0.5s ease 0.5s both; }
         .card-stagger-3 { animation: card-in 0.5s ease 0.7s both; }
         .card-stagger-4 { animation: card-in 0.5s ease 0.9s both; }
-        .tip-row { transition: background 0.15s ease, padding-left 0.15s ease; border-radius: 8px; }
-        .tip-row:hover { background: var(--surface2); padding-left: 8px; }
+        .tip-row { transition: background 0.15s ease; border-radius: 8px; }
+        .tip-row:hover { background: var(--surface2); }
         @keyframes scan-line { 0%{transform:translateX(-100%)} 100%{transform:translateX(100%)} }
         @keyframes scan-fade-out { 0%{opacity:1} 100%{opacity:0;pointer-events:none} }
+        @keyframes check-pop { 0%{transform:scale(0)} 60%{transform:scale(1.2)} 100%{transform:scale(1)} }
       `}</style>
 
       {/* Pre-flight scan overlay */}
@@ -449,7 +450,7 @@ function ResultContent() {
                       transition: "all 0.2s ease",
                     }}>
                       {done && (
-                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none" style={{ animation: "check-pop 0.3s var(--ease-spring) both" }}>
                           <path d="M2 5l2.5 2.5 4-4" stroke={verdict.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       )}
@@ -468,8 +469,8 @@ function ResultContent() {
                         </div>
                       )}
                     </div>
-                    <div style={{ fontSize: 11, color: done ? verdict.color : "transparent", fontWeight: 700, transition: "color 0.2s", letterSpacing: "0.06em" }}>
-                      {done ? "OK" : ""}
+                    <div style={{ fontSize: 10, color: done ? verdict.color : "transparent", fontWeight: 800, transition: "color 0.25s", letterSpacing: "0.1em", minWidth: 32, textAlign: "right" }}>
+                      {done ? "DONE" : ""}
                     </div>
                   </div>
                 );
@@ -612,7 +613,7 @@ function ResultContent() {
               <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.75, margin: 0 }}>
                 {typedCoach}
                 {typedCoach.length < (coaching?.length ?? 0) && (
-                  <span style={{ display: "inline-block", width: 2, height: 14, background: verdict.color, marginLeft: 2, animation: "spin 0.8s linear infinite", borderRadius: 1 }} />
+                  <span style={{ display: "inline-block", width: 2, height: 14, background: verdict.color, marginLeft: 2, animation: "cursor-blink 0.9s ease infinite", borderRadius: 1, verticalAlign: "middle" }} />
                 )}
               </p>
             )}
