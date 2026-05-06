@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { showToast } from "@/components/Toast";
 
 type InviteData = { fromName: string; fromEmail: string; toEmail: string };
 type Plan = "free" | "pro" | "premium";
@@ -57,10 +58,10 @@ export default function AcceptInvitePage() {
       const r = await fetch("/api/lemonsqueezy/checkout", { method: "POST" });
       const { url, error } = await r.json();
       if (error === "already_premium") { window.location.reload(); return; }
-      if (error) { alert(error); return; }
+      if (error) { showToast(error, "error"); return; }
       window.location.href = url;
     } catch {
-      alert("Network error. Please try again.");
+      showToast("Network error — please try again", "error");
     } finally {
       setCheckoutLoading(false);
     }

@@ -1289,10 +1289,10 @@ export default function SettingsPage() {
                       const r = await fetch("/api/lemonsqueezy/checkout", { method: "POST" });
                       const { url, error } = await r.json();
                       if (error === "already_premium") { window.location.reload(); return; }
-                      if (error) { alert(error); return; }
+                      if (error) { showToast(error, "error"); return; }
                       window.location.href = url;
                     } catch {
-                      alert("Something went wrong. Please try again.");
+                      showToast("Something went wrong — please try again", "error");
                     } finally {
                       setCheckoutLoading(false);
                     }
@@ -1709,9 +1709,9 @@ export default function SettingsPage() {
                       if (res.ok) {
                         window.location.href = "/?deleted=true";
                       } else {
-                        alert("Deletion failed. Contact support@trademindedge.com");
+                        showToast("Deletion failed — contact support@trademindedge.com", "error");
                       }
-                    } catch { alert("Network error. Try again."); }
+                    } catch { showToast("Network error — please try again", "error"); }
                     setDeleting(false);
                   }}
                 >

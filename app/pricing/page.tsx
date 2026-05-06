@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { showToast } from "@/components/Toast";
 
 const FAQ_ITEMS = [
   { q: "Can I try TradeMind for free?", a: "Yes. TradeMind includes a 7-day free trial — cancel before day 8 and you won't be charged a thing. No commitment, no risk. The free plan also stays free forever with daily check-ins." },
@@ -52,10 +53,10 @@ export default function PricingPage() {
       });
       const { url, error } = await r.json();
       if (error === "already_premium") { window.location.href = "/dashboard"; return; }
-      if (error) { alert(error); return; }
+      if (error) { showToast(error, "error"); return; }
       window.location.href = url;
     } catch {
-      alert("Network error. Please try again.");
+      showToast("Network error — please try again", "error");
     } finally {
       setLoading(false);
     }
