@@ -1014,7 +1014,7 @@ export default function SettingsPage() {
               <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(79,142,247,0.05)", border: "1px solid rgba(79,142,247,0.15)", marginBottom: 20, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.9 }}>
                 <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6, fontSize: 12 }}>How to connect each platform</div>
                 <div>
-                  <span style={{ color: "var(--text)", fontWeight: 600 }}>Chrome Extension</span> — Blocks TradingView, thinkorswim, Binance, and 15+ platforms. Install from the link below, paste your token.
+                  <span style={{ color: "var(--text)", fontWeight: 600 }}>Chrome Extension</span> — Blocks TradingView, thinkorswim, Robinhood, TradeStation, NinjaTrader, Webull, and 10+ more broker sites in your browser. Install from the link below, paste your token.
                 </div>
                 <div>
                   <span style={{ color: "var(--text)", fontWeight: 600 }}>MT4 / MT5</span> — Attach the EA to any chart. It polls your token every 5 minutes and blocks new orders when blocked.

@@ -63,7 +63,7 @@ const STEPS = [
     step: "07", color: "var(--red)",
     icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="8" y="13" width="12" height="10" rx="2" stroke="var(--red)" strokeWidth="1.5"/><path d="M10 13V10a4 4 0 018 0v3" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/><circle cx="14" cy="18" r="1.5" fill="var(--red)"/></svg>,
     title: "Circuit Breaker",
-    desc: "Set a daily trade limit. When you hit it, TradeMind hard-blocks your trading platforms — MT4, MT5, TopstepX — at the network level. No override. Resets at midnight. The lock is the point.",
+    desc: "Set a daily trade limit. When you hit it, TradeMind blocks your platforms: the Chrome extension blocks TradingView and broker sites, the MT4/MT5 EA stops new orders at the terminal, and Bybit/Alpaca/Binance get their open orders cancelled via API. Resets at midnight.",
   },
 ];
 
@@ -787,13 +787,13 @@ export default function LandingPage() {
                 bg: "rgba(255,59,92,0.08)", bd: "rgba(255,59,92,0.18)", color: "var(--red)", tag: "HARD ENFORCEMENT",
                 icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="6" y="10" width="12" height="11" rx="2" stroke="var(--red)" strokeWidth="1.5"/><path d="M9 10V7a3 3 0 016 0v3" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/><circle cx="12" cy="15.5" r="1.5" fill="var(--red)"/></svg>,
                 title: "Circuit Breaker",
-                desc: "Hit your daily limit and every connected broker gets hard-blocked — MT4, MT5, TopstepX — at the network level. Resets at midnight. No override exists by design.",
+                desc: "Hit your daily limit and TradeMind acts on every layer: Chrome extension blocks TradingView + broker sites, MT4/MT5 EA stops new orders at the terminal, and Bybit/Alpaca/Binance open orders get cancelled via API. Resets at midnight.",
               },
               {
                 bg: "rgba(94,106,210,0.08)", bd: "rgba(94,106,210,0.18)", color: "var(--blue)", tag: "AUTOMATION",
                 icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/><path d="M9 4L12 1l3 3M15 20l-3 3-3-3" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
                 title: "Live Broker Sync",
-                desc: "Connect MT4, MT5, and TopstepX. Trades auto-import in real time — no manual logging, no missed entries, no data gaps.",
+                desc: "Connect MT4, MT5, Bybit, Alpaca, Binance, and TopstepX. Trades auto-import after each session — no manual logging, no missed entries.",
               },
               {
                 bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.18)", color: "var(--green)", tag: "REFLECTION",

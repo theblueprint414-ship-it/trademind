@@ -28,7 +28,7 @@ const BROKERS = [
   { id: "ibkr",         name: "IBKR",             abbr: "IB",  color: "#CC0000", needsSecret: false, secretLabel: "",                  keyLabel: "API KEY",        keyPlaceholder: "",                       firms: "" },
 ];
 
-function ProgressBar({ current, total }: { current: number; total: number }) {
+function ProgressBar({ current }: { current: number }) {
   return (
     <div style={{ display: "flex", gap: 6, marginBottom: 40, alignItems: "center" }}>
       {STEPS_META.map((s, i) => (
@@ -200,7 +200,7 @@ export default function OnboardingPage() {
           </div>
         </div>
 
-        <ProgressBar current={stepIndex} total={STEPS_META.length} />
+        <ProgressBar current={stepIndex} />
 
         {/* Step container */}
         <div key={animKey} className={slideDir === "forward" ? "slide-forward" : "slide-back"}>
@@ -246,7 +246,7 @@ export default function OnboardingPage() {
                     color: "var(--red)", bg: "rgba(255,59,92,0.08)", bd: "rgba(255,59,92,0.2)",
                     icon: <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="5" y="9" width="12" height="9" rx="2" stroke="var(--red)" strokeWidth="1.4"/><path d="M8 9V7a3 3 0 016 0v2" stroke="var(--red)" strokeWidth="1.4" strokeLinecap="round"/><circle cx="11" cy="13.5" r="1.2" fill="var(--red)"/></svg>,
                     title: "Circuit Breaker",
-                    desc: "Set a daily trade limit. Hit it — your broker gets blocked at the network level. No override. Funded accounts stay funded.",
+                    desc: "Set a daily trade limit. Hit it — Chrome extension blocks TradingView and broker sites, the MT4/MT5 EA stops new orders, and crypto accounts get orders cancelled via API. Funded accounts stay funded.",
                   },
                   {
                     color: "var(--green)", bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.2)",
