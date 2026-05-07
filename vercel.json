@@ -30,6 +30,10 @@
     {
       "path": "/api/cron/auto-sync-journal",
       "schedule": "0 6 * * *"
+    },
+    {
+      "path": "/api/cron/mid-session-push",
+      "schedule": "0 13 * * 1-5"
     }
   ]
 }

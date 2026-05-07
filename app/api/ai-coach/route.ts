@@ -28,12 +28,30 @@ Never:
 - Mention you're an AI, Claude, or Anthropic
 - Give multiple recommendations — one clear focus is always more powerful than three scattered ones`;
 
-async function buildUserContext(userId: string): Promise<string> {
+type PatternResult = {
+  currentLoseStreak: number;
+  bestHour: { hour: number; avg: number; total: number; wr: number; count: number } | null;
+  worstHour: { hour: number; avg: number; total: number; wr: number; count: number } | null;
+  bestSymbol: { sym: string; avg: number; total: number; wr: number; count: number } | null;
+  worstSymbol: { sym: string; avg: number; total: number; wr: number; count: number } | null;
+  bestDay: { day: string; avg: number; total: number; count: number } | null;
+  worstDay: { day: string; avg: number; total: number; count: number } | null;
+  ntViolationCount: number;
+  ntViolationPnl: number;
+  revengeCount: number;
+  totalTrades: number;
+};
+
+async function computeUserData(userId: string) {
   const [checkins, tradeEntries, playbook] = await Promise.all([
     db.checkin.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 60 }),
-    db.tradeEntry.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 100 }),
+    db.tradeEntry.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 200 }),
     db.playbook.findUnique({ where: { userId } }),
   ]);
+  return { checkins, tradeEntries, playbook };
+}
+
+function buildContextString(checkins: Awaited<ReturnType<typeof computeUserData>>["checkins"], tradeEntries: Awaited<ReturnType<typeof computeUserData>>["tradeEntries"], playbook: Awaited<ReturnType<typeof computeUserData>>["playbook"]): string {
 
   const today = new Date().toISOString().split("T")[0];
   const todayCheckin = checkins.find((c) => c.date === today);
@@ -241,29 +259,25 @@ async function buildUserContext(userId: string): Promise<string> {
   return lines.join("\n");
 }
 
-async function buildPatterns(userId: string) {
-  const [checkins, tradeEntries] = await Promise.all([
-    db.checkin.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 60 }),
-    db.tradeEntry.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 200 }),
-  ]);
-
+function extractPatterns(
+  checkins: Awaited<ReturnType<typeof computeUserData>>["checkins"],
+  tradeEntries: Awaited<ReturnType<typeof computeUserData>>["tradeEntries"]
+): PatternResult {
   const tradesByDate: Record<string, number> = {};
   for (const t of tradeEntries.filter((t) => t.pnl !== null)) {
     tradesByDate[t.date] = (tradesByDate[t.date] ?? 0) + (t.pnl ?? 0);
   }
   const sortedTradeDates = Object.keys(tradesByDate).sort();
 
-  // Current losing streak
   let currentLoseStreak = 0;
   for (const dateStr of sortedTradeDates.slice().reverse()) {
     if (tradesByDate[dateStr] < 0) currentLoseStreak++;
     else break;
   }
 
-  // Hour buckets
   const hourBuckets: Record<number, { pnl: number; count: number; wins: number }> = {};
   for (const t of tradeEntries.filter((t) => t.pnl !== null)) {
-    const dt = (t as { exitTime?: string | null; entryTime?: string | null }).exitTime ?? (t as { exitTime?: string | null; entryTime?: string | null }).entryTime;
+    const dt = t.exitTime ?? t.entryTime;
     if (!dt) continue;
     const hour = new Date(dt).getUTCHours();
     if (!hourBuckets[hour]) hourBuckets[hour] = { pnl: 0, count: 0, wins: 0 };
@@ -276,7 +290,6 @@ async function buildPatterns(userId: string) {
     .map(([h, v]) => ({ hour: Number(h), avg: Math.round(v.pnl / v.count), total: Math.round(v.pnl), wr: Math.round((v.wins / v.count) * 100), count: v.count }))
     .sort((a, b) => a.avg - b.avg);
 
-  // Symbol buckets
   const symBuckets: Record<string, { pnl: number; count: number; wins: number }> = {};
   for (const t of tradeEntries.filter((t) => t.pnl !== null && t.symbol)) {
     const sym = t.symbol!;
@@ -290,7 +303,6 @@ async function buildPatterns(userId: string) {
     .map(([sym, v]) => ({ sym, avg: Math.round(v.pnl / v.count), total: Math.round(v.pnl), wr: Math.round((v.wins / v.count) * 100), count: v.count }))
     .sort((a, b) => a.total - b.total);
 
-  // Day of week
   const DOW_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
   const dowBuckets: Record<string, { pnl: number; count: number }> = {};
   for (const [dateStr, pnl] of Object.entries(tradesByDate)) {
@@ -304,14 +316,9 @@ async function buildPatterns(userId: string) {
     .map(([day, v]) => ({ day, avg: Math.round(v.pnl / v.count), total: Math.round(v.pnl), count: v.count }))
     .sort((a, b) => a.avg - b.avg);
 
-  // NO-TRADE violations (traded on NO-TRADE day)
-  const ntViolationTrades = tradeEntries.filter((t) => {
-    const c = checkins.find((c) => c.date === t.date);
-    return c?.verdict === "NO-TRADE";
-  });
+  const ntViolationTrades = tradeEntries.filter((t) => checkins.find((c) => c.date === t.date)?.verdict === "NO-TRADE");
   const ntViolationPnl = Math.round(ntViolationTrades.reduce((s, t) => s + (t.pnl ?? 0), 0));
 
-  // After-loss overtrading
   const overtradingDays = tradeEntries.reduce((acc: Record<string, number>, t) => { acc[t.date] = (acc[t.date] ?? 0) + 1; return acc; }, {});
   let revengeCount = 0;
   for (let i = 0; i < sortedTradeDates.length - 1; i++) {
@@ -344,7 +351,8 @@ export async function GET() {
   if (!guard.ok) return guard.response;
 
   try {
-    const patterns = await buildPatterns(session.user.id);
+    const { checkins, tradeEntries } = await computeUserData(session.user.id);
+    const patterns = extractPatterns(checkins, tradeEntries);
     return Response.json({ ok: true, patterns });
   } catch (err) {
     logger.error("AI Coach patterns GET failed", err);
@@ -373,7 +381,8 @@ export async function POST(request: NextRequest) {
     if (!guard.ok) return guard.response;
   }
 
-  const context = await buildUserContext(session.user.id);
+  const { checkins, tradeEntries, playbook } = await computeUserData(session.user.id);
+  const context = buildContextString(checkins, tradeEntries, playbook);
   const client = new Anthropic({ apiKey });
 
   // Model selection: Opus 4.7 for deep weekly analysis, Sonnet 4.6 for daily/chat

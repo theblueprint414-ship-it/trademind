@@ -899,6 +899,10 @@ export default function DashboardPage() {
                 {lastWeekReview.noTradeDays > 0 && <span style={{ padding: "3px 10px", borderRadius: 20, background: "rgba(255,59,92,0.08)", border: "1px solid rgba(255,59,92,0.2)", fontSize: 11, color: "var(--red)", fontWeight: 700 }}>{lastWeekReview.noTradeDays} NO-TRADE</span>}
                 {lastWeekReview.noTradeCompliance !== null && <span style={{ padding: "3px 10px", borderRadius: 20, background: "var(--surface2)", border: "1px solid var(--border)", fontSize: 11, color: lastWeekReview.noTradeCompliance >= 80 ? "var(--green)" : "var(--text-muted)", fontWeight: 600 }}>{lastWeekReview.noTradeCompliance}% NT compliance</span>}
               </div>
+              <Link href="/weekly" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 6, marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
+                <span style={{ fontSize: 12, color: "var(--blue)", fontWeight: 700 }}>Full weekly review</span>
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ color: "var(--blue)" }}><path d="M2 6h8M7 3l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </Link>
             </div>
           </div>
         )}

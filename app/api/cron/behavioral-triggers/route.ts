@@ -348,5 +348,110 @@ export async function GET(req: NextRequest) {
     }
   } catch {}
 
+  // ── 6. Challenge drawdown proximity alert ───────────────────────────────
+  try {
+    const challengeUsers = await db.user.findMany({
+      where: {
+        challengeEnabled: true,
+        challengeAccountSize: { gt: 0 },
+        challengeMaxDrawdown: { gt: 0 },
+        plan: { in: ["pro", "premium"] },
+      },
+      select: {
+        id: true, email: true, name: true,
+        challengeAccountSize: true, challengeMaxDrawdown: true,
+        challengeStartDate: true, challengeFirm: true,
+        tradeEntries: { select: { date: true, pnl: true } },
+      },
+      take: 500,
+    });
+
+    for (const user of challengeUsers) {
+      if (!user.challengeAccountSize || !user.challengeMaxDrawdown) continue;
+
+      const startDate = user.challengeStartDate ?? null;
+      const relevant = startDate
+        ? user.tradeEntries.filter((t) => t.date >= startDate && t.pnl !== null)
+        : user.tradeEntries.filter((t) => t.pnl !== null);
+
+      const totalPnl = relevant.reduce((s, t) => s + (t.pnl ?? 0), 0);
+      if (totalPnl >= 0) continue;
+
+      const maxDrawdownDollar = user.challengeAccountSize * (user.challengeMaxDrawdown / 100);
+      const used = Math.abs(totalPnl);
+      const remaining = maxDrawdownDollar - used;
+      const remainingPct = (remaining / maxDrawdownDollar) * 100;
+
+      // Only alert when within 20% of max drawdown
+      if (remainingPct > 20 || remaining <= 0) continue;
+
+      const firstName = user.name?.split(" ")[0] ?? "Trader";
+      const firm = user.challengeFirm ?? "your challenge";
+
+      try {
+        await sendPushToUser(user.id, {
+          title: "Drawdown Alert",
+          body: `${remainingPct.toFixed(0)}% remaining ($${Math.round(remaining)}) before ${firm} limit. Protect your account.`,
+          url: "/dashboard",
+        }).catch(() => {});
+
+        if (user.email) {
+          await resend.emails.send({
+            from: "TradeMind <noreply@trademindedge.com>",
+            to: user.email,
+            subject: `⚠️ ${Math.round(remainingPct)}% of your drawdown limit remaining`,
+            html: brandWrap(`
+              <div style="background:rgba(255,176,32,0.08);border:1px solid rgba(255,176,32,0.3);border-radius:12px;padding:20px;margin-bottom:24px;text-align:center;">
+                <div style="font-size:36px;font-weight:800;color:#FFB020;">${Math.round(remainingPct)}%</div>
+                <div style="font-size:13px;color:#7A8BA8;margin-top:4px;">Drawdown buffer remaining · $${Math.round(remaining)} left of $${Math.round(maxDrawdownDollar)}</div>
+              </div>
+              <h2 style="font-size:20px;font-weight:700;margin-bottom:12px;">Hey ${firstName},</h2>
+              <p style="font-size:15px;color:#7A8BA8;line-height:1.8;margin-bottom:16px;">
+                Your ${firm} account is approaching the max drawdown limit. You have <strong style="color:#FFB020;">$${Math.round(remaining)}</strong> left before you breach the cap.
+              </p>
+              <p style="font-size:15px;color:#7A8BA8;line-height:1.8;margin-bottom:24px;">
+                This is not the time to force trades. Check your mental score, trade smaller, or sit today out.
+              </p>
+              <a href="https://trademindedge.com/dashboard" style="display:inline-block;background:#4F8EF7;color:#fff;font-size:15px;font-weight:700;padding:14px 28px;border-radius:10px;text-decoration:none;">
+                Check today's verdict →
+              </a>
+              ${footer(user.email)}
+            `),
+          });
+          sent++;
+        }
+      } catch {}
+    }
+  } catch {}
+
+  // ── 7. Mid-session pulse check reminder (traders with 3+ trades, no mid-checkin) ──
+  try {
+    // Find users who have 3+ trades today but haven't done a mid-session check-in
+    const tradersToday = await db.user.findMany({
+      where: {
+        tradeEntries: { some: { date: todayStr } },
+      },
+      select: {
+        id: true,
+        tradeEntries: { where: { date: todayStr }, select: { id: true } },
+        midSessionCheckins: { where: { date: todayStr }, select: { id: true } },
+      },
+      take: 500,
+    });
+
+    for (const user of tradersToday) {
+      if (user.tradeEntries.length < 3) continue;
+      if (user.midSessionCheckins.length > 0) continue;
+
+      try {
+        await sendPushToUser(user.id, {
+          title: "Mid-session pulse check",
+          body: `You've made ${user.tradeEntries.length} trades today — how's your mental state? 30 seconds.`,
+          url: "/mid-checkin",
+        }).catch(() => {});
+      } catch {}
+    }
+  } catch {}
+
   return Response.json({ ok: true, sent });
 }
