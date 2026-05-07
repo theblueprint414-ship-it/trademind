@@ -55,6 +55,8 @@ export interface TradeHistoryEntry {
   entryTime?: string | null;
   exitTime?: string | null;
   qty?: number | null;
+  commission?: number | null;
+  assetType?: string | null;
 }
 
 export async function fetchHistoricalTrades(
@@ -382,17 +384,61 @@ async function alpacaHistory({ apiKey, apiSecret, environment }: BrokerConfig, d
   if (!res.ok) return [];
   const orders = await res.json();
   if (!Array.isArray(orders)) return [];
-  return orders.map((o: { symbol: string; side: string; filled_at: string; filled_avg_price?: string; qty?: string }) => ({
-    date: o.filled_at?.split("T")[0] ?? new Date().toISOString().split("T")[0],
-    symbol: o.symbol ?? "UNKNOWN",
-    side: o.side === "buy" ? "long" : "short",
-    pnl: null,
-    entryPrice: o.side === "buy" && o.filled_avg_price ? parseFloat(o.filled_avg_price) : null,
-    exitPrice: o.side === "sell" && o.filled_avg_price ? parseFloat(o.filled_avg_price) : null,
-    entryTime: o.side === "buy" ? o.filled_at : null,
-    exitTime: o.side === "sell" ? o.filled_at : null,
-    qty: o.qty ? parseFloat(o.qty) : null,
-  }));
+
+  type AlpacaOrder = { symbol: string; side: string; filled_at: string; filled_avg_price?: string; qty?: string };
+
+  // Group by symbol and FIFO-match buys with sells into round-trip trades
+  const bySymbol: Record<string, AlpacaOrder[]> = {};
+  for (const o of orders as AlpacaOrder[]) {
+    if (!bySymbol[o.symbol]) bySymbol[o.symbol] = [];
+    bySymbol[o.symbol].push(o);
+  }
+
+  const trades: TradeHistoryEntry[] = [];
+  for (const [symbol, symOrders] of Object.entries(bySymbol)) {
+    const buys  = symOrders.filter(o => o.side === "buy").sort((a, b) => a.filled_at.localeCompare(b.filled_at));
+    const sells = symOrders.filter(o => o.side === "sell").sort((a, b) => a.filled_at.localeCompare(b.filled_at));
+    const pairs = Math.min(buys.length, sells.length);
+    for (let i = 0; i < pairs; i++) {
+      const buy = buys[i], sell = sells[i];
+      const entryPrice = buy.filled_avg_price ? parseFloat(buy.filled_avg_price) : null;
+      const exitPrice  = sell.filled_avg_price ? parseFloat(sell.filled_avg_price) : null;
+      const qty        = buy.qty ? parseFloat(buy.qty) : null;
+      const pnl        = (entryPrice !== null && exitPrice !== null && qty !== null)
+        ? Math.round((exitPrice - entryPrice) * qty * 100) / 100 : null;
+      trades.push({
+        date: sell.filled_at.split("T")[0],
+        symbol,
+        side: "long",
+        pnl,
+        entryPrice,
+        exitPrice,
+        entryTime: buy.filled_at,
+        exitTime: sell.filled_at,
+        qty,
+        assetType: "stocks",
+      });
+    }
+    // Unpaired sells (short positions) — best effort
+    if (sells.length > buys.length) {
+      for (let i = pairs; i < sells.length; i++) {
+        const sell = sells[i];
+        const exitPrice = sell.filled_avg_price ? parseFloat(sell.filled_avg_price) : null;
+        const qty       = sell.qty ? parseFloat(sell.qty) : null;
+        trades.push({
+          date: sell.filled_at.split("T")[0],
+          symbol,
+          side: "short",
+          pnl: null,
+          exitPrice,
+          exitTime: sell.filled_at,
+          qty,
+          assetType: "stocks",
+        });
+      }
+    }
+  }
+  return trades.sort((a, b) => (a.exitTime ?? a.date).localeCompare(b.exitTime ?? b.date));
 }
 
 async function bybitHistory({ apiKey, apiSecret }: BrokerConfig, days: number): Promise<TradeHistoryEntry[]> {
@@ -411,13 +457,14 @@ async function bybitHistory({ apiKey, apiSecret }: BrokerConfig, days: number): 
   return data.result.list.map((t: { symbol: string; side: string; closedPnl: string; createdTime: string; updatedTime?: string; avgEntryPrice?: string; avgExitPrice?: string; qty?: string }) => ({
     date: new Date(parseInt(t.createdTime)).toISOString().split("T")[0],
     symbol: t.symbol,
-    side: t.side === "Buy" ? "long" : "short",
+    side: t.side === "Buy" ? ("long" as const) : ("short" as const),
     pnl: t.closedPnl ? parseFloat(t.closedPnl) : null,
     entryPrice: t.avgEntryPrice ? parseFloat(t.avgEntryPrice) : null,
     exitPrice: t.avgExitPrice ? parseFloat(t.avgExitPrice) : null,
     entryTime: new Date(parseInt(t.createdTime)).toISOString(),
     exitTime: t.updatedTime ? new Date(parseInt(t.updatedTime)).toISOString() : null,
     qty: t.qty ? parseFloat(t.qty) : null,
+    assetType: "crypto",
   }));
 }
 
@@ -437,11 +484,17 @@ async function coinbaseHistory({ apiKey, apiSecret }: BrokerConfig, days: number
   cutoff.setDate(cutoff.getDate() - days);
   return data.orders
     .filter((o: { last_fill_time?: string }) => o.last_fill_time && new Date(o.last_fill_time) >= cutoff)
-    .map((o: { product_id: string; side: string; last_fill_time: string }) => ({
+    .map((o: { product_id: string; side: string; last_fill_time: string; average_filled_price?: string; filled_size?: string }) => ({
       date: o.last_fill_time.split("T")[0],
       symbol: o.product_id,
-      side: o.side === "BUY" ? "long" : "short",
+      side: o.side === "BUY" ? ("long" as const) : ("short" as const),
       pnl: null,
+      entryPrice: o.average_filled_price ? parseFloat(o.average_filled_price) : null,
+      exitPrice: o.average_filled_price ? parseFloat(o.average_filled_price) : null,
+      entryTime: o.last_fill_time,
+      exitTime: o.last_fill_time,
+      qty: o.filled_size ? parseFloat(o.filled_size) : null,
+      assetType: "crypto",
     }));
 }
 
@@ -462,12 +515,18 @@ async function krakenHistory({ apiKey, apiSecret }: BrokerConfig, days: number):
   const data = await res.json();
   if (data.error?.length || !data.result?.trades) return [];
   return Object.values(data.result.trades).map((t) => {
-    const trade = t as { pair: string; type: string; time: number };
+    const trade = t as { pair: string; type: string; time: number; price?: string; vol?: string; cost?: string };
+    const ts = new Date(trade.time * 1000).toISOString();
     return {
-      date: new Date(trade.time * 1000).toISOString().split("T")[0],
+      date: ts.split("T")[0],
       symbol: trade.pair,
-      side: trade.type === "buy" ? "long" : "short",
+      side: trade.type === "buy" ? ("long" as const) : ("short" as const),
       pnl: null,
+      entryPrice: trade.price ? parseFloat(trade.price) : null,
+      entryTime: ts,
+      exitTime: ts,
+      qty: trade.vol ? parseFloat(trade.vol) : null,
+      assetType: "crypto",
     };
   });
 }
@@ -510,8 +569,9 @@ async function binanceHistory({ apiKey, apiSecret }: BrokerConfig, days: number)
   return data.map((t: { symbol: string; income: string; time: number }) => ({
     date: new Date(t.time).toISOString().split("T")[0],
     symbol: t.symbol,
-    side: parseFloat(t.income) >= 0 ? "long" : "short",
+    side: parseFloat(t.income) >= 0 ? ("long" as const) : ("short" as const),
     pnl: parseFloat(t.income),
+    assetType: "crypto",
   }));
 }
 
@@ -589,17 +649,39 @@ async function metaApiHistory({ apiKey }: BrokerConfig, days: number): Promise<T
   if (!res.ok) return [];
   const deals = await res.json();
   if (!Array.isArray(deals)) return [];
-  return deals
-    .filter((d: { entryType?: string }) => d.entryType === "DEAL_ENTRY_OUT")
-    .map((d: { time?: string; symbol?: string; type?: string; profit?: number; price?: number; volume?: number }) => ({
-      date: (d.time ?? new Date().toISOString()).split("T")[0],
-      symbol: (d.symbol ?? "FOREX").slice(0, 20),
-      side: d.type === "DEAL_TYPE_SELL" ? ("short" as const) : ("long" as const),
-      pnl: d.profit ?? null,
-      exitPrice: d.price ?? null,
-      exitTime: d.time ?? null,
-      qty: d.volume ?? null,
-    }));
+
+  type MetaDeal = {
+    positionId?: string; entryType?: string; time?: string;
+    symbol?: string; type?: string; profit?: number; price?: number; volume?: number;
+  };
+
+  // Group all deals by positionId, then match IN+OUT pairs
+  const byPosition: Record<string, { in?: MetaDeal; out?: MetaDeal }> = {};
+  for (const d of deals as MetaDeal[]) {
+    const pid = d.positionId ?? d.time ?? Math.random().toString();
+    if (!byPosition[pid]) byPosition[pid] = {};
+    if (d.entryType === "DEAL_ENTRY_IN") byPosition[pid].in = d;
+    else if (d.entryType === "DEAL_ENTRY_OUT") byPosition[pid].out = d;
+  }
+
+  const trades: TradeHistoryEntry[] = [];
+  for (const { in: inDeal, out: outDeal } of Object.values(byPosition)) {
+    if (!outDeal) continue;
+    const side = inDeal?.type === "DEAL_TYPE_BUY" ? "long" : "short";
+    trades.push({
+      date: (outDeal.time ?? new Date().toISOString()).split("T")[0],
+      symbol: (outDeal.symbol ?? inDeal?.symbol ?? "FOREX").slice(0, 20),
+      side,
+      pnl: outDeal.profit ?? null,
+      entryPrice: inDeal?.price ?? null,
+      exitPrice: outDeal.price ?? null,
+      entryTime: inDeal?.time ?? null,
+      exitTime: outDeal.time ?? null,
+      qty: inDeal?.volume ?? outDeal.volume ?? null,
+      assetType: "forex",
+    });
+  }
+  return trades.sort((a, b) => (a.exitTime ?? a.date).localeCompare(b.exitTime ?? b.date));
 }
 
 // ── TopstepX / ProjectX ──────────────────────────────────────────────────────
@@ -613,6 +695,8 @@ interface TopstepXTrade {
   contractId: string;
   side: number;
   voided: boolean;
+  price?: number;
+  size?: number;
 }
 
 async function topstepXAuth(username: string, apiKey: string): Promise<string | null> {
@@ -689,9 +773,13 @@ async function topstepXHistory({ apiKey, apiSecret }: BrokerConfig, days: number
   return trades.map((t) => ({
     date: t.creationTimestamp.split("T")[0],
     symbol: (t.contractId ?? "FUTURES").slice(0, 20),
-    side: t.side > 0 ? "long" : ("short" as "long" | "short"),
+    side: t.side > 0 ? ("long" as const) : ("short" as const),
     pnl: t.profitAndLoss ?? null,
+    entryPrice: t.price ?? null,
     entryTime: t.creationTimestamp,
+    qty: t.size ?? null,
+    commission: t.fees ?? null,
+    assetType: "futures",
   }));
 }
 

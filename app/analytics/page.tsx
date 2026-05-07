@@ -62,6 +62,19 @@ type AnalyticsData = {
   scoreRangePerformance: { high: ScoreRangeEntry; mid: ScoreRangeEntry; low: ScoreRangeEntry };
   byDayOfWeek: DayOfWeekEntry[];
   behavioralPatterns: BehavioralPatterns;
+  // New analytics
+  timeOfDay: { hour: number; pnl: number; trades: number; winRate: number | null }[];
+  dayOfWeek: { day: number; label: string; pnl: number; trades: number; winRate: number | null }[];
+  symbols: { symbol: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number; avgR: number | null }[];
+  equityCurve: { date: string; dailyPnl: number; cumPnl: number }[];
+  profitFactor: number | null;
+  expectancy: number | null;
+  avgWin: number | null;
+  avgLoss: number | null;
+  maxWinStreak: number;
+  maxLoseStreak: number;
+  avgRMultiple: number | null;
+  maxDrawdown: number;
 };
 
 function verdictColor(verdict: string | null) {
@@ -681,6 +694,160 @@ function TopInsightCard({ data }: { data: AnalyticsData }) {
   );
 }
 
+function EquityCurveCard({ data }: { data: { date: string; dailyPnl: number; cumPnl: number }[] }) {
+  const [tooltip, setTooltip] = React.useState<{ x: number; y: number; date: string; cumPnl: number; dailyPnl: number } | null>(null);
+  if (data.length < 2) return null;
+  const W = 600; const H = 120; const PAD = 16;
+  const pnls = data.map((d) => d.cumPnl);
+  const minP = Math.min(...pnls, 0);
+  const maxP = Math.max(...pnls, 0);
+  const range = maxP - minP || 1;
+  const xStep = (W - PAD * 2) / (data.length - 1);
+  const yOf = (p: number) => PAD + (1 - (p - minP) / range) * (H - PAD * 2);
+  const points = data.map((d, i) => ({ x: PAD + i * xStep, y: yOf(d.cumPnl), ...d }));
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const finalPnl = data[data.length - 1].cumPnl;
+  const isPositive = finalPnl >= 0;
+  const lineColor = isPositive ? "var(--green)" : "var(--red)";
+  const zeroY = yOf(0);
+  const areaD = `${pathD} L ${points[points.length - 1].x} ${H} L ${points[0].x} ${H} Z`;
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>EQUITY CURVE</h3>
+        <span className="font-bebas" style={{ fontSize: 22, color: lineColor }}>{finalPnl >= 0 ? "+" : ""}${Math.abs(finalPnl).toFixed(0)}</span>
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", minWidth: 280 }} onMouseLeave={() => setTooltip(null)}>
+          <defs>
+            <linearGradient id="eqGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={lineColor} stopOpacity="0.25" />
+              <stop offset="100%" stopColor={lineColor} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {zeroY >= PAD && zeroY <= H - PAD && <line x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY} stroke="var(--border)" strokeWidth="0.8" strokeDasharray="3,3" />}
+          <path d={areaD} fill="url(#eqGrad)" />
+          <path d={pathD} fill="none" stroke={lineColor} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" />
+          {points.map((p, i) => (
+            <rect key={i} x={p.x - 6} y={PAD} width={12} height={H - PAD * 2} fill="transparent"
+              onMouseEnter={() => setTooltip({ x: p.x, y: p.y, date: p.date, cumPnl: p.cumPnl, dailyPnl: p.dailyPnl })} />
+          ))}
+          {tooltip && (() => {
+            const tx = Math.min(tooltip.x, W - 120); const ty = tooltip.y < 60 ? tooltip.y + 10 : tooltip.y - 56;
+            const c = tooltip.cumPnl >= 0 ? "var(--green)" : "var(--red)";
+            return (
+              <g>
+                <line x1={tooltip.x} y1={PAD} x2={tooltip.x} y2={H - PAD} stroke={c} strokeWidth="0.75" strokeDasharray="3,2" opacity="0.6" />
+                <circle cx={tooltip.x} cy={tooltip.y} r="4" fill={c} />
+                <rect x={tx} y={ty} width={120} height={46} rx="6" fill="#0D1420" stroke={c} strokeWidth="1" opacity="0.97" />
+                <text x={tx + 60} y={ty + 14} fontSize="9" fill="var(--text-muted)" textAnchor="middle">{tooltip.date}</text>
+                <text x={tx + 60} y={ty + 28} fontSize="12" fontWeight="700" fill={c} textAnchor="middle">Net {tooltip.cumPnl >= 0 ? "+" : ""}${Math.abs(tooltip.cumPnl).toFixed(0)}</text>
+                <text x={tx + 60} y={ty + 41} fontSize="10" fill="var(--text-muted)" textAnchor="middle">Day: {tooltip.dailyPnl >= 0 ? "+" : ""}${Math.abs(tooltip.dailyPnl).toFixed(0)}</text>
+              </g>
+            );
+          })()}
+        </svg>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", padding: "0 4px", marginTop: 4 }}>
+          <span>{data[0].date}</span><span>{data[data.length - 1].date}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfitMetricsRow({ data }: { data: AnalyticsData }) {
+  const metrics = [
+    { label: "PROFIT FACTOR", value: data.profitFactor !== null ? data.profitFactor.toFixed(2) : "—", color: data.profitFactor !== null ? (data.profitFactor >= 1.5 ? "var(--green)" : data.profitFactor >= 1 ? "var(--amber)" : "var(--red)") : "var(--text-muted)" },
+    { label: "EXPECTANCY", value: data.expectancy !== null ? `${data.expectancy >= 0 ? "+" : ""}$${data.expectancy.toFixed(0)}` : "—", color: data.expectancy !== null ? (data.expectancy > 0 ? "var(--green)" : "var(--red)") : "var(--text-muted)" },
+    { label: "AVG WIN", value: data.avgWin !== null ? `$${data.avgWin.toFixed(0)}` : "—", color: "var(--green)" },
+    { label: "AVG LOSS", value: data.avgLoss !== null ? `$${data.avgLoss.toFixed(0)}` : "—", color: "var(--red)" },
+    { label: "MAX DRAWDOWN", value: data.maxDrawdown > 0 ? `-$${data.maxDrawdown.toFixed(0)}` : "—", color: data.maxDrawdown > 0 ? "var(--red)" : "var(--text-muted)" },
+  ];
+  if (metrics.every(m => m.value === "—")) return null;
+  return (
+    <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>PROFIT METRICS</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8 }}>
+        {metrics.map((m) => (
+          <div key={m.label} style={{ textAlign: "center", padding: "12px 8px", borderRadius: 10, background: "var(--surface2)" }}>
+            <div className="font-bebas" style={{ fontSize: 18, color: m.color, lineHeight: 1, marginBottom: 4 }}>{m.value}</div>
+            <div style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.07em", lineHeight: 1.3 }}>{m.label}</div>
+          </div>
+        ))}
+      </div>
+      {(data.maxWinStreak > 0 || data.maxLoseStreak > 0 || data.avgRMultiple !== null) && (
+        <div style={{ display: "flex", gap: 16, marginTop: 12, paddingTop: 12, borderTop: "1px solid var(--border)", flexWrap: "wrap" }}>
+          {data.maxWinStreak > 0 && <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Longest win streak: <strong style={{ color: "var(--green)" }}>{data.maxWinStreak}</strong></span>}
+          {data.maxLoseStreak > 0 && <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Longest lose streak: <strong style={{ color: "var(--red)" }}>{data.maxLoseStreak}</strong></span>}
+          {data.avgRMultiple !== null && <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Avg R: <strong style={{ color: data.avgRMultiple >= 0 ? "var(--green)" : "var(--red)", fontFamily: "var(--font-geist-mono)" }}>{data.avgRMultiple >= 0 ? "+" : ""}{data.avgRMultiple.toFixed(2)}R</strong></span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TimeOfDayCard({ data }: { data: { hour: number; pnl: number; trades: number; winRate: number | null }[] }) {
+  if (data.length === 0) return null;
+  const maxAbs = Math.max(...data.map((d) => Math.abs(d.pnl)), 1);
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>BEST HOURS TO TRADE</h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        {data.map((h) => {
+          const barPct = (Math.abs(h.pnl) / maxAbs) * 100;
+          const isPos = h.pnl >= 0;
+          const hStr = `${h.hour.toString().padStart(2, "0")}:00 UTC`;
+          return (
+            <div key={h.hour} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 68, fontSize: 11, color: "var(--text-muted)", flexShrink: 0, fontFamily: "var(--font-geist-mono)" }}>{hStr}</div>
+              <div style={{ flex: 1, height: 8, background: "var(--surface3)", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ height: "100%", width: `${barPct}%`, background: isPos ? "var(--green)" : "var(--red)", borderRadius: 4 }} />
+              </div>
+              <div style={{ width: 56, fontSize: 11, fontWeight: 700, color: isPos ? "var(--green)" : "var(--red)", textAlign: "right", flexShrink: 0, fontFamily: "var(--font-geist-mono)" }}>
+                {isPos ? "+" : ""}${Math.abs(h.pnl).toFixed(0)}
+              </div>
+              <div style={{ width: 28, fontSize: 10, color: "var(--text-muted)", textAlign: "right", flexShrink: 0 }}>{h.trades}tr</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SymbolPerformanceTable({ data }: { data: AnalyticsData["symbols"] }) {
+  if (!data || data.length === 0) return null;
+  const top = data.slice(0, 10);
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>SYMBOL PERFORMANCE</h3>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid var(--border)" }}>
+              {["Symbol", "Trades", "Win %", "Avg P&L", "Total P&L", "Avg R"].map((h) => (
+                <th key={h} style={{ padding: "6px 10px", textAlign: h === "Symbol" ? "left" : "right", fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", whiteSpace: "nowrap" }}>{h.toUpperCase()}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {top.map((s) => (
+              <tr key={s.symbol} style={{ borderBottom: "1px solid var(--border)" }}>
+                <td style={{ padding: "10px 10px", fontWeight: 700, fontFamily: "var(--font-geist-mono)", fontSize: 13, color: "var(--text)" }}>{s.symbol}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", color: "var(--text-muted)" }}>{s.trades}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", fontWeight: 700, color: s.winRate !== null ? (s.winRate >= 50 ? "var(--green)" : "var(--red)") : "var(--text-muted)" }}>{s.winRate !== null ? `${s.winRate}%` : "—"}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", color: s.avgPnl !== null ? (s.avgPnl >= 0 ? "var(--green)" : "var(--red)") : "var(--text-muted)" }}>{s.avgPnl !== null ? `${s.avgPnl >= 0 ? "+" : ""}$${Math.abs(s.avgPnl).toFixed(0)}` : "—"}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", fontWeight: 700, color: s.totalPnl >= 0 ? "var(--green)" : "var(--red)" }}>{s.totalPnl >= 0 ? "+" : ""}${Math.abs(s.totalPnl).toFixed(0)}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", color: s.avgR !== null ? (s.avgR >= 0 ? "var(--green)" : "var(--red)") : "var(--text-muted)", fontFamily: "var(--font-geist-mono)" }}>{s.avgR !== null ? `${s.avgR >= 0 ? "+" : ""}${s.avgR.toFixed(2)}R` : "—"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function PremiumUpsell() {
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
@@ -1063,6 +1230,18 @@ export default function AnalyticsPage() {
 
         {/* NEW: Behavioral Patterns */}
         {data.behavioralPatterns && <BehavioralPatternsCard data={data.behavioralPatterns} />}
+
+        {/* Equity Curve */}
+        {data.equityCurve && data.equityCurve.length >= 2 && <EquityCurveCard data={data.equityCurve} />}
+
+        {/* Profit Metrics */}
+        {data.profitFactor !== undefined && <ProfitMetricsRow data={data} />}
+
+        {/* Best Hours */}
+        {data.timeOfDay && data.timeOfDay.length > 0 && <TimeOfDayCard data={data.timeOfDay} />}
+
+        {/* Symbol Performance */}
+        {data.symbols && data.symbols.length > 0 && <SymbolPerformanceTable data={data.symbols} />}
 
         {/* CTA: Playbook */}
         <div className="card" style={{ padding: 24, textAlign: "center", border: "1px solid rgba(94,106,210,0.2)", background: "rgba(94,106,210,0.03)" }}>

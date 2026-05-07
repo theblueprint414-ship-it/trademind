@@ -27,7 +27,10 @@ type TradeEntry = {
   tags: string | null;
   checkinScore: number | null;
   reflection: string | null;
+  rMultiple: number | null;
 };
+
+type AiAnalysis = { alignment: string; risk: string; lesson: string };
 
 type SessionData = {
   date: string;
@@ -89,8 +92,42 @@ function MentalBar({ score, verdict }: { score: number; verdict: string }) {
   );
 }
 
-function TradeCard({ trade, mentalScore }: { trade: TradeEntry; mentalScore: number | null }) {
+function TradeCard({ trade, mentalScore, isPro }: { trade: TradeEntry; mentalScore: number | null; isPro: boolean }) {
   const [expanded, setExpanded] = useState(false);
+  const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(() => {
+    try { const c = localStorage.getItem(`ai_trade_${trade.id}`); return c ? JSON.parse(c) : null; } catch { return null; }
+  });
+  const [aiLoading, setAiLoading] = useState(false);
+
+  async function fetchAiAnalysis() {
+    if (aiAnalysis || aiLoading || !isPro) return;
+    setAiLoading(true);
+    try {
+      const res = await fetch("/api/ai-trade-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          symbol: trade.symbol,
+          side: trade.side,
+          pnl: trade.pnl,
+          rMultiple: trade.rMultiple,
+          emotionBefore: trade.emotionBefore,
+          emotionAfter: trade.emotionAfter,
+          checkinScore: trade.checkinScore ?? mentalScore,
+          entryHour: trade.entryTime ? new Date(trade.entryTime).getUTCHours() : null,
+          setup: trade.setup,
+          mistake: trade.mistake,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok && data.analysis) {
+        setAiAnalysis(data.analysis);
+        try { localStorage.setItem(`ai_trade_${trade.id}`, JSON.stringify(data.analysis)); } catch {}
+      }
+    } catch {}
+    setAiLoading(false);
+  }
+
   const pnl = trade.pnl;
   const isProfit = pnl !== null && pnl >= 0;
   const tags = parseTags(trade.tags);
@@ -100,7 +137,7 @@ function TradeCard({ trade, mentalScore }: { trade: TradeEntry; mentalScore: num
     <div style={{ background: "var(--surface)", border: `1px solid ${pnl !== null ? (isProfit ? "rgba(0,208,132,0.2)" : "rgba(255,59,92,0.2)") : "var(--border)"}`, borderRadius: 14, overflow: "hidden" }}>
       {/* Header row */}
       <button
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => { const next = !expanded; setExpanded(next); if (next && isPro && !aiAnalysis) fetchAiAnalysis(); }}
         style={{ width: "100%", background: "none", border: "none", cursor: "pointer", padding: "18px 20px", display: "flex", alignItems: "center", gap: 12, textAlign: "left" }}
       >
         {/* Side indicator */}
@@ -210,6 +247,35 @@ function TradeCard({ trade, mentalScore }: { trade: TradeEntry; mentalScore: num
               <div style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)", borderRadius: 8, padding: "10px 12px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#8B5CF6", marginBottom: 3 }}>Reflection</div>
                 <div style={{ fontSize: 13, color: "var(--text-dim)" }}>{trade.reflection}</div>
+              </div>
+            )}
+
+            {/* AI Analysis */}
+            {isPro && (
+              <div style={{ border: "1px solid rgba(94,106,210,0.25)", borderRadius: 10, padding: "12px 14px", background: "rgba(94,106,210,0.04)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: "var(--blue)" }}><path d="M6.5 1.5a5 5 0 100 10 5 5 0 000-10zM6.5 4v3.5L8.5 9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                    <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--blue)" }}>AI ANALYSIS</span>
+                  </div>
+                  {!aiAnalysis && !aiLoading && (
+                    <button onClick={fetchAiAnalysis} style={{ fontSize: 11, color: "var(--blue)", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 700 }}>Analyze →</button>
+                  )}
+                </div>
+                {aiLoading && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0" }}>
+                    <div style={{ width: 14, height: 14, borderRadius: "50%", border: "2px solid var(--surface3)", borderTopColor: "var(--blue)", animation: "spin 0.8s linear infinite" }} />
+                    <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Analyzing trade...</span>
+                  </div>
+                )}
+                {aiAnalysis && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div><span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 2 }}>ALIGNMENT</span><p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, lineHeight: 1.6 }}>{aiAnalysis.alignment}</p></div>
+                    <div><span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 2 }}>RISK</span><p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, lineHeight: 1.6 }}>{aiAnalysis.risk}</p></div>
+                    <div style={{ background: "rgba(94,106,210,0.08)", borderRadius: 6, padding: "8px 10px" }}><span style={{ fontSize: 10, fontWeight: 700, color: "var(--blue)", display: "block", marginBottom: 2 }}>KEY LESSON</span><p style={{ fontSize: 12, color: "var(--text)", margin: 0, lineHeight: 1.6, fontWeight: 600 }}>{aiAnalysis.lesson}</p></div>
+                  </div>
+                )}
+                {!aiAnalysis && !aiLoading && <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>Get AI insights on this trade&apos;s psychology, risk, and lesson.</p>}
               </div>
             )}
           </div>
@@ -413,7 +479,7 @@ Provide a brief JSON response with:
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {session!.trades.map(trade => (
-                <TradeCard key={trade.id} trade={trade} mentalScore={session?.checkin?.score ?? null} />
+                <TradeCard key={trade.id} trade={trade} mentalScore={session?.checkin?.score ?? null} isPro={session?.plan === "pro" || session?.plan === "premium"} />
               ))}
             </div>
           )}

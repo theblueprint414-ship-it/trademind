@@ -236,6 +236,103 @@ export async function GET(request: NextRequest) {
     })
     .sort((a, b) => a.date.localeCompare(b.date));
 
+  // ── Time of day (hour buckets 0–23) ─────────────────────────────────────────
+  const hourMap: Record<number, { pnl: number; trades: number; wins: number }> = {};
+  for (const t of tradeEntries) {
+    const timeStr = t.exitTime ?? t.entryTime ?? null;
+    if (!timeStr) continue;
+    const hour = new Date(timeStr).getUTCHours();
+    if (!hourMap[hour]) hourMap[hour] = { pnl: 0, trades: 0, wins: 0 };
+    hourMap[hour].trades++;
+    if (t.pnl !== null) { hourMap[hour].pnl += t.pnl; if (t.pnl > 0) hourMap[hour].wins++; }
+  }
+  const timeOfDay = Array.from({ length: 24 }, (_, h) => {
+    const b = hourMap[h];
+    return { hour: h, pnl: b ? Math.round(b.pnl * 100) / 100 : 0, trades: b?.trades ?? 0, winRate: b && b.trades > 0 ? Math.round((b.wins / b.trades) * 100) : null };
+  }).filter((h) => h.trades > 0);
+
+  // ── Symbol performance ────────────────────────────────────────────────────
+  const symbolMap: Record<string, { pnl: number; trades: number; wins: number; rSum: number; rCount: number }> = {};
+  for (const t of tradeEntries) {
+    const sym = t.symbol ?? "UNKNOWN";
+    if (!symbolMap[sym]) symbolMap[sym] = { pnl: 0, trades: 0, wins: 0, rSum: 0, rCount: 0 };
+    symbolMap[sym].trades++;
+    if (t.pnl !== null) { symbolMap[sym].pnl += t.pnl; if (t.pnl > 0) symbolMap[sym].wins++; }
+    if (t.rMultiple !== null) { symbolMap[sym].rSum += t.rMultiple; symbolMap[sym].rCount++; }
+  }
+  const symbols = Object.entries(symbolMap)
+    .map(([symbol, s]) => ({
+      symbol,
+      trades: s.trades,
+      winRate: s.trades > 0 ? Math.round((s.wins / s.trades) * 100) : null,
+      avgPnl: s.trades > 0 ? Math.round((s.pnl / s.trades) * 100) / 100 : null,
+      totalPnl: Math.round(s.pnl * 100) / 100,
+      avgR: s.rCount > 0 ? Math.round((s.rSum / s.rCount) * 100) / 100 : null,
+    }))
+    .sort((a, b) => b.totalPnl - a.totalPnl);
+
+  // ── Equity curve ─────────────────────────────────────────────────────────
+  const dailyPnlMap: Record<string, number> = {};
+  for (const t of tradeEntries) {
+    if (t.pnl !== null) dailyPnlMap[t.date] = (dailyPnlMap[t.date] ?? 0) + t.pnl;
+  }
+  const equityDates = Object.keys(dailyPnlMap).sort();
+  let cumPnl = 0;
+  const equityCurve = equityDates.map((date) => {
+    cumPnl += dailyPnlMap[date];
+    return { date, dailyPnl: Math.round(dailyPnlMap[date] * 100) / 100, cumPnl: Math.round(cumPnl * 100) / 100 };
+  });
+
+  // ── Profit metrics ────────────────────────────────────────────────────────
+  const pnlTrades = tradesWithPnl.map((t) => t.pnl!);
+  const winPnls = pnlTrades.filter((p) => p > 0);
+  const lossPnls = pnlTrades.filter((p) => p < 0);
+  const grossProfit = winPnls.reduce((s, p) => s + p, 0);
+  const grossLoss = Math.abs(lossPnls.reduce((s, p) => s + p, 0));
+  const profitFactor = grossLoss > 0 ? Math.round((grossProfit / grossLoss) * 100) / 100 : null;
+  const avgWin = winPnls.length > 0 ? Math.round((grossProfit / winPnls.length) * 100) / 100 : null;
+  const avgLossTrade = lossPnls.length > 0 ? Math.round((grossLoss / lossPnls.length) * 100) / 100 : null;
+  const winRate2 = pnlTrades.length > 0 ? winPnls.length / pnlTrades.length : 0;
+  const lossRate = 1 - winRate2;
+  const expectancy = avgWin !== null && avgLossTrade !== null
+    ? Math.round((avgWin * winRate2 - avgLossTrade * lossRate) * 100) / 100 : null;
+
+  // Win/lose streaks
+  let maxWinStreak = 0, maxLoseStreak = 0, curWin = 0, curLose = 0;
+  for (const p of pnlTrades) {
+    if (p > 0) { curWin++; curLose = 0; maxWinStreak = Math.max(maxWinStreak, curWin); }
+    else if (p < 0) { curLose++; curWin = 0; maxLoseStreak = Math.max(maxLoseStreak, curLose); }
+    else { curWin = 0; curLose = 0; }
+  }
+
+  // Avg R-multiple
+  const rTrades = tradeEntries.filter((t) => t.rMultiple !== null);
+  const avgRMultiple = rTrades.length > 0
+    ? Math.round((rTrades.reduce((s, t) => s + t.rMultiple!, 0) / rTrades.length) * 100) / 100 : null;
+
+  // Max drawdown (peak-to-trough of cumulative P&L)
+  let peak = 0, maxDrawdown = 0, runningPnl = 0;
+  for (const date of equityDates) {
+    runningPnl += dailyPnlMap[date];
+    if (runningPnl > peak) peak = runningPnl;
+    const dd = peak - runningPnl;
+    if (dd > maxDrawdown) maxDrawdown = dd;
+  }
+
+  // ── Full day-of-week (0=Sun…6=Sat) ───────────────────────────────────────
+  const DOW_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const dowMap: Record<number, { pnl: number; trades: number; wins: number }> = {};
+  for (const t of tradeEntries) {
+    const dow = new Date(t.date + "T12:00:00").getDay();
+    if (!dowMap[dow]) dowMap[dow] = { pnl: 0, trades: 0, wins: 0 };
+    dowMap[dow].trades++;
+    if (t.pnl !== null) { dowMap[dow].pnl += t.pnl; if (t.pnl > 0) dowMap[dow].wins++; }
+  }
+  const dayOfWeek = DOW_LABELS.map((label, day) => {
+    const b = dowMap[day];
+    return { day, label, pnl: b ? Math.round(b.pnl * 100) / 100 : 0, trades: b?.trades ?? 0, winRate: b && b.trades > 0 ? Math.round((b.wins / b.trades) * 100) : null };
+  }).filter((d) => d.trades > 0);
+
   return Response.json({
     totalCheckins: checkins.length,
     avgScore,
@@ -258,6 +355,19 @@ export async function GET(request: NextRequest) {
     behavioralPatterns,
     playbookCompliance,
     recapPnlTrend,
+    // New analytics
+    timeOfDay,
+    dayOfWeek,
+    symbols,
+    equityCurve,
+    profitFactor,
+    expectancy,
+    avgWin,
+    avgLoss: avgLossTrade,
+    maxWinStreak,
+    maxLoseStreak,
+    avgRMultiple,
+    maxDrawdown: Math.round(maxDrawdown * 100) / 100,
   });
   } catch (err) {
     logger.error("Analytics GET failed", err, { userId });

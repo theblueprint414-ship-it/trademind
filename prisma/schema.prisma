@@ -55,6 +55,7 @@ model User {
   dailyRecaps       DailyRecap[]
   referral          Referral?
   pushSubscriptions PushSubscription[]
+  midSessionCheckins MidSessionCheckin[]
 }
 
 model Account {
@@ -179,12 +180,37 @@ model TradeEntry {
   entryTime     String?  // ISO datetime
   exitTime      String?  // ISO datetime
   qty           Float?
+  // ── Pro trade fields ───────────────────────────────────────────────────────
+  stopLoss      Float?   // planned stop loss price
+  takeProfit    Float?   // planned take profit price
+  riskAmount    Float?   // $ risked on trade
+  rMultiple     Float?   // realized R = pnl / riskAmount
+  commission    Float?   // broker fees paid
+  assetType     String?  // "futures" | "forex" | "crypto" | "stocks" | "options"
+  plannedEntry  Float?   // planned entry vs actual
+  duration      Int?     // seconds from entry to exit
   isPublic      Boolean  @default(false)
   createdAt     DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([userId, date])
+}
+
+model MidSessionCheckin {
+  id          String   @id @default(cuid())
+  userId      String
+  date        String   // YYYY-MM-DD
+  time        String   // HH:MM local time
+  score       Int      // 1-10 pulse score
+  mood        String   // "focused"|"anxious"|"tired"|"confident"|"frustrated"|"neutral"
+  tradesCount Int      @default(0)
+  note        String?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId, date])
 }
 

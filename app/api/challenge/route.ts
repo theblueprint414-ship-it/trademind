@@ -2,32 +2,78 @@ import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
+import { rateLimit } from "@/lib/ratelimit";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const rl = await rateLimit(request, "normal");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        plan: true, challengeEnabled: true, challengeFirm: true, challengeAccountSize: true,
-        challengeDailyLimit: true, challengeMaxDrawdown: true, challengeStartDate: true,
-        challengeEndDate: true, challengeProfitTarget: true, challengeTradingDaysTarget: true,
-      },
-    });
+    const [user, trades] = await Promise.all([
+      db.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          plan: true, challengeEnabled: true, challengeFirm: true, challengeAccountSize: true,
+          challengeDailyLimit: true, challengeMaxDrawdown: true, challengeStartDate: true,
+          challengeEndDate: true, challengeProfitTarget: true, challengeTradingDaysTarget: true,
+        },
+      }),
+      db.tradeEntry.findMany({ where: { userId: session.user.id }, select: { date: true, pnl: true } }),
+    ]);
     if (!user) return Response.json({ error: "Not found" }, { status: 404 });
     if (user.plan !== "pro" && user.plan !== "premium") return Response.json({ error: "TradeMind subscription required" }, { status: 403 });
+
+    const accountSize = user.challengeAccountSize ?? 0;
+    const maxDrawdownPct = user.challengeMaxDrawdown ?? 10;
+    const profitTargetPct = user.challengeProfitTarget ?? null;
+    const startDate = user.challengeStartDate ?? null;
+
+    // Compute live P&L from trade entries since challenge start
+    const relevantTrades = startDate
+      ? trades.filter((t) => t.date >= startDate && t.pnl !== null)
+      : trades.filter((t) => t.pnl !== null);
+
+    const totalPnl = relevantTrades.reduce((s, t) => s + (t.pnl ?? 0), 0);
+
+    // Daily P&L (today)
+    const today = new Date().toISOString().split("T")[0];
+    const dailyPnl = relevantTrades.filter((t) => t.date === today).reduce((s, t) => s + (t.pnl ?? 0), 0);
+
+    // Drawdown metrics
+    const drawdownUsed = accountSize > 0 && totalPnl < 0 ? Math.abs(totalPnl) / accountSize * 100 : 0;
+    const maxDrawdownDollar = accountSize > 0 ? accountSize * (maxDrawdownPct / 100) : null;
+    const drawdownRemaining = maxDrawdownDollar !== null ? maxDrawdownDollar - Math.abs(Math.min(totalPnl, 0)) : null;
+    const drawdownNearAlert = drawdownRemaining !== null && maxDrawdownDollar !== null && drawdownRemaining < maxDrawdownDollar * 0.2;
+
+    // Profit progress
+    const profitTargetDollar = accountSize > 0 && profitTargetPct ? accountSize * (profitTargetPct / 100) : null;
+    const profitProgress = profitTargetDollar ? Math.min((totalPnl / profitTargetDollar) * 100, 100) : null;
+
+    // Trading days with at least 1 trade
+    const tradingDaysSet = new Set(relevantTrades.map((t) => t.date));
+    const tradingDaysCompleted = tradingDaysSet.size;
+
     return Response.json({
       enabled: user.challengeEnabled,
       firm: user.challengeFirm ?? null,
-      accountSize: user.challengeAccountSize ?? null,
+      accountSize,
       dailyLimit: user.challengeDailyLimit ?? 5,
-      maxDrawdown: user.challengeMaxDrawdown ?? 10,
-      startDate: user.challengeStartDate ?? null,
+      maxDrawdown: maxDrawdownPct,
+      startDate,
       endDate: user.challengeEndDate ?? null,
-      profitTarget: user.challengeProfitTarget ?? null,
+      profitTarget: profitTargetPct,
       tradingDaysTarget: user.challengeTradingDaysTarget ?? null,
+      // Live computed
+      totalPnl: Math.round(totalPnl * 100) / 100,
+      dailyPnl: Math.round(dailyPnl * 100) / 100,
+      drawdownUsed: Math.round(drawdownUsed * 10) / 10,
+      drawdownRemaining: drawdownRemaining !== null ? Math.round(drawdownRemaining * 100) / 100 : null,
+      drawdownNearAlert,
+      profitProgress,
+      tradingDaysCompleted,
     });
   } catch (err) {
     logger.error("Challenge GET failed", err, { userId: session.user.id });

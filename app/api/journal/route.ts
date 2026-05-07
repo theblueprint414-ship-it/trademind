@@ -69,7 +69,8 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body) return Response.json({ error: "Invalid body" }, { status: 400 });
 
-  const { date, symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, checkinScore, tags, reflection, chartUrl } = body;
+  const { date, symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, checkinScore, tags, reflection, chartUrl,
+    stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry } = body;
 
   if (!date || typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return Response.json({ error: "Invalid date" }, { status: 400 });
@@ -97,6 +98,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const parsedRiskAmount = typeof riskAmount === "number" && isFinite(riskAmount) ? riskAmount : null;
+    const parsedPnlNum = typeof pnl === "number" && isFinite(pnl) ? pnl : null;
+    const autoRMultiple = parsedRiskAmount && parsedRiskAmount > 0 && parsedPnlNum !== null
+      ? Math.round((parsedPnlNum / parsedRiskAmount) * 100) / 100 : null;
+
+    const ASSET_TYPES = ["futures", "forex", "crypto", "stocks", "options"];
+
     const entry = await db.tradeEntry.create({
       data: {
         userId: guard.userId,
@@ -113,6 +121,13 @@ export async function POST(request: NextRequest) {
         tags: tagsJson,
         reflection: reflection ? String(reflection).slice(0, MAX_TEXT).trim() : null,
         chartUrl: typeof chartUrl === "string" && chartUrl.startsWith("https://") ? chartUrl : null,
+        stopLoss: typeof stopLoss === "number" && isFinite(stopLoss) ? stopLoss : null,
+        takeProfit: typeof takeProfit === "number" && isFinite(takeProfit) ? takeProfit : null,
+        riskAmount: parsedRiskAmount,
+        rMultiple: autoRMultiple,
+        commission: typeof commission === "number" && isFinite(commission) ? commission : null,
+        assetType: typeof assetType === "string" && ASSET_TYPES.includes(assetType) ? assetType : null,
+        plannedEntry: typeof plannedEntry === "number" && isFinite(plannedEntry) ? plannedEntry : null,
       },
     });
     return Response.json({ ok: true, entry });
@@ -141,7 +156,9 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body) return Response.json({ error: "Invalid body" }, { status: 400 });
 
-  const { symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, tags, reflection, chartUrl } = body;
+  const { symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, tags, reflection, chartUrl,
+    stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry } = body;
+  const ASSET_TYPES_PATCH = ["futures", "forex", "crypto", "stocks", "options"];
 
   if (side !== undefined && side !== null && !["long", "short"].includes(side)) {
     return Response.json({ error: "Invalid side" }, { status: 400 });
@@ -181,6 +198,17 @@ export async function PATCH(request: NextRequest) {
   if (tagsJson !== undefined) updateData.tags = tagsJson;
   if (reflection !== undefined) updateData.reflection = reflection ? String(reflection).slice(0, MAX_TEXT).trim() : null;
   if (chartUrl !== undefined) updateData.chartUrl = typeof chartUrl === "string" && chartUrl.startsWith("https://") ? chartUrl : null;
+  if (stopLoss !== undefined) updateData.stopLoss = typeof stopLoss === "number" && isFinite(stopLoss) ? stopLoss : null;
+  if (takeProfit !== undefined) updateData.takeProfit = typeof takeProfit === "number" && isFinite(takeProfit) ? takeProfit : null;
+  if (commission !== undefined) updateData.commission = typeof commission === "number" && isFinite(commission) ? commission : null;
+  if (assetType !== undefined) updateData.assetType = typeof assetType === "string" && ASSET_TYPES_PATCH.includes(assetType) ? assetType : null;
+  if (plannedEntry !== undefined) updateData.plannedEntry = typeof plannedEntry === "number" && isFinite(plannedEntry) ? plannedEntry : null;
+  if (riskAmount !== undefined) {
+    const ra = typeof riskAmount === "number" && isFinite(riskAmount) ? riskAmount : null;
+    updateData.riskAmount = ra;
+    const currentPnl = pnl !== undefined ? (typeof pnl === "number" ? pnl : null) : existing.pnl;
+    updateData.rMultiple = ra && ra > 0 && currentPnl !== null ? Math.round((currentPnl / ra) * 100) / 100 : null;
+  }
 
   try {
     const updated = await db.tradeEntry.update({ where: { id }, data: updateData });

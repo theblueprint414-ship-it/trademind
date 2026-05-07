@@ -21,6 +21,16 @@ type TradeEntry = {
   reflection: string | null;
   chartUrl: string | null;
   createdAt: string;
+  stopLoss: number | null;
+  takeProfit: number | null;
+  riskAmount: number | null;
+  rMultiple: number | null;
+  commission: number | null;
+  assetType: string | null;
+  plannedEntry: number | null;
+  duration: number | null;
+  entryPrice: number | null;
+  exitPrice: number | null;
 };
 
 const EMOTION_LABELS = ["Terrible", "Bad", "Neutral", "Good", "Great"];
@@ -158,6 +168,21 @@ function TagPills({ tags }: { tags: string[] }) {
   );
 }
 
+function formatDuration(secs: number | null): string {
+  if (!secs || secs <= 0) return "—";
+  if (secs < 60) return `${secs}s`;
+  const m = Math.floor(secs / 60);
+  const h = Math.floor(m / 60);
+  const rm = m % 60;
+  if (h > 0) return rm > 0 ? `${h}h ${rm}m` : `${h}h`;
+  return `${m}m`;
+}
+
+function formatRMultiple(r: number | null): string | null {
+  if (r === null) return null;
+  return (r >= 0 ? "+" : "") + r.toFixed(2) + "R";
+}
+
 function pnlColor(pnl: number | null) {
   if (pnl === null) return "var(--text-muted)";
   return pnl > 0 ? "var(--green)" : pnl < 0 ? "var(--red)" : "var(--text-muted)";
@@ -196,12 +221,20 @@ type FormState = {
   tags: string[];
   reflection: string;
   chartUrl: string | null;
+  stopLoss: string;
+  takeProfit: string;
+  riskAmount: string;
+  commission: string;
+  assetType: string;
+  plannedEntry: string;
+  entryPrice: string;
 };
 
 const EMPTY_FORM: FormState = {
   symbol: "", side: "", pnl: "", setup: "",
   emotionBefore: null, emotionAfter: null,
   mistake: "", notes: "", tags: [], reflection: "", chartUrl: null,
+  stopLoss: "", takeProfit: "", riskAmount: "", commission: "", assetType: "", plannedEntry: "", entryPrice: "",
 };
 
 export default function JournalPage() {
@@ -353,6 +386,12 @@ export default function JournalPage() {
           tags: form.tags.length > 0 ? form.tags : null,
           reflection: form.reflection || null,
           chartUrl: form.chartUrl || null,
+          stopLoss: form.stopLoss ? parseFloat(form.stopLoss) : null,
+          takeProfit: form.takeProfit ? parseFloat(form.takeProfit) : null,
+          riskAmount: form.riskAmount ? parseFloat(form.riskAmount) : null,
+          commission: form.commission ? parseFloat(form.commission) : null,
+          assetType: form.assetType || null,
+          plannedEntry: form.plannedEntry ? parseFloat(form.plannedEntry) : null,
         }),
       });
       const data = await res.json();
@@ -385,6 +424,13 @@ export default function JournalPage() {
       tags: parseTags(entry.tags),
       reflection: entry.reflection ?? "",
       chartUrl: entry.chartUrl ?? null,
+      stopLoss: entry.stopLoss !== null ? String(entry.stopLoss) : "",
+      takeProfit: entry.takeProfit !== null ? String(entry.takeProfit) : "",
+      riskAmount: entry.riskAmount !== null ? String(entry.riskAmount) : "",
+      commission: entry.commission !== null ? String(entry.commission) : "",
+      assetType: entry.assetType ?? "",
+      plannedEntry: entry.plannedEntry !== null ? String(entry.plannedEntry) : "",
+      entryPrice: entry.entryPrice !== null ? String(entry.entryPrice) : "",
     });
   }
 
@@ -407,6 +453,12 @@ export default function JournalPage() {
           tags: editForm.tags.length > 0 ? editForm.tags : null,
           reflection: editForm.reflection || null,
           chartUrl: editForm.chartUrl || null,
+          stopLoss: editForm.stopLoss ? parseFloat(editForm.stopLoss) : null,
+          takeProfit: editForm.takeProfit ? parseFloat(editForm.takeProfit) : null,
+          riskAmount: editForm.riskAmount ? parseFloat(editForm.riskAmount) : null,
+          commission: editForm.commission ? parseFloat(editForm.commission) : null,
+          assetType: editForm.assetType || null,
+          plannedEntry: editForm.plannedEntry ? parseFloat(editForm.plannedEntry) : null,
         }),
       });
       const data = await res.json();
@@ -662,6 +714,80 @@ export default function JournalPage() {
                   </button>
                 </div>
               )}
+            </div>
+          )}
+
+          {isPro && (
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: 18 }}>
+              <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 14 }}>RISK & EXECUTION</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+                {/* Stop Loss / Take Profit */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>STOP LOSS ($)</label>
+                    <input type="number" placeholder="e.g. 198.50" value={f.stopLoss} onChange={(e) => setF({ ...f, stopLoss: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>TAKE PROFIT ($)</label>
+                    <input type="number" placeholder="e.g. 205.00" value={f.takeProfit} onChange={(e) => setF({ ...f, takeProfit: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                  </div>
+                </div>
+
+                {/* Live R:R display */}
+                {(() => {
+                  const entry = parseFloat(f.entryPrice || f.pnl);
+                  const sl = parseFloat(f.stopLoss);
+                  const tp = parseFloat(f.takeProfit);
+                  if (f.entryPrice && f.stopLoss && f.takeProfit && !isNaN(entry) && !isNaN(sl) && !isNaN(tp) && Math.abs(entry - sl) > 0) {
+                    const rr = Math.abs(tp - entry) / Math.abs(entry - sl);
+                    return (
+                      <div style={{ padding: "8px 14px", borderRadius: 8, background: "rgba(94,106,210,0.07)", border: "1px solid rgba(94,106,210,0.2)", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                        <span style={{ color: "var(--text-muted)" }}>Risk/Reward</span>
+                        <span className="font-bebas" style={{ fontSize: 16, color: rr >= 2 ? "var(--green)" : rr >= 1 ? "var(--amber)" : "var(--red)", letterSpacing: "0.04em" }}>1 : {rr.toFixed(2)}</span>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
+                {/* Entry Price / Planned Entry */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>ENTRY PRICE</label>
+                    <input type="number" placeholder="Actual entry" value={f.entryPrice} onChange={(e) => setF({ ...f, entryPrice: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>PLANNED ENTRY</label>
+                    <input type="number" placeholder="Target entry" value={f.plannedEntry} onChange={(e) => setF({ ...f, plannedEntry: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                  </div>
+                </div>
+
+                {/* Risk Amount / Commission */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>RISK AMOUNT ($)</label>
+                    <input type="number" placeholder="$ risked" value={f.riskAmount} onChange={(e) => setF({ ...f, riskAmount: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>COMMISSION ($)</label>
+                    <input type="number" placeholder="Broker fees" value={f.commission} onChange={(e) => setF({ ...f, commission: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                  </div>
+                </div>
+
+                {/* Asset Type */}
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>ASSET TYPE</label>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {(["stocks", "futures", "forex", "crypto", "options"] as const).map((type) => (
+                      <button key={type} type="button" onClick={() => setF({ ...f, assetType: f.assetType === type ? "" : type })}
+                        style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${f.assetType === type ? "var(--blue)" : "var(--border)"}`, background: f.assetType === type ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: f.assetType === type ? "var(--blue)" : "var(--text-muted)", textTransform: "capitalize", transition: "all 0.15s" }}>
+                        {type}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -1214,6 +1340,25 @@ export default function JournalPage() {
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                               After: <span style={{ width: 8, height: 8, borderRadius: "50%", background: EMOTION_COLORS[entry.emotionAfter - 1], display: "inline-block", flexShrink: 0 }} /> {EMOTION_LABELS[entry.emotionAfter - 1]}
                             </span>
+                          )}
+                        </div>
+                      )}
+
+                      {(entry.rMultiple !== null || entry.duration !== null || entry.commission !== null) && (
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
+                          {entry.rMultiple !== null && (
+                            <span style={{ fontFamily: "var(--font-geist-mono)", fontWeight: 700, color: entry.rMultiple >= 0 ? "var(--green)" : "var(--red)" }}>
+                              {formatRMultiple(entry.rMultiple)}
+                            </span>
+                          )}
+                          {entry.duration !== null && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor" strokeWidth="1.2"/><path d="M5.5 3v2.5l1.5 1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/></svg>
+                              {formatDuration(entry.duration)}
+                            </span>
+                          )}
+                          {entry.commission !== null && (
+                            <span>fees: ${entry.commission.toFixed(2)}</span>
                           )}
                         </div>
                       )}

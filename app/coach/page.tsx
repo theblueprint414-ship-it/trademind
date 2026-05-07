@@ -95,6 +95,69 @@ function getContextStarters(context: { score: number; verdict: string } | null):
   ];
 }
 
+type PatternData = {
+  currentLoseStreak: number;
+  bestHour: { hour: number; avg: number; total: number; wr: number; count: number } | null;
+  worstHour: { hour: number; avg: number; total: number; wr: number; count: number } | null;
+  bestSymbol: { sym: string; avg: number; total: number; wr: number; count: number } | null;
+  worstSymbol: { sym: string; avg: number; total: number; wr: number; count: number } | null;
+  bestDay: { day: string; avg: number; total: number; count: number } | null;
+  worstDay: { day: string; avg: number; total: number; count: number } | null;
+  ntViolationCount: number;
+  ntViolationPnl: number;
+  revengeCount: number;
+  totalTrades: number;
+};
+
+function PatternInsights({ patterns }: { patterns: PatternData }) {
+  const cards: { label: string; value: string; sub: string; color: string; bad?: boolean }[] = [];
+
+  if (patterns.currentLoseStreak >= 2) {
+    cards.push({ label: "LOSING STREAK", value: `${patterns.currentLoseStreak} days`, sub: "consecutive losing sessions", color: "var(--red)", bad: true });
+  }
+  if (patterns.worstDay && patterns.worstDay.avg < -50) {
+    cards.push({ label: "WORST DAY", value: patterns.worstDay.day, sub: `avg $${patterns.worstDay.avg}/session over ${patterns.worstDay.count} sessions`, color: "var(--red)", bad: true });
+  }
+  if (patterns.bestDay && patterns.bestDay.avg > 50) {
+    cards.push({ label: "BEST DAY", value: patterns.bestDay.day, sub: `avg $${patterns.bestDay.avg}/session`, color: "var(--green)" });
+  }
+  if (patterns.worstHour && patterns.worstHour.avg < -30) {
+    cards.push({ label: "AVOID THIS HOUR", value: `${patterns.worstHour.hour}:00 UTC`, sub: `avg $${patterns.worstHour.avg}/trade · ${patterns.worstHour.wr}% win rate`, color: "var(--amber)", bad: true });
+  }
+  if (patterns.bestHour && patterns.bestHour.avg > 30) {
+    cards.push({ label: "BEST HOUR", value: `${patterns.bestHour.hour}:00 UTC`, sub: `avg $${patterns.bestHour.avg}/trade · ${patterns.bestHour.wr}% win rate`, color: "var(--green)" });
+  }
+  if (patterns.worstSymbol && patterns.worstSymbol.total < -100) {
+    cards.push({ label: "MONEY PIT", value: patterns.worstSymbol.sym, sub: `total $${patterns.worstSymbol.total} · ${patterns.worstSymbol.wr}% win rate`, color: "var(--red)", bad: true });
+  }
+  if (patterns.bestSymbol && patterns.bestSymbol.total > 100) {
+    cards.push({ label: "BEST SYMBOL", value: patterns.bestSymbol.sym, sub: `total $${patterns.bestSymbol.total} · ${patterns.bestSymbol.wr}% win rate`, color: "var(--green)" });
+  }
+  if (patterns.ntViolationCount >= 2) {
+    cards.push({ label: "NO-TRADE VIOLATIONS", value: `${patterns.ntViolationCount} trades`, sub: `cost: $${patterns.ntViolationPnl} on days you should've sat out`, color: "var(--red)", bad: true });
+  }
+  if (patterns.revengeCount >= 2) {
+    cards.push({ label: "REVENGE TRADING", value: `${patterns.revengeCount}×`, sub: "overtraded the day after a loss", color: "var(--amber)", bad: true });
+  }
+
+  if (cards.length === 0) return null;
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "var(--text-muted)", marginBottom: 10 }}>PATTERN INSIGHTS</div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        {cards.map((c, i) => (
+          <div key={i} style={{ padding: "12px 14px", borderRadius: 10, background: "var(--surface2)", border: `1px solid ${c.color}25` }}>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: c.bad ? "var(--text-muted)" : c.color, marginBottom: 4 }}>{c.label}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: c.color, lineHeight: 1, marginBottom: 3 }}>{c.value}</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)", lineHeight: 1.4 }}>{c.sub}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function CoachPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -102,6 +165,7 @@ export default function CoachPage() {
   const [ready, setReady] = useState(false);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
   const [context, setContext] = useState<{ score: number; verdict: string; color: string; history: Array<{ score: number }> } | null>(null);
+  const [patterns, setPatterns] = useState<PatternData | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -122,6 +186,11 @@ export default function CoachPage() {
               setContext({ score: s, verdict, color, history: d.history.slice(0, 7) });
             }
           })
+          .catch(() => {});
+
+        fetch("/api/ai-coach")
+          .then((r) => r.json())
+          .then((d) => { if (d.patterns) setPatterns(d.patterns); })
           .catch(() => {});
 
         return fetch("/api/ai-coach", {
@@ -261,6 +330,9 @@ export default function CoachPage() {
             </div>
           </div>
         )}
+
+        {/* Pattern insights */}
+        {patterns && patterns.totalTrades >= 5 && <PatternInsights patterns={patterns} />}
 
         {/* Intro */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>

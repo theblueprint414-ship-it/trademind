@@ -71,19 +71,27 @@ export async function syncJournalForUser(
 
   if (toCreate.length > 0) {
     await db.tradeEntry.createMany({
-      data: toCreate.map((t) => ({
-        userId,
-        date: t.date,
-        symbol: t.symbol.slice(0, 20),
-        side: t.side,
-        pnl: t.pnl,
-        entryPrice: t.entryPrice ?? null,
-        exitPrice: t.exitPrice ?? null,
-        entryTime: t.entryTime ?? null,
-        exitTime: t.exitTime ?? null,
-        qty: t.qty ?? null,
-        checkinScore: t.date === today ? (todayCheckin?.score ?? null) : null,
-      })),
+      data: toCreate.map((t) => {
+        const entryMs = t.entryTime ? new Date(t.entryTime).getTime() : null;
+        const exitMs  = t.exitTime  ? new Date(t.exitTime).getTime()  : null;
+        const duration = (entryMs && exitMs && exitMs > entryMs) ? Math.round((exitMs - entryMs) / 1000) : null;
+        return {
+          userId,
+          date: t.date,
+          symbol: t.symbol.slice(0, 20),
+          side: t.side,
+          pnl: t.pnl,
+          entryPrice: t.entryPrice ?? null,
+          exitPrice: t.exitPrice ?? null,
+          entryTime: t.entryTime ?? null,
+          exitTime: t.exitTime ?? null,
+          qty: t.qty ?? null,
+          commission: t.commission ?? null,
+          assetType: t.assetType ?? null,
+          duration,
+          checkinScore: t.date === today ? (todayCheckin?.score ?? null) : null,
+        };
+      }),
     });
   }
 

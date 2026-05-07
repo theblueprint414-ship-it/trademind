@@ -9,6 +9,7 @@ import TradeLimit from "@/components/TradeLimit";
 import ChallengeTracker from "@/components/ChallengeTracker";
 import PositionSizing from "@/components/PositionSizing";
 import BottomNav from "@/components/BottomNav";
+import LiveSession from "@/components/LiveSession";
 import StatCard from "@/components/StatCard";
 import { Skeleton, SkeletonCard, SkeletonStat } from "@/components/Skeleton";
 
@@ -74,6 +75,7 @@ export default function DashboardPage() {
   const [weeklyCoach, setWeeklyCoach] = useState<string | null>(null);
   const [weeklyGoal] = useState(5);
   const [weeklyGoalCount, setWeeklyGoalCount] = useState(0);
+  const [lastWeekReview, setLastWeekReview] = useState<{ weekLabel: string; totalPnl: number; tradeCount: number; winRate: number | null; goDays: number; cautionDays: number; noTradeDays: number; noTradeCompliance: number | null; bestDay: { date: string; pnl: number } | null; worstDay: { date: string; pnl: number } | null; avgMentalScore: number | null; checkinDays: number } | null>(null);
   const [lifestyleInsight, setLifestyleInsight] = useState<{ exerciseLift: number | null; exerciseCount: number; avgScoreWithExercise: number | null; avgScoreWithoutExercise: number | null } | null>(null);
 
   const [showGate, setShowGate] = useState(false);
@@ -268,6 +270,12 @@ export default function DashboardPage() {
       const bRes2 = await fetch("/api/broker").then((r) => r.json()).catch(() => ({ connected: false }));
       if (bRes2.connected && !todayCheckinDone) setShowGate(true);
       setGateChecked(true);
+
+      // Last week review
+      fetch("/api/weekly-review?offset=1")
+        .then((r) => r.json())
+        .then((d) => { if (d.ok && d.tradeCount >= 3) setLastWeekReview(d); })
+        .catch(() => {});
 
       // Weekly goal count
       try {
@@ -847,6 +855,51 @@ export default function DashboardPage() {
                 <span style={{ fontSize: 12, color: weeklyInsight.positive ? "var(--green)" : "var(--red)", fontWeight: 600 }}>{weeklyInsight.text}</span>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Last week review */}
+        {lastWeekReview && (
+          <div className="dash-section s3" style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+              <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+              <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.1em", fontWeight: 700 }}>LAST WEEK</span>
+              <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+            </div>
+            <div className="card" style={{ padding: "16px 20px" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)", marginBottom: 2 }}>{lastWeekReview.weekLabel.toUpperCase()}</div>
+                  <div className="font-bebas" style={{ fontSize: 28, lineHeight: 1, color: lastWeekReview.totalPnl >= 0 ? "var(--green)" : "var(--red)" }}>
+                    {lastWeekReview.totalPnl >= 0 ? "+" : ""}${Math.abs(lastWeekReview.totalPnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 16 }}>
+                  <div style={{ textAlign: "center" }}>
+                    <div className="font-bebas" style={{ fontSize: 18, color: "var(--text-dim)", lineHeight: 1 }}>{lastWeekReview.tradeCount}</div>
+                    <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em" }}>TRADES</div>
+                  </div>
+                  {lastWeekReview.winRate !== null && (
+                    <div style={{ textAlign: "center" }}>
+                      <div className="font-bebas" style={{ fontSize: 18, color: lastWeekReview.winRate >= 50 ? "var(--green)" : "var(--red)", lineHeight: 1 }}>{lastWeekReview.winRate}%</div>
+                      <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em" }}>WIN RATE</div>
+                    </div>
+                  )}
+                  {lastWeekReview.avgMentalScore !== null && (
+                    <div style={{ textAlign: "center" }}>
+                      <div className="font-bebas" style={{ fontSize: 18, color: lastWeekReview.avgMentalScore >= 70 ? "var(--green)" : lastWeekReview.avgMentalScore >= 45 ? "var(--amber)" : "var(--red)", lineHeight: 1 }}>{lastWeekReview.avgMentalScore}</div>
+                      <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em" }}>AVG SCORE</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                {lastWeekReview.goDays > 0 && <span style={{ padding: "3px 10px", borderRadius: 20, background: "rgba(0,232,122,0.08)", border: "1px solid rgba(0,232,122,0.2)", fontSize: 11, color: "var(--green)", fontWeight: 700 }}>{lastWeekReview.goDays} GO</span>}
+                {lastWeekReview.cautionDays > 0 && <span style={{ padding: "3px 10px", borderRadius: 20, background: "rgba(255,176,32,0.08)", border: "1px solid rgba(255,176,32,0.2)", fontSize: 11, color: "var(--amber)", fontWeight: 700 }}>{lastWeekReview.cautionDays} CAUTION</span>}
+                {lastWeekReview.noTradeDays > 0 && <span style={{ padding: "3px 10px", borderRadius: 20, background: "rgba(255,59,92,0.08)", border: "1px solid rgba(255,59,92,0.2)", fontSize: 11, color: "var(--red)", fontWeight: 700 }}>{lastWeekReview.noTradeDays} NO-TRADE</span>}
+                {lastWeekReview.noTradeCompliance !== null && <span style={{ padding: "3px 10px", borderRadius: 20, background: "var(--surface2)", border: "1px solid var(--border)", fontSize: 11, color: lastWeekReview.noTradeCompliance >= 80 ? "var(--green)" : "var(--text-muted)", fontWeight: 600 }}>{lastWeekReview.noTradeCompliance}% NT compliance</span>}
+              </div>
+            </div>
           </div>
         )}
 
@@ -1515,6 +1568,7 @@ export default function DashboardPage() {
         </div>
       )}
 
+      <LiveSession />
       <BottomNav />
     </div>
   );
