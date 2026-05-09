@@ -26,6 +26,21 @@ type Entry = { date: string; tag: "NEW" | "IMPROVED" | "FIX"; title: string; bod
 
 const RELEASES: { version: string; date: string; entries: Entry[] }[] = [
   {
+    version: "May 2026",
+    date: "May 1–9, 2026",
+    entries: [
+      { date: "May 9", tag: "NEW", title: "EdgeBridge — Desktop Sync App", body: "Free Electron desktop app for MT4/MT5, NinjaTrader 8, and Tradovate. Runs in your system tray. Install the Expert Advisor (MQ4/MQ5), point EdgeBridge at your files folder, and trades sync to TradeMind in real-time — no MetaAPI account required. Available for Windows and macOS." },
+      { date: "May 9", tag: "NEW", title: "MQL Expert Advisors (MT4 & MT5)", body: "TradeMindBridge.mq4 and TradeMindBridge.mq5 are now available for download from the Bridge page. Install on any chart, and every closed trade exports automatically to a CSV that EdgeBridge syncs." },
+      { date: "May 9", tag: "NEW", title: "ICT / SMC Setup Library", body: "Built-in reference for all 9 Smart Money Concepts: Fair Value Gap, iFVG, Order Block, Break of Structure, Change of Character, SMT Divergence, Liquidity Sweep, Displacement, and EQH/EQL. Each setup includes a description, step-by-step trade instructions, best timeframes, confluence factors, and common pitfalls." },
+      { date: "May 9", tag: "NEW", title: "ICT/SMC Tagging on Trades", body: "Every journal entry now supports ICT/SMC setup tags — tag your trades with FVG, OB, BOS, ChoCh, SMT, and more. Future analytics will show which setups are most profitable for you." },
+      { date: "May 9", tag: "NEW", title: "Mental Patterns Dashboard", body: "A new /mind page correlates your lifestyle data (sleep quality, sleep hours, caffeine level, alcohol, exercise) against your actual daily P&L and win rate. Auto-generates text insights — e.g. 'Great sleep nights earn you +$X more per day vs poor sleep nights.' The only trading tool that connects your biology to your P&L." },
+      { date: "May 9", tag: "NEW", title: "Pre-Trade Ritual", body: "A 60-second structured ritual before every trade. Rate your conviction 1–10 (color-coded), select your setup type, write your trade thesis, and confirm your stop loss is set. All data saved and visible under today's rituals. Research shows traders who write down their edge take more disciplined entries." },
+      { date: "May 9", tag: "IMPROVED", title: "Enhanced Check-in with Lifestyle Tracking", body: "The daily check-in now includes a lifestyle screen: sleep quality (1–10), caffeine level (None/Low/Medium/High), alcohol last 24h (yes/no), exercise today (yes/no), and today's trading plan. This data feeds the Mental Patterns Dashboard." },
+      { date: "May 9", tag: "IMPROVED", title: "Journal: R-Multiple, Profit Factor, Expectancy", body: "Trade entries now support Stop Loss, Take Profit, Risk Amount, Commission, and Planned Entry fields. R-Multiple is auto-calculated (P&L / Risk). The analytics API now returns Profit Factor, Expectancy, Avg Win, Avg Loss, and Max Drawdown." },
+      { date: "May 9", tag: "IMPROVED", title: "Trade Replay on Session Page", body: "For any trade with entry + exit price and timestamps, you can now watch an animated replay on a real candlestick chart. Speed controls (1×/2×/4×/8×), running unrealized P&L, and a full-screen overlay." },
+    ],
+  },
+  {
     version: "April 2026 — Week 4",
     date: "Apr 22–26, 2026",
     entries: [

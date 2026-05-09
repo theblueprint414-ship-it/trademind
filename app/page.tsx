@@ -843,6 +843,30 @@ export default function LandingPage() {
                 title: "Works Everywhere",
                 desc: "Install as a PWA on iOS or Android from your browser — no app store needed. Works offline. Opens from your home screen like a native app.",
               },
+              {
+                bg: "rgba(96,165,250,0.08)", bd: "rgba(96,165,250,0.2)", color: "#60A5FA", tag: "ICT / SMC",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 18l4-6 4 4 4-8 4 5" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="19" cy="13" r="2.5" stroke="#60A5FA" strokeWidth="1.4"/></svg>,
+                title: "ICT / SMC Setup Library",
+                desc: "Built-in reference for all 9 Smart Money Concepts: FVG, Order Block, BOS, ChoCh, SMT Divergence, Liquidity Sweep, Displacement, and more — with step-by-step trade instructions and confluence factors.",
+              },
+              {
+                bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.18)", color: "var(--green)", tag: "MENTAL PATTERNS",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9.5 3C6.5 3 4 5.5 4 8.5c0 2.3 1.4 4.3 3.5 5.2V19a1 1 0 001 1h7a1 1 0 001-1v-5.3c2.1-.9 3.5-2.9 3.5-5.2C20 5.5 17.5 3 14.5 3H9.5Z" stroke="var(--green)" strokeWidth="1.5" strokeLinejoin="round"/></svg>,
+                title: "Mental Patterns Dashboard",
+                desc: "Correlates your sleep quality, caffeine, exercise, and alcohol against your actual P&L — and generates specific insights. 'You earn $X more on days you exercise.' No other trading tool does this.",
+              },
+              {
+                bg: "rgba(59,130,246,0.08)", bd: "rgba(59,130,246,0.2)", color: "#3B82F6", tag: "DESKTOP SYNC",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 9v6M21 9v6M3 12h5M16 12h5M8 7v10M16 7v10M8 9.5C8 8.1 9.8 7 12 7s4 1.1 4 2.5v5c0 1.4-1.8 2.5-4 2.5s-4-1.1-4-2.5V9.5Z" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                title: "EdgeBridge — Desktop Sync",
+                desc: "Free desktop app for MT4, MT5, NinjaTrader 8, and Tradovate. Runs in your system tray and syncs trades in real-time — no broker API required. Install the Expert Advisor and you're done.",
+              },
+              {
+                bg: "rgba(245,158,11,0.08)", bd: "rgba(245,158,11,0.2)", color: "var(--amber)", tag: "PRE-TRADE RITUAL",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="var(--amber)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                title: "Pre-Trade Ritual",
+                desc: "Rate your conviction (1–10), articulate your edge in writing, confirm your stop loss is set — before every single trade. Traders who write down their thesis take better trades. Simple.",
+              },
             ].map((feature, i) => (
               <div key={feature.title} className={`card card-lift reveal reveal-delay-${Math.min(i + 1, 4)}`} style={{ padding: "22px 24px", borderColor: feature.bd, display: "flex", gap: 16, alignItems: "flex-start" }}>
                 <div style={{ width: 42, height: 42, borderRadius: 10, background: feature.bg, border: `1px solid ${feature.bd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

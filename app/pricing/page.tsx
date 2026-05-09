@@ -252,6 +252,102 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* Comparison table */}
+        <div style={{ marginBottom: 48 }}>
+          <h2 className="font-bebas" style={{ fontSize: 32, textAlign: "center", marginBottom: 8 }}>TradeMind vs TradeZella</h2>
+          <p style={{ textAlign: "center", fontSize: 13, color: "var(--text-muted)", marginBottom: 24 }}>The only honest comparison we could write.</p>
+
+          <div style={{ border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden", background: "var(--surface)" }}>
+            {/* Header */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 120px 120px", background: "var(--surface2)", padding: "12px 20px", borderBottom: "1px solid var(--border)" }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Feature</div>
+              <div style={{ textAlign: "center", fontSize: 12, fontWeight: 800, color: "#8B5CF6" }}>TradeMind</div>
+              <div style={{ textAlign: "center", fontSize: 12, fontWeight: 700, color: "var(--text-muted)" }}>TradeZella</div>
+            </div>
+
+            {[
+              { cat: "Mental Layer", rows: [
+                ["Pre-trade mental check-in + GO/CAUTION/NO-TRADE", true, false],
+                ["Lifestyle × P&L correlation (sleep, caffeine, exercise)", true, false],
+                ["Mental Patterns Dashboard with auto-insights", true, false],
+                ["Behavioral pattern detection (revenge, FOMO, overtrading)", true, false],
+                ["Pre-trade ritual (conviction, thesis, stop loss confirmation)", true, false],
+              ]},
+              { cat: "ICT / Smart Money", rows: [
+                ["ICT/SMC setup tagging on every trade", true, false],
+                ["Built-in setup library (FVG, OB, BOS, ChoCh, SMT…)", true, false],
+                ["Setup performance analytics", true, false],
+              ]},
+              { cat: "Analytics", rows: [
+                ["90-day calendar heatmap", true, true],
+                ["Equity curve + max drawdown", true, true],
+                ["Profit factor, expectancy, R-multiple", true, true],
+                ["Time-of-day + day-of-week performance", true, true],
+                ["Symbol performance table", true, true],
+                ["Trade replay on chart", true, true],
+                ["Advanced backtesting", false, true],
+              ]},
+              { cat: "Desktop Sync", rows: [
+                ["Direct MT4/MT5 Expert Advisor sync (EdgeBridge)", true, false],
+                ["NinjaTrader 8 direct sync", true, false],
+                ["Tradovate CSV auto-sync", true, false],
+                ["Broker API auto-sync (MetaAPI, Alpaca, Binance, Bybit)", true, true],
+              ]},
+              { cat: "Accountability", rows: [
+                ["Accountability partners", true, false],
+                ["Team accountability circles", true, false],
+                ["AI Coach trained on your data", true, "partial"],
+                ["Weekly AI review", true, false],
+              ]},
+              { cat: "Prop Traders", rows: [
+                ["Challenge tracker (FTMO, TopStep…)", true, true],
+                ["Circuit breaker + lockout enforcement", true, false],
+                ["Drawdown proximity alerts", true, false],
+              ]},
+            ].map(({ cat, rows }) => (
+              <div key={cat}>
+                <div style={{ padding: "8px 20px 4px", background: "rgba(255,255,255,0.02)", borderTop: "1px solid var(--border)" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{cat}</span>
+                </div>
+                {rows.map(([label, tm, tz], i) => (
+                  <div key={i} style={{ display: "grid", gridTemplateColumns: "1fr 120px 120px", padding: "9px 20px", borderTop: "1px solid rgba(255,255,255,0.03)", alignItems: "center" }}>
+                    <span style={{ fontSize: 12, color: "var(--text-dim)" }}>{label as string}</span>
+                    <div style={{ textAlign: "center" }}>
+                      {tm === true ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ display: "inline-block" }}>
+                          <circle cx="8" cy="8" r="7" fill="rgba(0,232,122,0.15)" stroke="rgba(0,232,122,0.4)" strokeWidth="1"/>
+                          <path d="M5 8l2 2 4-4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ display: "inline-block" }}>
+                          <circle cx="8" cy="8" r="7" fill="rgba(255,59,92,0.08)" stroke="rgba(255,59,92,0.2)" strokeWidth="1"/>
+                          <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      {tz === true ? (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ display: "inline-block" }}>
+                          <circle cx="8" cy="8" r="7" fill="rgba(0,232,122,0.08)" stroke="rgba(0,232,122,0.25)" strokeWidth="1"/>
+                          <path d="M5 8l2 2 4-4" stroke="rgba(0,232,122,0.6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      ) : tz === "partial" ? (
+                        <span style={{ fontSize: 9, fontWeight: 700, color: "var(--amber)", background: "rgba(255,176,32,0.1)", border: "1px solid rgba(255,176,32,0.25)", borderRadius: 4, padding: "1px 5px" }}>PARTIAL</span>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ display: "inline-block" }}>
+                          <circle cx="8" cy="8" r="7" fill="rgba(255,59,92,0.06)" stroke="rgba(255,59,92,0.15)" strokeWidth="1"/>
+                          <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="rgba(255,59,92,0.5)" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+          <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", marginTop: 10 }}>TradeZella is a great analytics product. If you only want post-trade analytics, use them. If you want to stop bad trades before they happen AND have analytics, use TradeMind.</p>
+        </div>
+
         {/* FAQ */}
         <div>
           <h2 className="font-bebas" style={{ fontSize: 32, textAlign: "center", marginBottom: 24 }}>Common Questions</h2>
