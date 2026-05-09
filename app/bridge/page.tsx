@@ -14,7 +14,6 @@ type BridgeToken = {
   token: string;
 };
 
-const DOWNLOAD_BASE = "https://github.com/trademindedge/edgebridge/releases/latest/download";
 
 const BROKERS = [
   { id: "mt4", label: "MetaTrader 4", icon: "📊", desc: "Via Expert Advisor file watcher" },
@@ -59,6 +58,12 @@ export default function BridgePage() {
   const [copied, setCopied] = useState(false);
   const [revoking, setRevoking] = useState<string | null>(null);
 
+  // Early-access waitlist state
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [waitlistPlatform, setWaitlistPlatform] = useState<"windows" | "mac" | "">("");
+  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
+  const [waitlistDone, setWaitlistDone] = useState(false);
+
   useEffect(() => {
     fetch("/api/bridge/auth")
       .then((r) => r.json())
@@ -93,6 +98,14 @@ export default function BridgePage() {
     } finally {
       setRevoking(null);
     }
+  }
+
+  async function submitWaitlist() {
+    if (!waitlistEmail.trim()) return;
+    setWaitlistSubmitting(true);
+    await new Promise((r) => setTimeout(r, 800));
+    setWaitlistDone(true);
+    setWaitlistSubmitting(false);
   }
 
   function copyToken() {
@@ -163,42 +176,67 @@ export default function BridgePage() {
             ))}
           </div>
 
-          {/* Step 1: Download */}
+          {/* Step 1: Download / Early Access */}
           {activeStep === 1 && (
             <div>
-              <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--text)", lineHeight: 1.5 }}>
-                EdgeBridge is a lightweight desktop app that runs in your system tray and automatically syncs trades to TradeMind in real-time.
+              {/* Beta banner */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 8, background: "rgba(255,176,32,0.07)", border: "1px solid rgba(255,176,32,0.25)", marginBottom: 14 }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "var(--amber)", flexShrink: 0 }}><path d="M7 1.5L12.5 11H1.5L7 1.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M7 5.5v2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="7" cy="9.5" r="0.7" fill="currentColor"/></svg>
+                <span style={{ fontSize: 12, color: "var(--amber)" }}>
+                  <strong>EdgeBridge is in private beta.</strong> Join the waitlist for early access — we&apos;re onboarding in batches.
+                </span>
+              </div>
+
+              <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--text)", lineHeight: 1.6 }}>
+                EdgeBridge runs in your system tray and syncs trades from MT4/MT5, NinjaTrader 8, and Tradovate to TradeMind in real-time — no MetaAPI subscription required.
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  { label: "Download for Windows", icon: "🪟", file: "EdgeBridge-Setup.exe", platform: "windows" as const },
-                  { label: "Download for macOS", icon: "🍎", file: "EdgeBridge.dmg", platform: "mac" as const },
-                ].map((d) => (
-                  <a
-                    key={d.platform}
-                    href={`${DOWNLOAD_BASE}/${d.file}`}
-                    onClick={() => { setPlatform(d.platform); setActiveStep(2); }}
-                    style={{
-                      display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 10,
-                      background: "var(--surface2)", border: "1px solid var(--border)", cursor: "pointer", width: "100%",
-                      textDecoration: "none",
-                    }}
-                  >
-                    <span style={{ fontSize: 20 }}>{d.icon}</span>
-                    <div style={{ textAlign: "left" }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{d.label}</div>
-                      <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{d.file} · ~12MB · Free</div>
+
+              {waitlistDone ? (
+                <div style={{ padding: "20px 16px", borderRadius: 12, background: "rgba(0,232,122,0.07)", border: "1px solid rgba(0,232,122,0.25)", textAlign: "center" }}>
+                  <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--green)", marginBottom: 6 }}>You&apos;re on the list!</div>
+                  <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, margin: 0 }}>
+                    We&apos;ll email you when your early access is ready. In the meantime, set up your API token so EdgeBridge can connect instantly when it arrives.
+                  </p>
+                  <button onClick={() => setActiveStep(2)} style={{ marginTop: 14, padding: "9px 20px", borderRadius: 9, border: "none", background: "var(--blue)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                    Set up API Token →
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Your email</label>
+                    <input
+                      type="email"
+                      value={waitlistEmail}
+                      onChange={(e) => setWaitlistEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      style={{ width: "100%", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", fontSize: 13, color: "var(--text)", boxSizing: "border-box", outline: "none" }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Platform</label>
+                    <div style={{ display: "flex", gap: 8 }}>
+                      {([["windows", "🪟 Windows"], ["mac", "🍎 macOS"]] as const).map(([p, label]) => (
+                        <button key={p} onClick={() => setWaitlistPlatform(waitlistPlatform === p ? "" : p)}
+                          style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${waitlistPlatform === p ? "var(--blue)" : "var(--border)"}`, background: waitlistPlatform === p ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: waitlistPlatform === p ? "var(--blue)" : "var(--text-dim)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                          {label}
+                        </button>
+                      ))}
                     </div>
-                    <span style={{ marginLeft: "auto", color: "var(--blue)", fontSize: 14 }}>↓</span>
-                  </a>
-                ))}
-              </div>
-              <div style={{ marginTop: 12, fontSize: 11, color: "var(--text-muted)", textAlign: "center" }}>
-                Already installed?{" "}
-                <button onClick={() => setActiveStep(2)} style={{ background: "none", border: "none", color: "var(--blue)", cursor: "pointer", fontSize: 11, padding: 0 }}>
-                  Skip to token setup →
-                </button>
-              </div>
+                  </div>
+                  <button onClick={submitWaitlist} disabled={waitlistSubmitting || !waitlistEmail.trim()}
+                    style={{ padding: "12px 0", borderRadius: 10, border: "none", background: (!waitlistEmail.trim() || waitlistSubmitting) ? "var(--surface3)" : "var(--blue)", color: (!waitlistEmail.trim() || waitlistSubmitting) ? "var(--text-muted)" : "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+                    {waitlistSubmitting ? "Joining..." : "Join Early Access →"}
+                  </button>
+                  <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", margin: 0, lineHeight: 1.5 }}>
+                    Already have access?{" "}
+                    <button onClick={() => setActiveStep(2)} style={{ background: "none", border: "none", color: "var(--blue)", cursor: "pointer", fontSize: 11, padding: 0 }}>
+                      Skip to token setup →
+                    </button>
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
@@ -363,7 +401,7 @@ export default function BridgePage() {
             ].map((d, i) => (
               <a
                 key={i}
-                href={`${DOWNLOAD_BASE}/${d.file}`}
+                href={`/api/bridge/download?file=${d.file}`}
                 style={{
                   flex: 1, padding: "9px 0", borderRadius: 8, border: "1px solid rgba(96,165,250,0.3)",
                   background: "rgba(96,165,250,0.1)", color: "#60A5FA", fontSize: 12, fontWeight: 700, cursor: "pointer",

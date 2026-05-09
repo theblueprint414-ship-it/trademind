@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { showToast } from "@/components/Toast";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
@@ -299,6 +299,13 @@ export default function JournalPage() {
   const [preCheckAnswers, setPreCheckAnswers] = useState<(boolean | null)[]>([null, null, null]);
   const [showCsvImport, setShowCsvImport] = useState(false);
   const [csvUploading, setCsvUploading] = useState(false);
+
+  // Search & filter state
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterSide, setFilterSide] = useState<"all" | "long" | "short">("all");
+  const [filterResult, setFilterResult] = useState<"all" | "win" | "loss">("all");
+  const [filterPeriod, setFilterPeriod] = useState<"today" | "7d" | "30d" | "all">("today");
+  const [showFilters, setShowFilters] = useState(false);
   const [csvResult, setCsvResult] = useState<{ imported: number; skipped: number; format: string } | null>(null);
   const [csvError, setCsvError] = useState<string | null>(null);
   const [chartUploading, setChartUploading] = useState(false);
@@ -576,8 +583,33 @@ export default function JournalPage() {
     setCsvUploading(false);
   }
 
-  const totalPnl = entries.reduce((s, e) => s + (e.pnl ?? 0), 0);
-  const hasPnl = entries.some((e) => e.pnl !== null);
+  const isFiltered = filterPeriod !== "today" || filterSide !== "all" || filterResult !== "all" || searchQuery.trim() !== "";
+
+  const filteredEntries = useMemo(() => {
+    const cutoff = (days: number) => {
+      const d = new Date(); d.setDate(d.getDate() - days);
+      return d.toISOString().split("T")[0];
+    };
+    let pool: TradeEntry[] = filterPeriod === "today" ? entries : allEntries;
+    if (filterPeriod === "7d") pool = pool.filter((e) => e.date >= cutoff(7));
+    else if (filterPeriod === "30d") pool = pool.filter((e) => e.date >= cutoff(30));
+    const q = searchQuery.trim().toLowerCase();
+    if (q) pool = pool.filter((e) =>
+      (e.symbol?.toLowerCase().includes(q)) ||
+      (e.notes?.toLowerCase().includes(q)) ||
+      (e.setup?.toLowerCase().includes(q)) ||
+      (e.mistake?.toLowerCase().includes(q))
+    );
+    if (filterSide !== "all") pool = pool.filter((e) => e.side === filterSide);
+    if (filterResult === "win") pool = pool.filter((e) => (e.pnl ?? 0) > 0);
+    if (filterResult === "loss") pool = pool.filter((e) => (e.pnl ?? 0) < 0);
+    return pool;
+  }, [entries, allEntries, filterPeriod, searchQuery, filterSide, filterResult]);
+
+  const displayEntries = isFiltered ? filteredEntries : entries;
+
+  const totalPnl = displayEntries.reduce((s, e) => s + (e.pnl ?? 0), 0);
+  const hasPnl = displayEntries.some((e) => e.pnl !== null);
 
   const allPnl = allEntries.reduce((s, e) => s + (e.pnl ?? 0), 0);
   const allWithPnl = allEntries.filter((e) => e.pnl !== null);
@@ -1230,6 +1262,107 @@ export default function JournalPage() {
           />
         )}
 
+        {/* Search + filter bar */}
+        {allEntries.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            {/* Search row */}
+            <div style={{ display: "flex", gap: 8, marginBottom: showFilters ? 10 : 0 }}>
+              <div style={{ position: "relative", flex: 1 }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }}>
+                  <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" strokeWidth="1.4"/>
+                  <path d="M9 9l3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search symbol, notes, setup..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ paddingLeft: 30, fontSize: 13, background: "var(--surface2)", borderRadius: 10, border: "1px solid var(--border)", width: "100%", boxSizing: "border-box", height: 38 }}
+                />
+                {searchQuery && (
+                  <button onClick={() => setSearchQuery("")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 2, display: "flex", alignItems: "center" }}>
+                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  </button>
+                )}
+              </div>
+              <button
+                onClick={() => setShowFilters((v) => !v)}
+                style={{
+                  padding: "0 14px", borderRadius: 10, border: `1px solid ${showFilters || isFiltered ? "rgba(94,106,210,0.4)" : "var(--border)"}`,
+                  background: showFilters || isFiltered ? "rgba(94,106,210,0.1)" : "var(--surface2)",
+                  color: showFilters || isFiltered ? "var(--blue)" : "var(--text-muted)",
+                  cursor: "pointer", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, height: 38, whiteSpace: "nowrap",
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 2.5h11M3 6.5h7M5 10.5h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                Filters {isFiltered ? "·" : ""}
+              </button>
+            </div>
+
+            {/* Expanded filters */}
+            {showFilters && (
+              <div style={{ padding: "14px 14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+                {/* Period */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 8 }}>PERIOD</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {([ ["today", "Today"], ["7d", "7 Days"], ["30d", "30 Days"], ["all", "All Time"] ] as const).map(([val, label]) => (
+                      <button key={val} onClick={() => setFilterPeriod(val)}
+                        style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1.5px solid ${filterPeriod === val ? "var(--blue)" : "var(--border)"}`, background: filterPeriod === val ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: filterPeriod === val ? "var(--blue)" : "var(--text-muted)", transition: "all 0.15s" }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Direction */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 8 }}>DIRECTION</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {([ ["all", "Both"], ["long", "Long"], ["short", "Short"] ] as const).map(([val, label]) => (
+                      <button key={val} onClick={() => setFilterSide(val)}
+                        style={{ flex: 1, padding: "6px 0", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1.5px solid ${filterSide === val ? (val === "long" ? "var(--green)" : val === "short" ? "var(--red)" : "var(--blue)") : "var(--border)"}`, background: filterSide === val ? (val === "long" ? "rgba(0,232,122,0.1)" : val === "short" ? "rgba(255,59,92,0.1)" : "rgba(94,106,210,0.1)") : "var(--surface2)", color: filterSide === val ? (val === "long" ? "var(--green)" : val === "short" ? "var(--red)" : "var(--blue)") : "var(--text-muted)", transition: "all 0.15s" }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Result */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 8 }}>RESULT</div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {([ ["all", "All"], ["win", "Winners"], ["loss", "Losers"] ] as const).map(([val, label]) => (
+                      <button key={val} onClick={() => setFilterResult(val)}
+                        style={{ flex: 1, padding: "6px 0", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1.5px solid ${filterResult === val ? (val === "win" ? "var(--green)" : val === "loss" ? "var(--red)" : "var(--blue)") : "var(--border)"}`, background: filterResult === val ? (val === "win" ? "rgba(0,232,122,0.1)" : val === "loss" ? "rgba(255,59,92,0.1)" : "rgba(94,106,210,0.1)") : "var(--surface2)", color: filterResult === val ? (val === "win" ? "var(--green)" : val === "loss" ? "var(--red)" : "var(--blue)") : "var(--text-muted)", transition: "all 0.15s" }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {isFiltered && (
+                  <button onClick={() => { setSearchQuery(""); setFilterSide("all"); setFilterResult("all"); setFilterPeriod("today"); }}
+                    style={{ alignSelf: "flex-start", fontSize: 12, color: "var(--red)", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}>
+                    ✕ Clear all filters
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Active filter summary */}
+            {isFiltered && !showFilters && (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{displayEntries.length} trade{displayEntries.length !== 1 ? "s" : ""} matched</span>
+                <button onClick={() => { setSearchQuery(""); setFilterSide("all"); setFilterResult("all"); setFilterPeriod("today"); }}
+                  style={{ fontSize: 11, color: "var(--red)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                  Clear filters
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Entries list */}
         {loading ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1245,8 +1378,19 @@ export default function JournalPage() {
               </div>
             ))}
           </div>
-        ) : entries.length === 0 ? (
-          selectedDate === today ? (() => {
+        ) : displayEntries.length === 0 ? (
+          isFiltered ? (
+            <div className="card" style={{ padding: 40, textAlign: "center", border: "1px dashed var(--border)" }}>
+              <div style={{ marginBottom: 12, display: "flex", justifyContent: "center", color: "var(--text-muted)" }}>
+                <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="15" cy="15" r="10" stroke="currentColor" strokeWidth="2"/><path d="M23 23l8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M11 15h8M15 11v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+              </div>
+              <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>No trades match these filters</div>
+              <button onClick={() => { setSearchQuery(""); setFilterSide("all"); setFilterResult("all"); setFilterPeriod("today"); }}
+                style={{ fontSize: 13, color: "var(--blue)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>
+                Clear filters
+              </button>
+            </div>
+          ) : selectedDate === today ? (() => {
             const goEntries = allEntries.filter((e) => (e.checkinScore ?? 0) >= 70 && e.pnl !== null);
             const goWins = goEntries.filter((e) => (e.pnl ?? 0) > 0).length;
             const goWinRate = goEntries.length >= 5 ? Math.round((goWins / goEntries.length) * 100) : null;
@@ -1299,7 +1443,7 @@ export default function JournalPage() {
           )
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            {entries.map((entry) => {
+            {displayEntries.map((entry) => {
               const entryTags = parseTags(entry.tags);
               const isEditing = editingId === entry.id;
               return (
@@ -1314,6 +1458,11 @@ export default function JournalPage() {
                     />
                   ) : (
                     <>
+                      {filterPeriod !== "today" && (
+                        <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, fontFamily: "var(--font-geist-mono)" }}>
+                          {new Date(entry.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                        </div>
+                      )}
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: entryTags.length > 0 || entry.setup || entry.pnl !== null ? 10 : 0, flexWrap: "wrap" }}>
                         {entry.symbol && (
                           <span className="font-bebas" style={{ fontSize: 20, letterSpacing: "0.04em" }}>{entry.symbol}</span>

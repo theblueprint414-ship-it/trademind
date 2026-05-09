@@ -755,6 +755,76 @@ function EquityCurveCard({ data }: { data: { date: string; dailyPnl: number; cum
   );
 }
 
+function DrawdownChart({ equityCurve }: { equityCurve: { date: string; cumPnl: number }[] }) {
+  const [tooltip, setTooltip] = React.useState<{ x: number; dd: number; date: string } | null>(null);
+  if (equityCurve.length < 3) return null;
+
+  // Compute drawdown series: at each point, % drop from running peak
+  let peak = equityCurve[0].cumPnl;
+  const ddSeries = equityCurve.map((d) => {
+    if (d.cumPnl > peak) peak = d.cumPnl;
+    const dd = peak > 0 ? ((d.cumPnl - peak) / peak) * 100 : d.cumPnl < peak ? d.cumPnl - peak : 0;
+    return { date: d.date, dd };
+  });
+
+  const maxDd = Math.min(...ddSeries.map((d) => d.dd), 0);
+  if (maxDd === 0) return null; // no drawdown — no chart needed
+
+  const W = 600; const H = 80; const PAD_X = 8; const PAD_Y = 8;
+  const xStep = (W - PAD_X * 2) / (ddSeries.length - 1);
+  const yOf = (dd: number) => PAD_Y + (dd / maxDd) * (H - PAD_Y * 2);
+  const points = ddSeries.map((d, i) => ({ x: PAD_X + i * xStep, y: yOf(d.dd), dd: d.dd, date: d.date }));
+  const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
+  const areaD = `${pathD} L ${points[points.length - 1].x} ${PAD_Y} L ${PAD_X} ${PAD_Y} Z`;
+  const worstDd = ddSeries.reduce((m, d) => d.dd < m.dd ? d : m, ddSeries[0]);
+
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>DRAWDOWN</h3>
+        <span className="font-bebas" style={{ fontSize: 18, color: "var(--red)", letterSpacing: "0.04em" }}>
+          Max {worstDd.dd.toFixed(1)}%
+        </span>
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", minWidth: 280 }} onMouseLeave={() => setTooltip(null)}>
+          <defs>
+            <linearGradient id="ddGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--red)" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="var(--red)" stopOpacity="0.05" />
+            </linearGradient>
+          </defs>
+          <line x1={PAD_X} y1={PAD_Y} x2={W - PAD_X} y2={PAD_Y} stroke="var(--border)" strokeWidth="0.8" />
+          <path d={areaD} fill="url(#ddGrad)" />
+          <path d={pathD} fill="none" stroke="var(--red)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+          {points.map((p, i) => (
+            <rect key={i} x={p.x - 5} y={PAD_Y} width={10} height={H - PAD_Y} fill="transparent"
+              onMouseEnter={() => setTooltip({ x: p.x, dd: p.dd, date: p.date })} />
+          ))}
+          {tooltip && tooltip.dd < -0.01 && (() => {
+            const tx = Math.min(tooltip.x, W - 100);
+            const ty = H - 4;
+            return (
+              <g>
+                <line x1={tooltip.x} y1={PAD_Y} x2={tooltip.x} y2={H - PAD_Y} stroke="var(--red)" strokeWidth="0.75" strokeDasharray="3,2" opacity="0.5" />
+                <circle cx={tooltip.x} cy={yOf(tooltip.dd)} r="3" fill="var(--red)" />
+                <rect x={tx} y={ty - 34} width={100} height={34} rx="5" fill="#0D1420" stroke="var(--red)" strokeWidth="1" opacity="0.97" />
+                <text x={tx + 50} y={ty - 21} fontSize="9" fill="var(--text-muted)" textAnchor="middle">{tooltip.date}</text>
+                <text x={tx + 50} y={ty - 8} fontSize="11" fontWeight="700" fill="var(--red)" textAnchor="middle">{tooltip.dd.toFixed(1)}%</text>
+              </g>
+            );
+          })()}
+        </svg>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", padding: "0 4px", marginTop: 2 }}>
+          <span>{ddSeries[0].date}</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>0% line = equity peak</span>
+          <span>{ddSeries[ddSeries.length - 1].date}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ProfitMetricsRow({ data }: { data: AnalyticsData }) {
   const metrics = [
     { label: "PROFIT FACTOR", value: data.profitFactor !== null ? data.profitFactor.toFixed(2) : "—", color: data.profitFactor !== null ? (data.profitFactor >= 1.5 ? "var(--green)" : data.profitFactor >= 1 ? "var(--amber)" : "var(--red)") : "var(--text-muted)" },
@@ -1233,6 +1303,9 @@ export default function AnalyticsPage() {
 
         {/* Equity Curve */}
         {data.equityCurve && data.equityCurve.length >= 2 && <EquityCurveCard data={data.equityCurve} />}
+
+        {/* Drawdown */}
+        {data.equityCurve && data.equityCurve.length >= 3 && <DrawdownChart equityCurve={data.equityCurve} />}
 
         {/* Profit Metrics */}
         {data.profitFactor !== undefined && <ProfitMetricsRow data={data} />}
