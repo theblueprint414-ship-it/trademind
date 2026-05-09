@@ -1,0 +1,33 @@
+{
+  "name": "edgebridge",
+  "productName": "EdgeBridge",
+  "version": "1.0.0",
+  "description": "TradeMind EdgeBridge — real-time trade sync for MT4, MT5, NinjaTrader, and Tradovate",
+  "main": "dist/main.js",
+  "author": "TradeMind",
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k \"tsc --watch\" \"wait-on dist/main.js && electron .\"",
+    "build": "tsc && electron-builder",
+    "build:win": "tsc && electron-builder --win --x64",
+    "build:mac": "tsc && electron-builder --mac --arm64 --x64",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "chokidar": "^3.6.0",
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.1.8"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.10",
+    "@types/node": "^20.12.7",
+    "concurrently": "^8.2.2",
+    "electron": "^30.0.6",
+    "electron-builder": "^24.13.3",
+    "typescript": "^5.4.5",
+    "wait-on": "^7.2.0"
+  }
+}

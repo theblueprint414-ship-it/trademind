@@ -56,6 +56,8 @@ model User {
   referral          Referral?
   pushSubscriptions PushSubscription[]
   midSessionCheckins MidSessionCheckin[]
+  bridgeTokens      BridgeToken[]
+  preTradeRituals   PreTradeRitual[]
 }
 
 model Account {
@@ -102,6 +104,14 @@ model Checkin {
   score     Int
   verdict   String
   answers   String
+  // Lifestyle fields (added for mental patterns correlation)
+  sleepQuality    Int?     // 1-10 subjective quality
+  sleepHours      Float?   // hours slept
+  caffeineLevel   String?  // "none"|"low"|"medium"|"high"
+  alcoholLast24h  Boolean?
+  exerciseToday   Boolean?
+  tradingPlan     String?  // what setups/focus for today
+  readinessScore  Int?     // 1-100 computed readiness (extends score)
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -190,6 +200,10 @@ model TradeEntry {
   plannedEntry  Float?   // planned entry vs actual
   duration      Int?     // seconds from entry to exit
   isPublic      Boolean  @default(false)
+  // ICT/SMC structured tags + source tracking
+  ictSetups     String?  // JSON array e.g. ["FVG","OB","BOS"]
+  source        String?  // "manual"|"edgebridge"|"csv"
+  brokerTradeId String?  // broker-side trade ID for dedup
   createdAt     DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -338,6 +352,37 @@ model CircuitBreakerOverride {
 
   @@index([userId])
   @@index([userId, createdAt])
+}
+
+model BridgeToken {
+  id         String    @id @default(cuid())
+  userId     String
+  token      String    @unique @default(cuid())
+  deviceName String?
+  platform   String?   // "windows"|"mac"|"linux"
+  brokers    String?   // JSON array of connected brokers
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PreTradeRitual {
+  id            String   @id @default(cuid())
+  userId        String
+  date          String   // YYYY-MM-DD
+  setupType     String?  // primary ICT setup e.g. "FVG"
+  conviction    Int?     // 1-10
+  reason        String?  // "Why this trade?"
+  hasStopLoss   Boolean  @default(false)
+  linkedTradeId String?  // TradeEntry.id — filled in post-trade
+  createdAt     DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
 }
 
 model AppError {

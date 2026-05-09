@@ -1,0 +1,60 @@
+appId: com.trademind.edgebridge
+productName: EdgeBridge
+copyright: "© 2025 TradeMind"
+
+directories:
+  output: release
+  buildResources: assets
+
+files:
+  - dist/**/*
+  - src/renderer/**/*
+  - assets/**/*
+  - "!**/*.map"
+  - "!node_modules/**"
+
+extraResources:
+  - from: assets/
+    to: assets/
+    filter:
+      - "**/*"
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: assets/icon.ico
+  requestedExecutionLevel: asInvoker
+
+nsis:
+  oneClick: true
+  perMachine: false
+  installerIcon: assets/icon.ico
+  uninstallerIcon: assets/icon.ico
+  installerHeaderIcon: assets/icon.ico
+  shortcutName: EdgeBridge
+  runAfterFinish: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+mac:
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+  icon: assets/icon.icns
+  category: public.app-category.finance
+  hardenedRuntime: true
+  gatekeeperAssess: false
+
+dmg:
+  title: "EdgeBridge Installer"
+  backgroundColor: "#0D0F14"
+  window:
+    width: 540
+    height: 380
+
+publish:
+  provider: github
+  owner: trademindedge
+  repo: edgebridge
+  releaseType: release

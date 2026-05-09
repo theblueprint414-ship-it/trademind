@@ -69,7 +69,7 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body) return Response.json({ error: "Invalid body" }, { status: 400 });
 
-  const { date, symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, checkinScore, tags, reflection, chartUrl,
+  const { date, symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, checkinScore, tags, ictSetups, reflection, chartUrl,
     stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry } = body;
 
   if (!date || typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
@@ -97,6 +97,12 @@ export async function POST(request: NextRequest) {
     tagsJson = JSON.stringify(filtered);
   }
 
+  let ictSetupsJson: string | null = null;
+  if (ictSetups !== undefined && ictSetups !== null) {
+    const arr = Array.isArray(ictSetups) ? ictSetups : [];
+    ictSetupsJson = JSON.stringify(arr.slice(0, 10).map((t: unknown) => String(t).slice(0, 20)));
+  }
+
   try {
     const parsedRiskAmount = typeof riskAmount === "number" && isFinite(riskAmount) ? riskAmount : null;
     const parsedPnlNum = typeof pnl === "number" && isFinite(pnl) ? pnl : null;
@@ -119,6 +125,7 @@ export async function POST(request: NextRequest) {
         notes: notes ? String(notes).slice(0, MAX_TEXT).trim() : null,
         checkinScore: checkinScore ?? null,
         tags: tagsJson,
+        ictSetups: ictSetupsJson,
         reflection: reflection ? String(reflection).slice(0, MAX_TEXT).trim() : null,
         chartUrl: typeof chartUrl === "string" && chartUrl.startsWith("https://") ? chartUrl : null,
         stopLoss: typeof stopLoss === "number" && isFinite(stopLoss) ? stopLoss : null,
@@ -156,7 +163,7 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body) return Response.json({ error: "Invalid body" }, { status: 400 });
 
-  const { symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, tags, reflection, chartUrl,
+  const { symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, tags, ictSetups: ictSetupsPatch, reflection, chartUrl,
     stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry } = body;
   const ASSET_TYPES_PATCH = ["futures", "forex", "crypto", "stocks", "options"];
 
@@ -186,6 +193,16 @@ export async function PATCH(request: NextRequest) {
     }
   }
 
+  let ictSetupsJsonPatch: string | null | undefined = undefined;
+  if (ictSetupsPatch !== undefined) {
+    if (ictSetupsPatch === null) {
+      ictSetupsJsonPatch = null;
+    } else {
+      const arr = Array.isArray(ictSetupsPatch) ? ictSetupsPatch : [];
+      ictSetupsJsonPatch = JSON.stringify(arr.slice(0, 10).map((t: unknown) => String(t).slice(0, 20)));
+    }
+  }
+
   const updateData: Record<string, unknown> = {};
   if (symbol !== undefined) updateData.symbol = symbol ? String(symbol).slice(0, 20).trim() : null;
   if (side !== undefined) updateData.side = side || null;
@@ -196,6 +213,7 @@ export async function PATCH(request: NextRequest) {
   if (mistake !== undefined) updateData.mistake = mistake ? String(mistake).slice(0, MAX_TEXT).trim() : null;
   if (notes !== undefined) updateData.notes = notes ? String(notes).slice(0, MAX_TEXT).trim() : null;
   if (tagsJson !== undefined) updateData.tags = tagsJson;
+  if (ictSetupsJsonPatch !== undefined) updateData.ictSetups = ictSetupsJsonPatch;
   if (reflection !== undefined) updateData.reflection = reflection ? String(reflection).slice(0, MAX_TEXT).trim() : null;
   if (chartUrl !== undefined) updateData.chartUrl = typeof chartUrl === "string" && chartUrl.startsWith("https://") ? chartUrl : null;
   if (stopLoss !== undefined) updateData.stopLoss = typeof stopLoss === "number" && isFinite(stopLoss) ? stopLoss : null;

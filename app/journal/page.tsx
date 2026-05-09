@@ -18,6 +18,7 @@ type TradeEntry = {
   notes: string | null;
   checkinScore: number | null;
   tags: string | null;
+  ictSetups: string | null;
   reflection: string | null;
   chartUrl: string | null;
   createdAt: string;
@@ -41,6 +42,19 @@ const EMOTION_SVGS = [
   <svg key="3" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="9.5" r="1.1" fill="currentColor"/><circle cx="14" cy="9.5" r="1.1" fill="currentColor"/><path d="M8 13.5h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
   <svg key="4" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="9.5" r="1.1" fill="currentColor"/><circle cx="14" cy="9.5" r="1.1" fill="currentColor"/><path d="M8 13C9 14.5 13 14.5 14 13" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
   <svg key="5" width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="8.5" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="9" r="1.3" fill="currentColor"/><circle cx="14" cy="9" r="1.3" fill="currentColor"/><path d="M7 12.5C8 15 14 15 15 12.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>,
+];
+
+// ICT/SMC structured setup tags
+export const ICT_SETUPS = [
+  { code: "FVG",    label: "FVG",             desc: "Fair Value Gap" },
+  { code: "iFVG",   label: "iFVG",            desc: "Inverse FVG" },
+  { code: "OB",     label: "OB",              desc: "Order Block" },
+  { code: "BOS",    label: "BOS",             desc: "Break of Structure" },
+  { code: "ChoCh",  label: "ChoCh",           desc: "Change of Character" },
+  { code: "SMT",    label: "SMT",             desc: "SMT Divergence" },
+  { code: "LiqSW",  label: "Liq. Sweep",      desc: "Liquidity Sweep / Grab" },
+  { code: "DISP",   label: "Displacement",    desc: "Strong Displacement Candle" },
+  { code: "EQH",    label: "EQH/EQL",         desc: "Equal Highs / Equal Lows" },
 ];
 
 const PREDEFINED_TAGS = ["FOMO", "Revenge", "Perfect Setup", "Off-plan", "Disciplined", "Breakout", "News", "Scalp", "Swing"];
@@ -147,6 +161,27 @@ function TagPicker({ selected, onChange }: { selected: string[]; onChange: (tags
   );
 }
 
+function IctSetupPicker({ selected, onChange }: { selected: string[]; onChange: (v: string[]) => void }) {
+  function toggle(code: string) {
+    if (selected.includes(code)) onChange(selected.filter(c => c !== code));
+    else onChange([...selected, code]);
+  }
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+      {ICT_SETUPS.map(({ code, label, desc }) => {
+        const active = selected.includes(code);
+        return (
+          <button key={code} type="button" onClick={() => toggle(code)}
+            title={desc}
+            style={{ padding: "5px 11px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${active ? "#5e6ad2" : "var(--border)"}`, background: active ? "rgba(94,106,210,0.14)" : "var(--surface2)", color: active ? "#5e6ad2" : "var(--text-muted)", transition: "all 0.15s", letterSpacing: "0.03em" }}>
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function TagPills({ tags }: { tags: string[] }) {
   if (tags.length === 0) return null;
   return (
@@ -219,6 +254,7 @@ type FormState = {
   mistake: string;
   notes: string;
   tags: string[];
+  ictSetups: string[];
   reflection: string;
   chartUrl: string | null;
   stopLoss: string;
@@ -233,7 +269,7 @@ type FormState = {
 const EMPTY_FORM: FormState = {
   symbol: "", side: "", pnl: "", setup: "",
   emotionBefore: null, emotionAfter: null,
-  mistake: "", notes: "", tags: [], reflection: "", chartUrl: null,
+  mistake: "", notes: "", tags: [], ictSetups: [], reflection: "", chartUrl: null,
   stopLoss: "", takeProfit: "", riskAmount: "", commission: "", assetType: "", plannedEntry: "", entryPrice: "",
 };
 
@@ -384,6 +420,7 @@ export default function JournalPage() {
           notes: form.notes || null,
           checkinScore: todayScore,
           tags: form.tags.length > 0 ? form.tags : null,
+          ictSetups: form.ictSetups.length > 0 ? form.ictSetups : null,
           reflection: form.reflection || null,
           chartUrl: form.chartUrl || null,
           stopLoss: form.stopLoss ? parseFloat(form.stopLoss) : null,
@@ -422,6 +459,7 @@ export default function JournalPage() {
       mistake: entry.mistake ?? "",
       notes: entry.notes ?? "",
       tags: parseTags(entry.tags),
+      ictSetups: parseTags(entry.ictSetups),
       reflection: entry.reflection ?? "",
       chartUrl: entry.chartUrl ?? null,
       stopLoss: entry.stopLoss !== null ? String(entry.stopLoss) : "",
@@ -451,6 +489,7 @@ export default function JournalPage() {
           mistake: editForm.mistake || null,
           notes: editForm.notes || null,
           tags: editForm.tags.length > 0 ? editForm.tags : null,
+          ictSetups: editForm.ictSetups.length > 0 ? editForm.ictSetups : null,
           reflection: editForm.reflection || null,
           chartUrl: editForm.chartUrl || null,
           stopLoss: editForm.stopLoss ? parseFloat(editForm.stopLoss) : null,
@@ -651,9 +690,17 @@ export default function JournalPage() {
             </div>
           )}
 
+          {/* ICT/SMC Setup Tags — always visible */}
+          <div>
+            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
+              ICT / SMC SETUP
+            </label>
+            <IctSetupPicker selected={f.ictSetups} onChange={(ictSetups) => setF({ ...f, ictSetups })} />
+          </div>
+
           {isPro && (
             <div>
-              <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>TAGS (max 3)</label>
+              <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>BEHAVIORAL TAGS (max 3)</label>
               <TagPicker selected={f.tags} onChange={(tags) => setF({ ...f, tags })} />
             </div>
           )}

@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import BottomNav from "@/components/BottomNav";
 
 const TradeChart = dynamic(() => import("@/components/TradeChart"), { ssr: false });
+const TradeReplay = dynamic(() => import("@/components/TradeReplay"), { ssr: false });
 
 type TradeEntry = {
   id: string;
@@ -92,7 +93,7 @@ function MentalBar({ score, verdict }: { score: number; verdict: string }) {
   );
 }
 
-function TradeCard({ trade, mentalScore, isPro }: { trade: TradeEntry; mentalScore: number | null; isPro: boolean }) {
+function TradeCard({ trade, mentalScore, isPro, onReplay }: { trade: TradeEntry; mentalScore: number | null; isPro: boolean; onReplay?: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(() => {
     try { const c = localStorage.getItem(`ai_trade_${trade.id}`); return c ? JSON.parse(c) : null; } catch { return null; }
@@ -202,6 +203,19 @@ function TradeCard({ trade, mentalScore, isPro }: { trade: TradeEntry; mentalSco
                 mentalScore={mentalScore}
                 height={220}
               />
+              {onReplay && (
+                <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+                  <button
+                    onClick={onReplay}
+                    style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 18px", borderRadius: 8, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.3)", color: "#5e6ad2", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                      <path d="M3 2l9 4.5L3 11V2z" fill="currentColor"/>
+                    </svg>
+                    Watch Replay
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -293,6 +307,7 @@ function SessionContent() {
   const [session, setSession] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [replayTrade, setReplayTrade] = useState<TradeEntry | null>(null);
   const [coachInsight, setCoachInsight] = useState<CoachInsight | null>(null);
   const [coachLoading, setCoachLoading] = useState(false);
   const [hasBroker, setHasBroker] = useState(false);
@@ -479,7 +494,13 @@ Provide a brief JSON response with:
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {session!.trades.map(trade => (
-                <TradeCard key={trade.id} trade={trade} mentalScore={session?.checkin?.score ?? null} isPro={session?.plan === "pro" || session?.plan === "premium"} />
+                <TradeCard
+                  key={trade.id}
+                  trade={trade}
+                  mentalScore={session?.checkin?.score ?? null}
+                  isPro={session?.plan === "pro" || session?.plan === "premium"}
+                  onReplay={trade.entryPrice && trade.exitPrice && trade.entryTime && trade.exitTime ? () => setReplayTrade(trade) : undefined}
+                />
               ))}
             </div>
           )}
@@ -505,6 +526,20 @@ Provide a brief JSON response with:
       </div>
 
       <BottomNav />
+
+      {replayTrade && replayTrade.entryPrice && replayTrade.exitPrice && replayTrade.entryTime && replayTrade.exitTime && (
+        <TradeReplay
+          symbol={replayTrade.symbol ?? "UNKNOWN"}
+          side={(replayTrade.side as "long" | "short") ?? "long"}
+          entryPrice={replayTrade.entryPrice}
+          exitPrice={replayTrade.exitPrice}
+          entryTime={replayTrade.entryTime}
+          exitTime={replayTrade.exitTime}
+          pnl={replayTrade.pnl}
+          qty={replayTrade.qty}
+          onClose={() => setReplayTrade(null)}
+        />
+      )}
     </div>
   );
 }

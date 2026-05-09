@@ -4,8 +4,6 @@ import { db } from "@/lib/db";
 import { rateLimit } from "@/lib/ratelimit";
 import { logger } from "@/lib/logger";
 
-// Server-side scoring — mirrors the client QUESTIONS definition exactly.
-// Client-supplied score is ignored; we recompute from raw answers to prevent tampering.
 const QUESTION_WEIGHTS: Record<string, number> = {
   sleep: 0.25,
   emotion: 0.3,
@@ -14,23 +12,44 @@ const QUESTION_WEIGHTS: Record<string, number> = {
   recent_performance: 0.1,
 };
 
-// Valid option values per question (slider "focus" accepts any 0-100 integer)
 const VALID_OPTION_VALUES: Record<string, number[] | null> = {
   sleep: [0, 40, 65, 85, 100],
   emotion: [0, 25, 75, 90, 100],
-  focus: null, // slider — any 0-100 value accepted
+  focus: null,
   financial_stress: [0, 40, 70, 100],
   recent_performance: [0, 35, 65, 85, 100],
 };
 
-function computeScore(answers: Record<string, unknown>): number {
+const CAFFEINE_LEVELS = ["none", "low", "medium", "high"];
+
+function computeBaseScore(answers: Record<string, unknown>): number {
   let score = 0;
   for (const [id, weight] of Object.entries(QUESTION_WEIGHTS)) {
     const raw = answers[id];
-    const val = typeof raw === "number" ? raw : 50; // default 50 if unanswered
+    const val = typeof raw === "number" ? raw : 50;
     score += Math.max(0, Math.min(100, val)) * weight;
   }
   return Math.round(score);
+}
+
+function computeReadinessScore(
+  baseScore: number,
+  opts: {
+    sleepQuality?: number | null;
+    caffeineLevel?: string | null;
+    alcoholLast24h?: boolean | null;
+    exerciseToday?: boolean | null;
+  }
+): number {
+  let adjustment = 0;
+  if (opts.sleepQuality !== null && opts.sleepQuality !== undefined) {
+    if (opts.sleepQuality >= 8) adjustment += 5;
+    else if (opts.sleepQuality <= 4) adjustment -= 5;
+  }
+  if (opts.caffeineLevel === "high") adjustment -= 8;
+  if (opts.alcoholLast24h) adjustment -= 15;
+  if (opts.exerciseToday) adjustment += 8;
+  return Math.max(0, Math.min(100, baseScore + adjustment));
 }
 
 export async function POST(request: NextRequest) {
@@ -43,7 +62,10 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body) return Response.json({ error: "Invalid request body" }, { status: 400 });
 
-  const { answers, date } = body;
+  const {
+    answers, date,
+    sleepQuality, sleepHours, caffeineLevel, alcoholLast24h, exerciseToday, tradingPlan,
+  } = body;
 
   if (typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return Response.json({ error: "Invalid date" }, { status: 400 });
@@ -52,10 +74,9 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Invalid answers" }, { status: 400 });
   }
 
-  // Validate individual answer values
   for (const [id, validValues] of Object.entries(VALID_OPTION_VALUES)) {
     const val = (answers as Record<string, unknown>)[id];
-    if (val === undefined) continue; // unanswered — defaults to 50 in scoring
+    if (val === undefined) continue;
     if (typeof val !== "number" || !Number.isFinite(val)) {
       return Response.json({ error: `Invalid answer for ${id}` }, { status: 400 });
     }
@@ -73,25 +94,47 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Date out of range" }, { status: 400 });
   }
 
-  const score = computeScore(answers as Record<string, unknown>);
+  // Validate lifestyle fields
+  const sqVal = typeof sleepQuality === "number" && sleepQuality >= 1 && sleepQuality <= 10 ? sleepQuality : null;
+  const shVal = typeof sleepHours === "number" && sleepHours >= 0 && sleepHours <= 24 ? sleepHours : null;
+  const clVal = typeof caffeineLevel === "string" && CAFFEINE_LEVELS.includes(caffeineLevel) ? caffeineLevel : null;
+  const alVal = typeof alcoholLast24h === "boolean" ? alcoholLast24h : null;
+  const exVal = typeof exerciseToday === "boolean" ? exerciseToday : null;
+  const tpVal = typeof tradingPlan === "string" && tradingPlan.length <= 500 ? tradingPlan.trim() || null : null;
+
+  const baseScore = computeBaseScore(answers as Record<string, unknown>);
+  const readiness = computeReadinessScore(baseScore, {
+    sleepQuality: sqVal, caffeineLevel: clVal, alcoholLast24h: alVal, exerciseToday: exVal,
+  });
 
   let verdict: "GO" | "CAUTION" | "NO-TRADE";
-  if (score >= 70) verdict = "GO";
-  else if (score >= 45) verdict = "CAUTION";
+  if (readiness >= 70) verdict = "GO";
+  else if (readiness >= 45) verdict = "CAUTION";
   else verdict = "NO-TRADE";
 
   try {
     await db.checkin.upsert({
       where: { userId_date: { userId: session.user.id, date } },
-      update: { score, verdict, answers: JSON.stringify(answers) },
-      create: { userId: session.user.id, date, score, verdict, answers: JSON.stringify(answers) },
+      update: {
+        score: readiness, verdict, answers: JSON.stringify(answers),
+        sleepQuality: sqVal, sleepHours: shVal, caffeineLevel: clVal,
+        alcoholLast24h: alVal, exerciseToday: exVal, tradingPlan: tpVal,
+        readinessScore: readiness,
+      },
+      create: {
+        userId: session.user.id, date, score: readiness, verdict,
+        answers: JSON.stringify(answers),
+        sleepQuality: sqVal, sleepHours: shVal, caffeineLevel: clVal,
+        alcoholLast24h: alVal, exerciseToday: exVal, tradingPlan: tpVal,
+        readinessScore: readiness,
+      },
     });
   } catch (err) {
     logger.error("Checkin DB upsert failed", err, { userId: session.user.id, date });
     return Response.json({ error: "Failed to save check-in" }, { status: 500 });
   }
 
-  return Response.json({ ok: true, score, verdict, date });
+  return Response.json({ ok: true, score: readiness, verdict, date, baseScore });
 }
 
 export async function GET(request: NextRequest) {
@@ -111,7 +154,11 @@ export async function GET(request: NextRequest) {
         where: { userId: session.user.id },
         orderBy: { date: "desc" },
         take: limit,
-        select: { date: true, score: true, verdict: true },
+        select: {
+          date: true, score: true, verdict: true,
+          sleepQuality: true, sleepHours: true, caffeineLevel: true,
+          alcoholLast24h: true, exerciseToday: true, readinessScore: true,
+        },
       });
       return Response.json({ history });
     }

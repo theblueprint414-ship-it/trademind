@@ -129,6 +129,45 @@ export default function IntegrationsPage() {
           </p>
         </div>
 
+        {/* EdgeBridge Desktop Sync */}
+        <div style={{ marginBottom: 56 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>EdgeBridge — Desktop Sync</h2>
+          <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 20 }}>
+            For MT4/MT5, NinjaTrader 8, and Tradovate users who want real-time sync without MetaAPI. EdgeBridge is a free desktop app that runs in your system tray and automatically sends your trades to TradeMind.
+          </p>
+
+          <div style={{ background: "linear-gradient(135deg, rgba(59,130,246,0.06) 0%, rgba(99,102,241,0.04) 100%)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 16, padding: "22px 24px", marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 18 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: "linear-gradient(135deg, #3B82F6, #6366F1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, flexShrink: 0 }}>🌉</div>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 800, color: "var(--text)" }}>EdgeBridge v1.0</div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Free desktop app · Windows & macOS · Auto-updates</div>
+              </div>
+              <Link href="/bridge" style={{ marginLeft: "auto", flexShrink: 0 }}>
+                <button className="btn-primary" style={{ padding: "9px 18px", fontSize: 12 }}>Setup Guide →</button>
+              </Link>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              {[
+                { icon: "📊", name: "MetaTrader 4", how: "Expert Advisor file export" },
+                { icon: "📈", name: "MetaTrader 5", how: "Expert Advisor file export" },
+                { icon: "🥷", name: "NinjaTrader 8", how: "SQLite database direct read" },
+                { icon: "⚡", name: "Tradovate", how: "CSV export folder watch" },
+              ].map((b) => (
+                <div key={b.name} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid var(--border)", borderRadius: 10, padding: "10px 14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                    <span style={{ fontSize: 16 }}>{b.icon}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>{b.name}</span>
+                    <span style={{ marginLeft: "auto", fontSize: 9, fontWeight: 700, color: "var(--green)", background: "rgba(0,232,122,0.1)", borderRadius: 4, padding: "1px 6px", border: "1px solid rgba(0,232,122,0.2)" }}>LIVE</span>
+                  </div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{b.how}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Broker connections */}
         <div style={{ marginBottom: 56 }}>
           <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>Broker connections</h2>

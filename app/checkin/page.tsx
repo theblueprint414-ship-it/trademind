@@ -28,6 +28,13 @@ const QUESTIONS = [
 ];
 
 type Answers = Record<string, number>;
+type Lifestyle = {
+  sleepQuality: number | null;    // 1-10
+  caffeineLevel: string | null;   // "none"|"low"|"medium"|"high"
+  alcoholLast24h: boolean | null;
+  exerciseToday: boolean | null;
+  tradingPlan: string;
+};
 
 export default function CheckinPage() {
   const router = useRouter();
@@ -40,6 +47,11 @@ export default function CheckinPage() {
   const [playbookChecked, setPlaybookChecked] = useState(false);
   const [customQ, setCustomQ] = useState("");
   const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [lifestyle, setLifestyle] = useState<Lifestyle>({
+    sleepQuality: null, caffeineLevel: null,
+    alcoholLast24h: null, exerciseToday: null, tradingPlan: "",
+  });
+  const [showLifestyle, setShowLifestyle] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const sliderTrackRef = useRef<HTMLDivElement>(null);
   const sliderDragging = useRef(false);
@@ -90,6 +102,12 @@ export default function CheckinPage() {
   function handleSelect(value: number) {
     setSelectedOption(value);
     const newAnswers = { ...answers, [question.id]: value };
+    // After sleep question, show the lifestyle chips panel before moving on
+    if (question.id === "sleep") {
+      setAnswers(newAnswers);
+      setTimeout(() => { setShowLifestyle(true); }, 280);
+      return;
+    }
     if (isLast) {
       setTimeout(() => advanceOrSubmit(newAnswers), 280);
     } else {
@@ -104,32 +122,39 @@ export default function CheckinPage() {
   }
 
   async function submitCheckin(finalAnswers: Answers) {
-    let score = 0;
-    QUESTIONS.forEach((q) => { score += (finalAnswers[q.id] ?? 50) * q.weight; });
-    const rounded = Math.round(score);
     const today = new Date().toISOString().split("T")[0];
-
-    try {
-      const history = JSON.parse(localStorage.getItem("trademind_history") || "[]");
-      const existing = history.findIndex((h: { date: string }) => h.date === today);
-      const entry = { date: today, score: rounded, answers: finalAnswers };
-      if (existing >= 0) history[existing] = entry; else history.unshift(entry);
-      localStorage.setItem("trademind_history", JSON.stringify(history.slice(0, 90)));
-      localStorage.setItem("trademind_today", JSON.stringify({ date: today, score: rounded }));
-    } catch {}
 
     try {
       const res = await fetch("/api/checkin", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ answers: finalAnswers, score: rounded, date: today }),
+        body: JSON.stringify({
+          answers: finalAnswers,
+          date: today,
+          sleepQuality: lifestyle.sleepQuality,
+          caffeineLevel: lifestyle.caffeineLevel,
+          alcoholLast24h: lifestyle.alcoholLast24h,
+          exerciseToday: lifestyle.exerciseToday,
+          tradingPlan: lifestyle.tradingPlan || null,
+        }),
       });
-      if (!res.ok) console.error("Check-in save failed:", res.status);
+      const data = await res.json();
+      const score = data.score ?? 50;
+
+      try {
+        const history = JSON.parse(localStorage.getItem("trademind_history") || "[]");
+        const existing = history.findIndex((h: { date: string }) => h.date === today);
+        const entry = { date: today, score, answers: finalAnswers };
+        if (existing >= 0) history[existing] = entry; else history.unshift(entry);
+        localStorage.setItem("trademind_history", JSON.stringify(history.slice(0, 90)));
+        localStorage.setItem("trademind_today", JSON.stringify({ date: today, score }));
+      } catch {}
+
+      router.push(`/result?score=${score}`);
     } catch (err) {
       console.error("Check-in network error:", err);
+      router.push(`/result?score=50`);
     }
-
-    router.push(`/result?score=${rounded}`);
   }
 
   const sliderColor = sliderVal >= 70 ? "var(--green)" : sliderVal >= 40 ? "var(--amber)" : "var(--red)";
@@ -183,6 +208,103 @@ export default function CheckinPage() {
           </button>
           <button onClick={() => setShowPlaybook(false)} style={{ display: "block", width: "100%", marginTop: 12, background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, padding: 8 }}>
             Skip
+          </button>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
+
+  // Lifestyle quick-chips step (appears after sleep question)
+  if (showLifestyle) {
+    const sleepScores = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+    return (
+      <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        <div className="app-header">
+          <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }} onClick={() => setShowLifestyle(false)}>← Back</button>
+          <span style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.08em", fontWeight: 700 }}>LIFESTYLE CHECK</span>
+        </div>
+        <div style={{ flex: 1, maxWidth: 620, margin: "0 auto", width: "100%", padding: "32px 20px 100px", display: "flex", flexDirection: "column", gap: 28 }}>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 8, fontWeight: 600 }}>Optional — 10 seconds</div>
+            <h2 className="font-bebas" style={{ fontSize: 34, lineHeight: 1.1, marginBottom: 6 }}>How&apos;s Your Body Today?</h2>
+            <p style={{ fontSize: 13, color: "var(--text-dim)" }}>These factors adjust your readiness score and improve pattern analysis.</p>
+          </div>
+
+          {/* Sleep quality */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10 }}>SLEEP QUALITY (1–10)</div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {sleepScores.map(s => (
+                <button key={s} onClick={() => setLifestyle(l => ({ ...l, sleepQuality: s }))}
+                  style={{ width: 44, height: 44, borderRadius: 10, border: `1.5px solid ${lifestyle.sleepQuality === s ? "#5e6ad2" : "var(--border)"}`, background: lifestyle.sleepQuality === s ? "rgba(94,106,210,0.15)" : "var(--surface)", color: lifestyle.sleepQuality === s ? "#5e6ad2" : "var(--text-dim)", fontWeight: 800, fontSize: 15, cursor: "pointer" }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Caffeine */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10 }}>CAFFEINE TODAY</div>
+            <div style={{ display: "flex", gap: 8 }}>
+              {(["none", "low", "medium", "high"] as const).map(lvl => (
+                <button key={lvl} onClick={() => setLifestyle(l => ({ ...l, caffeineLevel: lvl }))}
+                  style={{ flex: 1, padding: "10px 4px", borderRadius: 10, border: `1.5px solid ${lifestyle.caffeineLevel === lvl ? "#ffb020" : "var(--border)"}`, background: lifestyle.caffeineLevel === lvl ? "rgba(255,176,32,0.12)" : "var(--surface)", color: lifestyle.caffeineLevel === lvl ? "#ffb020" : "var(--text-muted)", fontWeight: 700, fontSize: 11, cursor: "pointer", textTransform: "capitalize" as const }}>
+                  {lvl === "none" ? "None ☕" : lvl === "low" ? "Low ☕" : lvl === "medium" ? "Mid ☕☕" : "High ☕☕☕"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Alcohol + Exercise row */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10 }}>ALCOHOL LAST 24H</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {([{ label: "Yes 🍺", val: true }, { label: "No", val: false }] as const).map(({ label, val }) => (
+                  <button key={label} onClick={() => setLifestyle(l => ({ ...l, alcoholLast24h: val }))}
+                    style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: `1.5px solid ${lifestyle.alcoholLast24h === val ? (val ? "var(--red)" : "var(--green)") : "var(--border)"}`, background: lifestyle.alcoholLast24h === val ? (val ? "rgba(255,59,92,0.1)" : "rgba(0,208,132,0.1)") : "var(--surface)", color: lifestyle.alcoholLast24h === val ? (val ? "var(--red)" : "var(--green)") : "var(--text-muted)", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10 }}>EXERCISED TODAY</div>
+              <div style={{ display: "flex", gap: 8 }}>
+                {([{ label: "Yes 💪", val: true }, { label: "No", val: false }] as const).map(({ label, val }) => (
+                  <button key={label} onClick={() => setLifestyle(l => ({ ...l, exerciseToday: val }))}
+                    style={{ flex: 1, padding: "10px 0", borderRadius: 10, border: `1.5px solid ${lifestyle.exerciseToday === val ? (val ? "var(--green)" : "var(--border)") : "var(--border)"}`, background: lifestyle.exerciseToday === val ? (val ? "rgba(0,208,132,0.1)" : "var(--surface)") : "var(--surface)", color: lifestyle.exerciseToday === val && val ? "var(--green)" : "var(--text-muted)", fontWeight: 700, fontSize: 12, cursor: "pointer" }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Trading plan */}
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10 }}>TODAY&apos;S TRADING PLAN <span style={{ fontWeight: 400, color: "var(--text-muted)" }}>(optional)</span></div>
+            <textarea
+              placeholder="What setups will you focus on? Any bias or key levels?"
+              value={lifestyle.tradingPlan}
+              onChange={e => setLifestyle(l => ({ ...l, tradingPlan: e.target.value }))}
+              rows={3}
+              style={{ width: "100%", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "12px 14px", color: "var(--text)", fontSize: 13, resize: "none", fontFamily: "inherit", lineHeight: 1.6, outline: "none", boxSizing: "border-box" as const }}
+            />
+          </div>
+
+          <button className="btn-primary" style={{ width: "100%", padding: 16, fontSize: 16 }}
+            onClick={() => {
+              setShowLifestyle(false);
+              slideToNext(() => { setStep(1); }); // move to next question (emotion)
+            }}>
+            Continue →
+          </button>
+          <button onClick={() => { setShowLifestyle(false); slideToNext(() => { setStep(1); }); }}
+            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, padding: 8 }}>
+            Skip lifestyle check
           </button>
         </div>
         <BottomNav />
