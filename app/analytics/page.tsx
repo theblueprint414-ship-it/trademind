@@ -856,27 +856,64 @@ function ProfitMetricsRow({ data }: { data: AnalyticsData }) {
   );
 }
 
+function getMarketSession(utcHour: number): { label: string; color: string } | null {
+  // UTC hour ranges for major sessions
+  if (utcHour >= 0 && utcHour < 2) return { label: "Tokyo", color: "#F59E0B" };
+  if (utcHour >= 2 && utcHour < 4) return { label: "Tokyo", color: "#F59E0B" };
+  if (utcHour >= 7 && utcHour < 9) return { label: "London open", color: "#60A5FA" };
+  if (utcHour >= 9 && utcHour < 12) return { label: "London", color: "#60A5FA" };
+  if (utcHour >= 12 && utcHour < 14) return { label: "London/NY overlap", color: "#A78BFA" };
+  if (utcHour >= 14 && utcHour < 17) return { label: "New York", color: "#34D399" };
+  if (utcHour >= 17 && utcHour < 21) return { label: "NY afternoon", color: "#34D399" };
+  return null;
+}
+
 function TimeOfDayCard({ data }: { data: { hour: number; pnl: number; trades: number; winRate: number | null }[] }) {
   if (data.length === 0) return null;
-  const maxAbs = Math.max(...data.map((d) => Math.abs(d.pnl)), 1);
+  const active = data.filter((d) => d.trades > 0);
+  if (active.length === 0) return null;
+  const maxAbs = Math.max(...active.map((d) => Math.abs(d.pnl)), 1);
+  const best = active.reduce((a, b) => (b.pnl > a.pnl ? b : a));
   return (
     <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>BEST HOURS TO TRADE</h3>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {data.map((h) => {
+      <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", margin: 0 }}>BEST HOURS TO TRADE</h3>
+        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>UTC · {active.length} active hours</span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {active.map((h) => {
           const barPct = (Math.abs(h.pnl) / maxAbs) * 100;
           const isPos = h.pnl >= 0;
-          const hStr = `${h.hour.toString().padStart(2, "0")}:00 UTC`;
+          const isBest = h.hour === best.hour;
+          const session = getMarketSession(h.hour);
+          const etHour = ((h.hour - 5 + 24) % 24);
+          const etStr = `${(etHour % 12 || 12).toString().padStart(2, "0")}${etHour < 12 ? "am" : "pm"} ET`;
           return (
-            <div key={h.hour} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 68, fontSize: 11, color: "var(--text-muted)", flexShrink: 0, fontFamily: "var(--font-geist-mono)" }}>{hStr}</div>
-              <div style={{ flex: 1, height: 8, background: "var(--surface3)", borderRadius: 4, overflow: "hidden" }}>
-                <div style={{ height: "100%", width: `${barPct}%`, background: isPos ? "var(--green)" : "var(--red)", borderRadius: 4 }} />
+            <div key={h.hour} style={{
+              padding: "8px 10px",
+              borderRadius: 8,
+              background: isBest ? (isPos ? "rgba(0,208,132,0.04)" : "rgba(255,59,92,0.04)") : "transparent",
+              border: isBest ? `1px solid ${isPos ? "rgba(0,208,132,0.15)" : "rgba(255,59,92,0.15)"}` : "1px solid transparent",
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <div style={{ width: 52, fontSize: 11, color: "var(--text-muted)", flexShrink: 0, fontFamily: "var(--font-geist-mono)" }}>
+                  {h.hour.toString().padStart(2, "0")}:00
+                </div>
+                <div style={{ flex: 1, height: 8, background: "var(--surface3)", borderRadius: 4, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${barPct}%`, background: isPos ? "var(--green)" : "var(--red)", borderRadius: 4, transition: "width 0.6s ease" }} />
+                </div>
+                <div style={{ width: 56, fontSize: 11, fontWeight: 700, color: isPos ? "var(--green)" : "var(--red)", textAlign: "right", flexShrink: 0, fontFamily: "var(--font-geist-mono)" }}>
+                  {isPos ? "+" : ""}${Math.abs(h.pnl).toFixed(0)}
+                </div>
               </div>
-              <div style={{ width: 56, fontSize: 11, fontWeight: 700, color: isPos ? "var(--green)" : "var(--red)", textAlign: "right", flexShrink: 0, fontFamily: "var(--font-geist-mono)" }}>
-                {isPos ? "+" : ""}${Math.abs(h.pnl).toFixed(0)}
+              <div style={{ display: "flex", gap: 8, paddingLeft: 60, alignItems: "center" }}>
+                <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{etStr}</span>
+                {session && (
+                  <span style={{ fontSize: 10, fontWeight: 600, color: session.color, background: `${session.color}14`, padding: "1px 6px", borderRadius: 4 }}>{session.label}</span>
+                )}
+                <span style={{ fontSize: 10, color: "var(--text-muted)", marginLeft: "auto" }}>{h.trades} tr{h.winRate !== null ? ` · ${h.winRate}%` : ""}</span>
+                {isBest && <span style={{ fontSize: 10, fontWeight: 700, color: isPos ? "var(--green)" : "var(--red)" }}>★ best</span>}
               </div>
-              <div style={{ width: 28, fontSize: 10, color: "var(--text-muted)", textAlign: "right", flexShrink: 0 }}>{h.trades}tr</div>
             </div>
           );
         })}
@@ -885,9 +922,39 @@ function TimeOfDayCard({ data }: { data: { hour: number; pnl: number; trades: nu
   );
 }
 
+type SymbolSortKey = "trades" | "winRate" | "avgPnl" | "totalPnl" | "avgR";
+
 function SymbolPerformanceTable({ data }: { data: AnalyticsData["symbols"] }) {
+  const [sortKey, setSortKey] = useState<SymbolSortKey>("totalPnl");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
   if (!data || data.length === 0) return null;
-  const top = data.slice(0, 10);
+
+  function handleSort(key: SymbolSortKey) {
+    if (key === sortKey) setSortDir((d) => d === "desc" ? "asc" : "desc");
+    else { setSortKey(key); setSortDir("desc"); }
+  }
+
+  const sorted = [...data].sort((a, b) => {
+    const va = (a[sortKey] as number | null) ?? (sortDir === "desc" ? -Infinity : Infinity);
+    const vb = (b[sortKey] as number | null) ?? (sortDir === "desc" ? -Infinity : Infinity);
+    return sortDir === "desc" ? vb - va : va - vb;
+  }).slice(0, 10);
+
+  const SortArrow = ({ col }: { col: SymbolSortKey }) => {
+    if (col !== sortKey) return <span style={{ opacity: 0.3, marginLeft: 3 }}>↕</span>;
+    return <span style={{ marginLeft: 3, color: "var(--blue)" }}>{sortDir === "desc" ? "↓" : "↑"}</span>;
+  };
+
+  const cols: { label: string; key?: SymbolSortKey; align: "left" | "right" }[] = [
+    { label: "Symbol", align: "left" },
+    { label: "Trades", key: "trades", align: "right" },
+    { label: "Win %", key: "winRate", align: "right" },
+    { label: "Avg P&L", key: "avgPnl", align: "right" },
+    { label: "Total P&L", key: "totalPnl", align: "right" },
+    { label: "Avg R", key: "avgR", align: "right" },
+  ];
+
   return (
     <div className="card" style={{ padding: 24, marginBottom: 20 }}>
       <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>SYMBOL PERFORMANCE</h3>
@@ -895,13 +962,19 @@ function SymbolPerformanceTable({ data }: { data: AnalyticsData["symbols"] }) {
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
           <thead>
             <tr style={{ borderBottom: "1px solid var(--border)" }}>
-              {["Symbol", "Trades", "Win %", "Avg P&L", "Total P&L", "Avg R"].map((h) => (
-                <th key={h} style={{ padding: "6px 10px", textAlign: h === "Symbol" ? "left" : "right", fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", whiteSpace: "nowrap" }}>{h.toUpperCase()}</th>
+              {cols.map((c) => (
+                <th
+                  key={c.label}
+                  onClick={() => c.key && handleSort(c.key)}
+                  style={{ padding: "6px 10px", textAlign: c.align, fontSize: 9, color: c.key === sortKey ? "var(--blue)" : "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", whiteSpace: "nowrap", cursor: c.key ? "pointer" : "default", userSelect: "none" }}
+                >
+                  {c.label.toUpperCase()}{c.key && <SortArrow col={c.key} />}
+                </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {top.map((s) => (
+            {sorted.map((s) => (
               <tr key={s.symbol} style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={{ padding: "10px 10px", fontWeight: 700, fontFamily: "var(--font-geist-mono)", fontSize: 13, color: "var(--text)" }}>{s.symbol}</td>
                 <td style={{ padding: "10px 10px", textAlign: "right", color: "var(--text-muted)" }}>{s.trades}</td>

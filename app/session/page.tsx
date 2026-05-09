@@ -134,6 +134,17 @@ function TradeCard({ trade, mentalScore, isPro, onReplay }: { trade: TradeEntry;
   const tags = parseTags(trade.tags);
   const hasChart = !!(trade.entryPrice || trade.exitPrice);
 
+  const durationStr = (() => {
+    if (!trade.entryTime || !trade.exitTime) return null;
+    const secs = Math.round((new Date(trade.exitTime).getTime() - new Date(trade.entryTime).getTime()) / 1000);
+    if (secs < 0) return null;
+    if (secs < 60) return `${secs}s`;
+    if (secs < 3600) return `${Math.floor(secs / 60)}m`;
+    const h = Math.floor(secs / 3600);
+    const m = Math.floor((secs % 3600) / 60);
+    return m > 0 ? `${h}h ${m}m` : `${h}h`;
+  })();
+
   return (
     <div style={{ background: "var(--surface)", border: `1px solid ${pnl !== null ? (isProfit ? "rgba(0,208,132,0.2)" : "rgba(255,59,92,0.2)") : "var(--border)"}`, borderRadius: 14, overflow: "hidden" }}>
       {/* Header row */}
@@ -174,10 +185,20 @@ function TradeCard({ trade, mentalScore, isPro, onReplay }: { trade: TradeEntry;
           ) : (
             <div style={{ fontSize: 14, color: "var(--text-muted)" }}>—</div>
           )}
-          {trade.entryTime && (
-            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-              {new Date(trade.entryTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, justifyContent: "flex-end", marginTop: 3, flexWrap: "wrap" }}>
+            {trade.rMultiple !== null && trade.rMultiple !== undefined && (
+              <span style={{ fontSize: 11, fontWeight: 800, color: (trade.rMultiple ?? 0) >= 0 ? "var(--green)" : "var(--red)", background: (trade.rMultiple ?? 0) >= 0 ? "rgba(0,208,132,0.1)" : "rgba(255,59,92,0.1)", padding: "1px 6px", borderRadius: 5, fontFamily: "var(--font-geist-mono)" }}>
+                {(trade.rMultiple ?? 0) >= 0 ? "+" : ""}{(trade.rMultiple ?? 0).toFixed(2)}R
+              </span>
+            )}
+            {trade.entryTime && (
+              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                {new Date(trade.entryTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+              </div>
+            )}
+          </div>
+          {durationStr && (
+            <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 1, textAlign: "right" }}>⏱ {durationStr}</div>
           )}
         </div>
 
@@ -426,6 +447,29 @@ Provide a brief JSON response with:
           <StatCard label="Win Rate" value={session?.winRate !== null ? `${session!.winRate}%` : "—"} color={session?.winRate && session.winRate >= 50 ? "var(--green)" : "var(--red)"} />
           <StatCard label="Mental" value={session?.checkin ? `${session.checkin.score}/10` : "—"} color={session?.checkin ? (session.checkin.score >= 7 ? "var(--green)" : session.checkin.score >= 5 ? "var(--amber)" : "var(--red)") : undefined} />
         </div>
+
+        {/* Win/Loss distribution bar */}
+        {session && session.tradeCount > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <div style={{ flex: 1, height: 10, borderRadius: 6, overflow: "hidden", background: "var(--surface2)", display: "flex" }}>
+                {session.winners > 0 && (
+                  <div style={{ height: "100%", width: `${(session.winners / session.tradeCount) * 100}%`, background: "var(--green)", transition: "width 0.6s ease", borderRadius: session.losers === 0 ? 6 : "6px 0 0 6px" }} />
+                )}
+                {session.losers > 0 && (
+                  <div style={{ height: "100%", flex: 1, background: "var(--red)", borderRadius: session.winners === 0 ? 6 : "0 6px 6px 0" }} />
+                )}
+              </div>
+              <div style={{ display: "flex", gap: 12, fontSize: 11, flexShrink: 0 }}>
+                <span style={{ color: "var(--green)", fontWeight: 700 }}>{session.winners}W</span>
+                <span style={{ color: "var(--red)", fontWeight: 700 }}>{session.losers}L</span>
+                {session.tradeCount - session.winners - session.losers > 0 && (
+                  <span style={{ color: "var(--text-muted)", fontWeight: 700 }}>{session.tradeCount - session.winners - session.losers} BE</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mental bar */}
         {session?.checkin && (

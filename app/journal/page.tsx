@@ -608,6 +608,22 @@ export default function JournalPage() {
 
   const displayEntries = isFiltered ? filteredEntries : entries;
 
+  function exportCSV() {
+    const rows = displayEntries.map((e) => [
+      e.date, e.symbol ?? "", e.side ?? "", e.pnl ?? "", e.entryPrice ?? "", e.exitPrice ?? "",
+      e.stopLoss ?? "", e.takeProfit ?? "", e.rMultiple ?? "", e.riskAmount ?? "", e.commission ?? "",
+      e.assetType ?? "", e.setup ?? "", e.checkinScore ?? "", e.duration ?? "",
+      e.emotionBefore ?? "", e.emotionAfter ?? "", (e.notes ?? "").replace(/,/g, ";"), (e.mistake ?? "").replace(/,/g, ";"),
+    ]);
+    const header = ["Date","Symbol","Side","PnL","EntryPrice","ExitPrice","StopLoss","TakeProfit","RMultiple","RiskAmount","Commission","AssetType","Setup","MentalScore","DurationSec","EmotionBefore","EmotionAfter","Notes","Mistake"];
+    const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = `trademind-journal-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  }
+
   const totalPnl = displayEntries.reduce((s, e) => s + (e.pnl ?? 0), 0);
   const hasPnl = displayEntries.some((e) => e.pnl !== null);
 
@@ -1296,6 +1312,18 @@ export default function JournalPage() {
               >
                 <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 2.5h11M3 6.5h7M5 10.5h3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
                 Filters {isFiltered ? "·" : ""}
+              </button>
+              <button
+                onClick={exportCSV}
+                title="Export to CSV"
+                style={{
+                  padding: "0 12px", borderRadius: 10, border: "1px solid var(--border)",
+                  background: "var(--surface2)", color: "var(--text-muted)",
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 5, height: 38, whiteSpace: "nowrap", flexShrink: 0,
+                }}
+              >
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v7M4 6l2.5 2.5L9 6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/><path d="M1.5 10v1.5h10V10" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <span style={{ fontSize: 11, fontWeight: 700 }}>CSV</span>
               </button>
             </div>
 

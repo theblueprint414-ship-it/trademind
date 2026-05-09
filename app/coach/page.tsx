@@ -109,49 +109,66 @@ type PatternData = {
   totalTrades: number;
 };
 
-function PatternInsights({ patterns }: { patterns: PatternData }) {
-  const cards: { label: string; value: string; sub: string; color: string; bad?: boolean }[] = [];
+function fmtUtcHour(utcHour: number): string {
+  const et = ((utcHour - 5 + 24) % 24);
+  return `${(et % 12 || 12)}${et < 12 ? "am" : "pm"} ET`;
+}
+
+function PatternInsights({ patterns, onAsk }: { patterns: PatternData; onAsk: (q: string) => void }) {
+  const cards: { label: string; value: string; sub: string; color: string; bad?: boolean; question: string }[] = [];
 
   if (patterns.currentLoseStreak >= 2) {
-    cards.push({ label: "LOSING STREAK", value: `${patterns.currentLoseStreak} days`, sub: "consecutive losing sessions", color: "var(--red)", bad: true });
+    cards.push({ label: "LOSING STREAK", value: `${patterns.currentLoseStreak} days`, sub: "consecutive losing sessions", color: "var(--red)", bad: true, question: `I'm on a ${patterns.currentLoseStreak}-day losing streak. How do I break this pattern without forcing trades?` });
   }
   if (patterns.worstDay && patterns.worstDay.avg < -50) {
-    cards.push({ label: "WORST DAY", value: patterns.worstDay.day, sub: `avg $${patterns.worstDay.avg}/session over ${patterns.worstDay.count} sessions`, color: "var(--red)", bad: true });
+    cards.push({ label: "WORST DAY", value: patterns.worstDay.day, sub: `avg $${patterns.worstDay.avg}/session · ${patterns.worstDay.count} sessions`, color: "var(--red)", bad: true, question: `I consistently lose on ${patterns.worstDay.day}s — avg $${patterns.worstDay.avg} per session. What do you think is causing this and how do I fix it?` });
   }
   if (patterns.bestDay && patterns.bestDay.avg > 50) {
-    cards.push({ label: "BEST DAY", value: patterns.bestDay.day, sub: `avg $${patterns.bestDay.avg}/session`, color: "var(--green)" });
+    cards.push({ label: "BEST DAY", value: patterns.bestDay.day, sub: `avg $${patterns.bestDay.avg}/session`, color: "var(--green)", question: `${patterns.bestDay.day} is my best trading day averaging $${patterns.bestDay.avg}. How do I replicate this performance more consistently?` });
   }
   if (patterns.worstHour && patterns.worstHour.avg < -30) {
-    cards.push({ label: "AVOID THIS HOUR", value: `${patterns.worstHour.hour}:00 UTC`, sub: `avg $${patterns.worstHour.avg}/trade · ${patterns.worstHour.wr}% win rate`, color: "var(--amber)", bad: true });
+    const et = fmtUtcHour(patterns.worstHour.hour);
+    cards.push({ label: "AVOID THIS HOUR", value: et, sub: `avg $${patterns.worstHour.avg}/trade · ${patterns.worstHour.wr}% WR`, color: "var(--amber)", bad: true, question: `My worst trading hour is ${et} — avg $${patterns.worstHour.avg} per trade with only ${patterns.worstHour.wr}% win rate. Why might I be struggling at this time and should I just stop trading then?` });
   }
   if (patterns.bestHour && patterns.bestHour.avg > 30) {
-    cards.push({ label: "BEST HOUR", value: `${patterns.bestHour.hour}:00 UTC`, sub: `avg $${patterns.bestHour.avg}/trade · ${patterns.bestHour.wr}% win rate`, color: "var(--green)" });
+    const et = fmtUtcHour(patterns.bestHour.hour);
+    cards.push({ label: "BEST HOUR", value: et, sub: `avg $${patterns.bestHour.avg}/trade · ${patterns.bestHour.wr}% WR`, color: "var(--green)", question: `My best trading hour is ${et} with avg $${patterns.bestHour.avg} per trade and ${patterns.bestHour.wr}% win rate. How do I maximize this edge?` });
   }
   if (patterns.worstSymbol && patterns.worstSymbol.total < -100) {
-    cards.push({ label: "MONEY PIT", value: patterns.worstSymbol.sym, sub: `total $${patterns.worstSymbol.total} · ${patterns.worstSymbol.wr}% win rate`, color: "var(--red)", bad: true });
+    cards.push({ label: "MONEY PIT", value: patterns.worstSymbol.sym, sub: `total $${patterns.worstSymbol.total} · ${patterns.worstSymbol.wr}% WR`, color: "var(--red)", bad: true, question: `I keep losing on ${patterns.worstSymbol.sym} — total $${patterns.worstSymbol.total} lost with only ${patterns.worstSymbol.wr}% win rate. Should I stop trading it entirely or try to fix my approach?` });
   }
   if (patterns.bestSymbol && patterns.bestSymbol.total > 100) {
-    cards.push({ label: "BEST SYMBOL", value: patterns.bestSymbol.sym, sub: `total $${patterns.bestSymbol.total} · ${patterns.bestSymbol.wr}% win rate`, color: "var(--green)" });
+    cards.push({ label: "BEST SYMBOL", value: patterns.bestSymbol.sym, sub: `total $${patterns.bestSymbol.total} · ${patterns.bestSymbol.wr}% WR`, color: "var(--green)", question: `${patterns.bestSymbol.sym} is my best symbol with $${patterns.bestSymbol.total} total and ${patterns.bestSymbol.wr}% win rate. How do I build more of my trading around this edge?` });
   }
   if (patterns.ntViolationCount >= 2) {
-    cards.push({ label: "NO-TRADE VIOLATIONS", value: `${patterns.ntViolationCount} trades`, sub: `cost: $${patterns.ntViolationPnl} on days you should've sat out`, color: "var(--red)", bad: true });
+    cards.push({ label: "NO-TRADE VIOLATIONS", value: `${patterns.ntViolationCount} trades`, sub: `cost: $${patterns.ntViolationPnl} on red-flag days`, color: "var(--red)", bad: true, question: `I've traded ${patterns.ntViolationCount} times on NO-TRADE days, costing me $${Math.abs(patterns.ntViolationPnl)}. What mindset shift would actually stop me from doing this?` });
   }
   if (patterns.revengeCount >= 2) {
-    cards.push({ label: "REVENGE TRADING", value: `${patterns.revengeCount}×`, sub: "overtraded the day after a loss", color: "var(--amber)", bad: true });
+    cards.push({ label: "REVENGE TRADING", value: `${patterns.revengeCount}×`, sub: "overtraded the day after a loss", color: "var(--amber)", bad: true, question: `I've revenge-traded ${patterns.revengeCount} times after losses. Give me a concrete routine to break this cycle.` });
   }
 
   if (cards.length === 0) return null;
 
   return (
     <div style={{ marginBottom: 20 }}>
-      <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "var(--text-muted)", marginBottom: 10 }}>PATTERN INSIGHTS</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "var(--text-muted)" }}>PATTERN INSIGHTS</div>
+        <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 400 }}>— tap to ask Alex</span>
+      </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         {cards.map((c, i) => (
-          <div key={i} style={{ padding: "12px 14px", borderRadius: 10, background: "var(--surface2)", border: `1px solid ${c.color}25` }}>
+          <button
+            key={i}
+            onClick={() => onAsk(c.question)}
+            style={{ padding: "12px 14px", borderRadius: 10, background: "var(--surface2)", border: `1px solid ${c.color}25`, textAlign: "left", cursor: "pointer", transition: "border-color 0.15s, background 0.15s", fontFamily: "inherit" }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${c.color}50`; (e.currentTarget as HTMLElement).style.background = `${c.color}08`; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = `${c.color}25`; (e.currentTarget as HTMLElement).style.background = "var(--surface2)"; }}
+          >
             <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: c.bad ? "var(--text-muted)" : c.color, marginBottom: 4 }}>{c.label}</div>
             <div style={{ fontSize: 16, fontWeight: 800, color: c.color, lineHeight: 1, marginBottom: 3 }}>{c.value}</div>
             <div style={{ fontSize: 10, color: "var(--text-muted)", lineHeight: 1.4 }}>{c.sub}</div>
-          </div>
+            <div style={{ fontSize: 9, color: c.color, marginTop: 6, opacity: 0.7, fontWeight: 600 }}>Ask Alex →</div>
+          </button>
         ))}
       </div>
     </div>
@@ -332,7 +349,7 @@ export default function CoachPage() {
         )}
 
         {/* Pattern insights */}
-        {patterns && patterns.totalTrades >= 5 && <PatternInsights patterns={patterns} />}
+        {patterns && patterns.totalTrades >= 5 && <PatternInsights patterns={patterns} onAsk={send} />}
 
         {/* Intro */}
         <div style={{ textAlign: "center", marginBottom: 28 }}>
