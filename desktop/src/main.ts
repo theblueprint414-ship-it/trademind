@@ -1,10 +1,11 @@
 import {
   app, BrowserWindow, Tray, Menu, nativeImage, ipcMain,
-  shell, dialog, autoUpdater, Notification,
+  shell, dialog, Notification,
 } from "electron";
+import { autoUpdater } from "electron-updater";
 import * as path from "path";
 import { store } from "./store";
-import { syncTrades } from "./sync/api";
+import { syncTrades, type TradeSyncPayload } from "./sync/api";
 import { filterUnsynced, markSynced } from "./sync/queue";
 import { MT4Watcher } from "./watchers/mt4";
 import { NinjaTraderWatcher } from "./watchers/ninjatrader";
@@ -22,7 +23,7 @@ let syncStatus: { ok: boolean; lastAt: string | null; tradesTotal: number } = {
 };
 
 const watchers: Array<{ stop: () => void; broker: string }> = [];
-let pendingTrades: ReturnType<typeof filterUnsynced>[number][] = [];
+let pendingTrades: TradeSyncPayload[] = [];
 
 // ── App lifecycle ──────────────────────────────────────────────────────────
 app.on("ready", async () => {
@@ -136,7 +137,7 @@ function startWatchers(): void {
   for (const broker of brokers) {
     if (!broker.enabled || !broker.watchPath) continue;
 
-    const collectTrades = (trades: ReturnType<typeof filterUnsynced>[number][]) => {
+    const collectTrades = (trades: TradeSyncPayload[]) => {
       const unseen = filterUnsynced(trades);
       if (unseen.length > 0) {
         pendingTrades.push(...unseen);
@@ -266,11 +267,14 @@ ipcMain.handle("get-sync-status", () => syncStatus);
 function setupAutoUpdater(): void {
   if (process.env.NODE_ENV === "development") return;
 
-  const feedUrl = `https://update.electronjs.org/trademindedge/edgebridge/${process.platform}-${process.arch}/${app.getVersion()}`;
   try {
-    autoUpdater.setFeedURL({ url: feedUrl });
+    autoUpdater.setFeedURL({
+      provider: "generic",
+      url: "https://trademind.app/api/bridge/update",
+    });
+    autoUpdater.autoDownload = true;
     autoUpdater.checkForUpdates();
-    setInterval(() => autoUpdater.checkForUpdates(), 4 * 60 * 60 * 1000); // every 4h
+    setInterval(() => autoUpdater.checkForUpdates(), 4 * 60 * 60 * 1000);
 
     autoUpdater.on("update-available", () => {
       new Notification({ title: "EdgeBridge Update", body: "An update is downloading..." }).show();
@@ -283,7 +287,7 @@ function setupAutoUpdater(): void {
       }).show();
     });
   } catch {
-    // Updater not available in dev builds
+    // Updater unavailable in dev builds
   }
 }
 

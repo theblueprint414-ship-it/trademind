@@ -10,45 +10,94 @@ const TICK_MS: Record<Speed, number> = { 1: 600, 2: 300, 4: 150, 8: 60 };
 const PRE = 14;
 const POST = 6;
 
-function normalizeForFetch(symbol: string) {
-  const s = symbol.toUpperCase().replace(/[^A-Z0-9]/g, "");
-  const crypto = /USDT|USDC|BTC|ETH|BNB|SOL|XRP|DOGE|AVAX|MATIC/.test(s);
-  return { crypto, sym: crypto ? (s.includes("USDT") ? s : s + "USDT") : s };
+// Known futures base symbols (strip contract month/year before appending =F)
+const FUTURES_BASES = new Set(["ES","NQ","CL","GC","SI","ZB","YM","RTY","NKD","NG","HO","RB","ZC","ZW","ZS","ZM","ZL","KC","CT","CC","SB","OJ","MES","MNQ","MCL","MGC","M6E","M6A","MBT","MET","FDAX","FESX"]);
+const CCY_SET = new Set(["EUR","GBP","JPY","CHF","AUD","CAD","NZD","USD","MXN","SGD","HKD","NOK","SEK","DKK","ZAR","TRY","CNH","PLN","CZK","HUF"]);
+
+function normalizeForFetch(symbol: string): { crypto: boolean; isForex: boolean; isFutures: boolean; binanceSym: string; yahooSym: string; twelveDataSym: string } {
+  // Strip contract months (ESH24, NQ1!, EUR/USD.p), periods/slashes
+  const s = symbol.toUpperCase().replace(/[^A-Z0-9]/g, "")
+    .replace(/[FGHJKMNQUVXZ]\d{1,2}$/, "")  // contract month+year suffix
+    .replace(/\d{2,4}$/, "")                  // year-only suffix
+    .replace(/1$/, "");                        // "1!" continuous contract suffix
+
+  const crypto  = /USDT|USDC|BTC|ETH|BNB|SOL|XRP|DOGE|AVAX|MATIC|LINK|UNI|AAVE/.test(s);
+  const isForex = !crypto && s.length === 6 && CCY_SET.has(s.slice(0, 3)) && CCY_SET.has(s.slice(3));
+  const isFutures = !crypto && !isForex && FUTURES_BASES.has(s);
+
+  const binanceSym     = crypto ? (s.includes("USDT") ? s : s + "USDT") : "";
+  const yahooSym       = isForex ? s + "=X" : isFutures ? s + "=F" : s;
+  const twelveDataSym  = isForex ? s.slice(0, 3) + "/" + s.slice(3) : s;
+
+  return { crypto, isForex, isFutures, binanceSym, yahooSym, twelveDataSym };
+}
+
+async function fetchFromYahoo(yahooSym: string, start: number, end: number, interval: string): Promise<Candle[]> {
+  const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSym}?interval=${interval}&period1=${Math.floor(start / 1000)}&period2=${Math.floor(end / 1000)}`;
+  try {
+    const r = await fetch(`/api/price-proxy?url=${encodeURIComponent(yUrl)}`, { cache: "no-store" });
+    if (!r.ok) return [];
+    const d = await r.json() as { chart?: { result?: Array<{ timestamp?: number[]; indicators?: { quote?: Array<{ open: number[]; high: number[]; low: number[]; close: number[] }> } }> } };
+    const res = d?.chart?.result?.[0];
+    if (!res?.timestamp) return [];
+    const ts = res.timestamp as number[];
+    const q = res.indicators?.quote?.[0];
+    if (!q) return [];
+    return ts.map((t, i) => ({
+      time: t * 1000, open: q.open[i] ?? 0, high: q.high[i] ?? 0,
+      low: q.low[i] ?? 0, close: q.close[i] ?? 0,
+    })).filter(c => c.open > 0);
+  } catch { return []; }
+}
+
+async function fetchFromTwelveData(sym: string, start: number, end: number, interval: string): Promise<Candle[]> {
+  try {
+    const r = await fetch(`/api/price-proxy/forex?symbol=${encodeURIComponent(sym)}&interval=${interval}&start=${start}&end=${end}`, { cache: "no-store" });
+    if (!r.ok || r.status === 204) return [];
+    const d = await r.json() as { values?: Array<{ datetime: string; open: string; high: string; low: string; close: string }> };
+    if (!d.values?.length) return [];
+    return d.values.slice().reverse().map(v => ({
+      time: new Date(v.datetime.includes("T") ? v.datetime : v.datetime + "Z").getTime(),
+      open: parseFloat(v.open), high: parseFloat(v.high),
+      low: parseFloat(v.low), close: parseFloat(v.close),
+    })).filter(c => c.open > 0);
+  } catch { return []; }
 }
 
 async function fetchCandles(symbol: string, entryTime: string, exitTime: string): Promise<Candle[]> {
-  const end = new Date(exitTime).getTime() + 5_400_000;
+  const end   = new Date(exitTime).getTime()  + 5_400_000;
   const start = new Date(entryTime).getTime() - 5_400_000;
   const range = end - start;
   const interval = range < 7_200_000 ? "1m" : range < 21_600_000 ? "5m" : "15m";
-  const { crypto, sym } = normalizeForFetch(symbol);
+  const { crypto, isForex, binanceSym, yahooSym, twelveDataSym } = normalizeForFetch(symbol);
 
+  // Crypto: Binance
   if (crypto) {
-    const r = await fetch(
-      `https://api.binance.com/api/v3/klines?symbol=${sym}&interval=${interval}&startTime=${start}&endTime=${end}&limit=300`,
-      { cache: "no-store" }
-    );
-    if (!r.ok) return [];
-    const d = (await r.json()) as unknown[][];
-    return d.map(k => ({
-      time: k[0] as number,
-      open: parseFloat(k[1] as string), high: parseFloat(k[2] as string),
-      low: parseFloat(k[3] as string), close: parseFloat(k[4] as string),
-    }));
+    try {
+      const binInterval = interval === "1m" ? "1m" : interval === "5m" ? "5m" : "15m";
+      const r = await fetch(
+        `https://api.binance.com/api/v3/klines?symbol=${binanceSym}&interval=${binInterval}&startTime=${start}&endTime=${end}&limit=500`,
+        { cache: "no-store" }
+      );
+      if (!r.ok) return [];
+      const d = (await r.json()) as unknown[][];
+      return d.map(k => ({
+        time: k[0] as number,
+        open: parseFloat(k[1] as string), high: parseFloat(k[2] as string),
+        low: parseFloat(k[3] as string), close: parseFloat(k[4] as string),
+      }));
+    } catch { return []; }
   }
 
-  const yUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=${interval}&period1=${Math.floor(start / 1000)}&period2=${Math.floor(end / 1000)}`;
-  const r = await fetch(`/api/price-proxy?url=${encodeURIComponent(yUrl)}`, { cache: "no-store" });
-  if (!r.ok) return [];
-  const d = await r.json();
-  const res = d?.chart?.result?.[0];
-  if (!res?.timestamp) return [];
-  const ts: number[] = res.timestamp;
-  const q = res.indicators?.quote?.[0];
-  return ts.map((t, i) => ({
-    time: t * 1000, open: q.open[i] ?? 0, high: q.high[i] ?? 0,
-    low: q.low[i] ?? 0, close: q.close[i] ?? 0,
-  })).filter(c => c.open > 0);
+  // Forex: try Twelve Data first (accurate), fall back to Yahoo Finance
+  if (isForex) {
+    const td = await fetchFromTwelveData(twelveDataSym, start, end, interval);
+    if (td.length > 0) return td;
+    return fetchFromYahoo(yahooSym, start, end, interval); // Yahoo has =X suffix now
+  }
+
+  // Stocks / Futures / everything else: Yahoo Finance (with =F suffix for futures)
+  return fetchFromYahoo(yahooSym, start, end, interval);
 }
 
 export interface TradeReplayProps {
@@ -313,17 +362,26 @@ export default function TradeReplay({
           </div>
         )}
 
-        {phase === "nodata" && (
-          <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, background: "var(--bg)" }}>
-            <svg width="44" height="44" viewBox="0 0 44 44" fill="none" style={{ color: "var(--text-muted)" }}>
-              <rect x="4" y="28" width="8" height="12" rx="2" fill="currentColor" opacity="0.3"/>
-              <rect x="17" y="18" width="8" height="22" rx="2" fill="currentColor" opacity="0.5"/>
-              <rect x="30" y="8" width="8" height="32" rx="2" fill="currentColor" opacity="0.7"/>
-              <path d="M6 6l32 32" stroke="#ff3b5c" strokeWidth="2.5" strokeLinecap="round"/>
-            </svg>
-            <span style={{ fontSize: 14, color: "var(--text-muted)" }}>No price data available for this trade</span>
-          </div>
-        )}
+        {phase === "nodata" && (() => {
+          const { isForex, isFutures } = normalizeForFetch(symbol);
+          const hint = isForex
+            ? "Add a free Twelve Data API key (TWELVE_DATA_API_KEY) to enable forex replay."
+            : isFutures
+            ? "Futures intraday data requires a recent trade — historical replay may not be available."
+            : "Intraday price data unavailable for this symbol or time range.";
+          return (
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, background: "var(--bg)", padding: 32 }}>
+              <svg width="44" height="44" viewBox="0 0 44 44" fill="none" style={{ color: "var(--text-muted)" }}>
+                <rect x="4" y="28" width="8" height="12" rx="2" fill="currentColor" opacity="0.3"/>
+                <rect x="17" y="18" width="8" height="22" rx="2" fill="currentColor" opacity="0.5"/>
+                <rect x="30" y="8" width="8" height="32" rx="2" fill="currentColor" opacity="0.7"/>
+                <path d="M6 6l32 32" stroke="#ff3b5c" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+              <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text)" }}>Price data unavailable</span>
+              <span style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", maxWidth: 300, lineHeight: 1.6 }}>{hint}</span>
+            </div>
+          );
+        })()}
 
         {phase === "ready" && (
           <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.45)", backdropFilter: "blur(6px)" }}>

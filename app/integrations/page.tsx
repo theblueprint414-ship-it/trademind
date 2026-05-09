@@ -31,8 +31,8 @@ const BROKER_INTEGRATIONS = [
   { name: "TopstepX / ProjectX", tag: "LIVE", note: "Direct API — auto-sync daily trades & P&L", color: "var(--green)" },
   { name: "Any Broker (CSV)", tag: "LIVE", note: "Import trades from any broker that exports CSV", color: "var(--green)" },
   { name: "Tradovate", tag: "LIVE", note: "CSV export from Tradovate → import in TradeMind", color: "var(--green)" },
-  { name: "Interactive Brokers", tag: "PLANNED", note: "Planned via direct API", color: "var(--amber)" },
-  { name: "cTrader", tag: "PLANNED", note: "MetaAPI roadmap — coming soon", color: "var(--amber)" },
+  { name: "Interactive Brokers", tag: "CSV", note: "Export trade history from TWS → import via CSV", color: "#60A5FA" },
+  { name: "cTrader", tag: "CSV", note: "Export positions from cTrader → import via CSV", color: "#60A5FA" },
 ];
 
 const PROP_FIRMS = [

@@ -48,13 +48,10 @@ mac:
 
 dmg:
   title: "EdgeBridge Installer"
-  backgroundColor: "#0D0F14"
   window:
     width: 540
     height: 380
 
 publish:
-  provider: github
-  owner: trademindedge
-  repo: edgebridge
-  releaseType: release
+  provider: generic
+  url: https://trademind.app/api/bridge/update

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, Suspense, memo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -93,7 +93,7 @@ function MentalBar({ score, verdict }: { score: number; verdict: string }) {
   );
 }
 
-function TradeCard({ trade, mentalScore, isPro, onReplay }: { trade: TradeEntry; mentalScore: number | null; isPro: boolean; onReplay?: () => void }) {
+const TradeCard = memo(function TradeCard({ trade, mentalScore, isPro, onReplay }: { trade: TradeEntry; mentalScore: number | null; isPro: boolean; onReplay?: () => void }) {
   const [expanded, setExpanded] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AiAnalysis | null>(() => {
     try { const c = localStorage.getItem(`ai_trade_${trade.id}`); return c ? JSON.parse(c) : null; } catch { return null; }
@@ -318,7 +318,7 @@ function TradeCard({ trade, mentalScore, isPro, onReplay }: { trade: TradeEntry;
       )}
     </div>
   );
-}
+});
 
 function SessionContent() {
   const searchParams = useSearchParams();
@@ -523,17 +523,47 @@ Provide a brief JSON response with:
           </div>
 
           {session?.trades.length === 0 ? (
-            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: "32px 20px", textAlign: "center" }}>
-              <div style={{ color: "var(--text-muted)", fontSize: 14, marginBottom: 8 }}>No trades logged for this session</div>
-              {hasBroker ? (
-                <button onClick={syncNow} style={{ fontSize: 13, color: "#8B5CF6", fontWeight: 700, background: "none", border: "none", cursor: "pointer" }}>
-                  Sync broker →
-                </button>
-              ) : (
-                <Link href="/settings" style={{ fontSize: 13, color: "#8B5CF6", fontWeight: 700, textDecoration: "none" }}>
-                  Connect broker →
+            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "36px 24px", textAlign: "center" }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+                <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(94,106,210,0.08)", border: "1px solid rgba(94,106,210,0.18)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="26" height="26" viewBox="0 0 26 26" fill="none" style={{ color: "#5e6ad2" }}>
+                    <rect x="4" y="3" width="18" height="20" rx="3" stroke="currentColor" strokeWidth="1.6"/>
+                    <path d="M9 9h8M9 13h8M9 17h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                    <path d="M18 20l2.5 2.5M20 18.5a2.5 2.5 0 1 0-3.536-3.536A2.5 2.5 0 0 0 20 18.5z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+                  </svg>
+                </div>
+              </div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "var(--text)", marginBottom: 6 }}>No trades in this session yet</div>
+              <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 20, maxWidth: 280, margin: "0 auto 20px" }}>
+                {hasBroker
+                  ? "Your broker sync is connected. Trades appear here automatically as you close positions."
+                  : "Log trades manually or connect your broker for automatic sync."}
+              </div>
+              <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                {hasBroker ? (
+                  <button
+                    onClick={syncNow}
+                    disabled={syncing}
+                    style={{ display: "flex", alignItems: "center", gap: 7, padding: "9px 18px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#5e6ad2,#8B5CF6)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: syncing ? "default" : "pointer", opacity: syncing ? 0.7 : 1 }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ animation: syncing ? "spin 1s linear infinite" : "none" }}>
+                      <path d="M11.5 2A5.5 5.5 0 1 0 12 7M11.5 2V5M11.5 2H8.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {syncing ? "Syncing…" : "Sync Now"}
+                  </button>
+                ) : (
+                  <Link href="/settings" style={{ textDecoration: "none" }}>
+                    <button style={{ padding: "9px 18px", borderRadius: 10, border: "none", background: "linear-gradient(135deg,#5e6ad2,#8B5CF6)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                      Connect Broker →
+                    </button>
+                  </Link>
+                )}
+                <Link href="/journal" style={{ textDecoration: "none" }}>
+                  <button style={{ padding: "9px 18px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text-dim)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+                    Log Manually
+                  </button>
                 </Link>
-              )}
+              </div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

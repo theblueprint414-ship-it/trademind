@@ -1,9 +1,9 @@
-// Serves MT4/MT5 Expert Advisor files and redirects for binary downloads
+// Serves MT4/MT5 Expert Advisor files and redirects for binary downloads.
+// Set EDGEBRIDGE_URL_WIN and EDGEBRIDGE_URL_MAC env vars to wherever
+// the compiled binaries are hosted (S3, R2, Vercel Blob, etc.).
 import { NextRequest } from "next/server";
 import * as fs from "fs";
 import * as path from "path";
-
-const GITHUB_RELEASE = "https://github.com/trademindedge/edgebridge/releases/latest/download";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -11,12 +11,16 @@ export async function GET(request: NextRequest) {
 
   if (!file) return Response.json({ error: "file required" }, { status: 400 });
 
-  // Binary installers — redirect to GitHub releases
+  // Binary installers — redirect to CDN URLs configured via env vars
   if (file === "windows" || file === "EdgeBridge-Setup.exe") {
-    return Response.redirect(`${GITHUB_RELEASE}/EdgeBridge-Setup.exe`, 302);
+    const url = process.env.EDGEBRIDGE_URL_WIN;
+    if (!url) return Response.json({ error: "Windows build not yet available" }, { status: 503 });
+    return Response.redirect(url, 302);
   }
   if (file === "mac" || file === "EdgeBridge.dmg") {
-    return Response.redirect(`${GITHUB_RELEASE}/EdgeBridge.dmg`, 302);
+    const url = process.env.EDGEBRIDGE_URL_MAC;
+    if (!url) return Response.json({ error: "macOS build not yet available" }, { status: 503 });
+    return Response.redirect(url, 302);
   }
 
   // MQL files — serve directly from the desktop/mql folder

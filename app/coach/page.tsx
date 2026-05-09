@@ -188,27 +188,32 @@ export default function CoachPage() {
   useEffect(() => {
     fetch("/api/me")
       .then((r) => r.json())
-      .then((d) => {
+      .then(async (d) => {
         const premium = d.plan === "pro" || d.plan === "premium";
         setIsPremium(premium);
         if (!premium) { setReady(true); return; }
-        fetch("/api/checkin?date=history&limit=7")
-          .then((r) => r.json())
-          .then((d) => {
-            if (Array.isArray(d.history) && d.history.length > 0) {
-              const todayEntry = d.history[0] as { score: number };
-              const s = todayEntry.score;
-              const verdict = s >= 70 ? "GO" : s >= 45 ? "CAUTION" : "NO-TRADE";
-              const color = s >= 70 ? "var(--green)" : s >= 45 ? "var(--amber)" : "var(--red)";
-              setContext({ score: s, verdict, color, history: d.history.slice(0, 7) });
-            }
-          })
-          .catch(() => {});
+        const checkinRes = await fetch("/api/checkin?date=history&limit=7").then((r) => r.json()).catch(() => ({ history: [] }));
+        const history: Array<{ score: number }> = Array.isArray(checkinRes.history) ? checkinRes.history : [];
+        const isNewUser = history.length === 0;
+
+        if (!isNewUser) {
+          const todayEntry = history[0];
+          const s = todayEntry.score;
+          const verdict = s >= 70 ? "GO" : s >= 45 ? "CAUTION" : "NO-TRADE";
+          const color = s >= 70 ? "var(--green)" : s >= 45 ? "var(--amber)" : "var(--red)";
+          setContext({ score: s, verdict, color, history: history.slice(0, 7) });
+        }
 
         fetch("/api/ai-coach")
           .then((r) => r.json())
           .then((d) => { if (d.patterns) setPatterns(d.patterns); })
           .catch(() => {});
+
+        // New users: skip the API call and show a guided onboarding message
+        if (isNewUser) {
+          setMessages([{ role: "assistant", content: "Hey — I'm Alex, your trading psychology coach.\n\nI can't give you personalized insights yet because I don't have your data. My coaching gets sharper with every check-in you log.\n\n**Here's how to unlock your edge:**\n- Complete today's check-in (60 seconds)\n- Log a few trades with P&L\n- Come back here — I'll tell you exactly which mental state costs you the most money\n\nWhat's on your mind right now? You can ask me anything about trading psychology or mindset." }]);
+          return;
+        }
 
         return fetch("/api/ai-coach", {
           method: "POST",

@@ -58,11 +58,7 @@ export default function BridgePage() {
   const [copied, setCopied] = useState(false);
   const [revoking, setRevoking] = useState<string | null>(null);
 
-  // Early-access waitlist state
-  const [waitlistEmail, setWaitlistEmail] = useState("");
-  const [waitlistPlatform, setWaitlistPlatform] = useState<"windows" | "mac" | "">("");
-  const [waitlistSubmitting, setWaitlistSubmitting] = useState(false);
-  const [waitlistDone, setWaitlistDone] = useState(false);
+  const [downloading, setDownloading] = useState<"windows" | "mac" | null>(null);
 
   useEffect(() => {
     fetch("/api/bridge/auth")
@@ -100,12 +96,10 @@ export default function BridgePage() {
     }
   }
 
-  async function submitWaitlist() {
-    if (!waitlistEmail.trim()) return;
-    setWaitlistSubmitting(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setWaitlistDone(true);
-    setWaitlistSubmitting(false);
+  function download(platform: "windows" | "mac") {
+    setDownloading(platform);
+    window.location.href = `/api/bridge/download?file=${platform}`;
+    setTimeout(() => setDownloading(null), 3000);
   }
 
   function copyToken() {
@@ -176,67 +170,74 @@ export default function BridgePage() {
             ))}
           </div>
 
-          {/* Step 1: Download / Early Access */}
+          {/* Step 1: Download */}
           {activeStep === 1 && (
             <div>
-              {/* Beta banner */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 8, background: "rgba(255,176,32,0.07)", border: "1px solid rgba(255,176,32,0.25)", marginBottom: 14 }}>
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "var(--amber)", flexShrink: 0 }}><path d="M7 1.5L12.5 11H1.5L7 1.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/><path d="M7 5.5v2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/><circle cx="7" cy="9.5" r="0.7" fill="currentColor"/></svg>
-                <span style={{ fontSize: 12, color: "var(--amber)" }}>
-                  <strong>EdgeBridge is in private beta.</strong> Join the waitlist for early access — we&apos;re onboarding in batches.
-                </span>
-              </div>
-
-              <p style={{ margin: "0 0 14px", fontSize: 13, color: "var(--text)", lineHeight: 1.6 }}>
+              <p style={{ margin: "0 0 16px", fontSize: 13, color: "var(--text)", lineHeight: 1.6 }}>
                 EdgeBridge runs in your system tray and syncs trades from MT4/MT5, NinjaTrader 8, and Tradovate to TradeMind in real-time — no MetaAPI subscription required.
               </p>
 
-              {waitlistDone ? (
-                <div style={{ padding: "20px 16px", borderRadius: 12, background: "rgba(0,232,122,0.07)", border: "1px solid rgba(0,232,122,0.25)", textAlign: "center" }}>
-                  <div style={{ fontSize: 28, marginBottom: 8 }}>✅</div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "var(--green)", marginBottom: 6 }}>You&apos;re on the list!</div>
-                  <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.6, margin: 0 }}>
-                    We&apos;ll email you when your early access is ready. In the meantime, set up your API token so EdgeBridge can connect instantly when it arrives.
-                  </p>
-                  <button onClick={() => setActiveStep(2)} style={{ marginTop: 14, padding: "9px 20px", borderRadius: 9, border: "none", background: "var(--blue)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
-                    Set up API Token →
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Your email</label>
-                    <input
-                      type="email"
-                      value={waitlistEmail}
-                      onChange={(e) => setWaitlistEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      style={{ width: "100%", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, padding: "9px 12px", fontSize: 13, color: "var(--text)", boxSizing: "border-box", outline: "none" }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", display: "block", marginBottom: 6 }}>Platform</label>
-                    <div style={{ display: "flex", gap: 8 }}>
-                      {([["windows", "🪟 Windows"], ["mac", "🍎 macOS"]] as const).map(([p, label]) => (
-                        <button key={p} onClick={() => setWaitlistPlatform(waitlistPlatform === p ? "" : p)}
-                          style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: `1.5px solid ${waitlistPlatform === p ? "var(--blue)" : "var(--border)"}`, background: waitlistPlatform === p ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: waitlistPlatform === p ? "var(--blue)" : "var(--text-dim)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-                          {label}
-                        </button>
-                      ))}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+                <button
+                  onClick={() => download("windows")}
+                  disabled={downloading === "windows"}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 12,
+                    border: "1.5px solid var(--border)", background: "var(--surface2)",
+                    cursor: "pointer", textAlign: "left", opacity: downloading === "windows" ? 0.7 : 1,
+                  }}
+                >
+                  <span style={{ fontSize: 28 }}>🪟</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
+                      {downloading === "windows" ? "Starting download..." : "Download for Windows"}
                     </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>EdgeBridge-Setup.exe · x64 · auto-updates</div>
                   </div>
-                  <button onClick={submitWaitlist} disabled={waitlistSubmitting || !waitlistEmail.trim()}
-                    style={{ padding: "12px 0", borderRadius: 10, border: "none", background: (!waitlistEmail.trim() || waitlistSubmitting) ? "var(--surface3)" : "var(--blue)", color: (!waitlistEmail.trim() || waitlistSubmitting) ? "var(--text-muted)" : "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
-                    {waitlistSubmitting ? "Joining..." : "Join Early Access →"}
-                  </button>
-                  <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", margin: 0, lineHeight: 1.5 }}>
-                    Already have access?{" "}
-                    <button onClick={() => setActiveStep(2)} style={{ background: "none", border: "none", color: "var(--blue)", cursor: "pointer", fontSize: 11, padding: 0 }}>
-                      Skip to token setup →
-                    </button>
-                  </p>
-                </div>
-              )}
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--text-dim)", flexShrink: 0 }}>
+                    <path d="M8 2v9M4 7l4 4 4-4M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+
+                <button
+                  onClick={() => download("mac")}
+                  disabled={downloading === "mac"}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 12,
+                    border: "1.5px solid var(--border)", background: "var(--surface2)",
+                    cursor: "pointer", textAlign: "left", opacity: downloading === "mac" ? 0.7 : 1,
+                  }}
+                >
+                  <span style={{ fontSize: 28 }}>🍎</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>
+                      {downloading === "mac" ? "Starting download..." : "Download for macOS"}
+                    </div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>EdgeBridge.dmg · Apple Silicon + Intel · auto-updates</div>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--text-dim)", flexShrink: 0 }}>
+                    <path d="M8 2v9M4 7l4 4 4-4M2 13h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 8, background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.2)", marginBottom: 14 }}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: "var(--blue)", flexShrink: 0 }}>
+                  <circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor" strokeWidth="1.2"/>
+                  <path d="M6.5 5.5v4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+                  <circle cx="6.5" cy="3.5" r="0.6" fill="currentColor"/>
+                </svg>
+                <span style={{ fontSize: 11, color: "var(--blue)", lineHeight: 1.5 }}>
+                  EdgeBridge auto-updates silently in the background. Always stay on the latest version.
+                </span>
+              </div>
+
+              <button
+                onClick={() => setActiveStep(2)}
+                style={{ width: "100%", padding: "12px 0", borderRadius: 10, border: "none", background: "var(--blue)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}
+              >
+                Already installed? Set up token →
+              </button>
             </div>
           )}
 
