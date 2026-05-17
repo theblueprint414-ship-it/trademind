@@ -14,7 +14,7 @@ const POST = 6;
 const FUTURES_BASES = new Set(["ES","NQ","CL","GC","SI","ZB","YM","RTY","NKD","NG","HO","RB","ZC","ZW","ZS","ZM","ZL","KC","CT","CC","SB","OJ","MES","MNQ","MCL","MGC","M6E","M6A","MBT","MET","FDAX","FESX"]);
 const CCY_SET = new Set(["EUR","GBP","JPY","CHF","AUD","CAD","NZD","USD","MXN","SGD","HKD","NOK","SEK","DKK","ZAR","TRY","CNH","PLN","CZK","HUF"]);
 
-function normalizeForFetch(symbol: string): { crypto: boolean; isForex: boolean; isFutures: boolean; binanceSym: string; yahooSym: string; twelveDataSym: string } {
+function normalizeForFetch(symbol: string): { crypto: boolean; isForex: boolean; isFutures: boolean; binanceSym: string; yahooSym: string; twelveDataSym: string; stooqSym: string } {
   // Strip contract months (ESH24, NQ1!, EUR/USD.p), periods/slashes
   const s = symbol.toUpperCase().replace(/[^A-Z0-9]/g, "")
     .replace(/[FGHJKMNQUVXZ]\d{1,2}$/, "")  // contract month+year suffix
@@ -25,11 +25,12 @@ function normalizeForFetch(symbol: string): { crypto: boolean; isForex: boolean;
   const isForex = !crypto && s.length === 6 && CCY_SET.has(s.slice(0, 3)) && CCY_SET.has(s.slice(3));
   const isFutures = !crypto && !isForex && FUTURES_BASES.has(s);
 
-  const binanceSym     = crypto ? (s.includes("USDT") ? s : s + "USDT") : "";
-  const yahooSym       = isForex ? s + "=X" : isFutures ? s + "=F" : s;
-  const twelveDataSym  = isForex ? s.slice(0, 3) + "/" + s.slice(3) : s;
+  const binanceSym    = crypto ? (s.includes("USDT") ? s : s + "USDT") : "";
+  const yahooSym      = isForex ? s + "=X" : isFutures ? s + "=F" : s;
+  const twelveDataSym = isForex ? s.slice(0, 3) + "/" + s.slice(3) : s;
+  const stooqSym      = isForex ? s.toLowerCase() : isFutures ? s.toLowerCase() + ".f" : s.toLowerCase() + ".us";
 
-  return { crypto, isForex, isFutures, binanceSym, yahooSym, twelveDataSym };
+  return { crypto, isForex, isFutures, binanceSym, yahooSym, twelveDataSym, stooqSym };
 }
 
 async function fetchFromYahoo(yahooSym: string, start: number, end: number, interval: string): Promise<Candle[]> {
@@ -47,6 +48,31 @@ async function fetchFromYahoo(yahooSym: string, start: number, end: number, inte
       time: t * 1000, open: q.open[i] ?? 0, high: q.high[i] ?? 0,
       low: q.low[i] ?? 0, close: q.close[i] ?? 0,
     })).filter(c => c.open > 0);
+  } catch { return []; }
+}
+
+// Stooq: free intraday data, no API key, returns CSV
+async function fetchFromStooq(stooqSym: string, start: number, end: number, interval: string): Promise<Candle[]> {
+  const stooqInterval: Record<string, string> = { "1m": "m", "5m": "5", "15m": "15" };
+  const i = stooqInterval[interval] ?? "m";
+  const fmt = (ts: number) => new Date(ts).toISOString().slice(0, 10).replace(/-/g, "");
+  const url = `https://stooq.com/q/d/l/?s=${stooqSym}&d1=${fmt(start)}&d2=${fmt(end)}&i=${i}`;
+  try {
+    const r = await fetch(`/api/price-proxy?url=${encodeURIComponent(url)}`, { cache: "no-store" });
+    if (!r.ok) return [];
+    const text = await r.text();
+    const lines = text.trim().split("\n").slice(1); // skip header
+    const candles: Candle[] = [];
+    for (const line of lines) {
+      const [date, time, open, high, low, close] = line.split(",");
+      if (!date || !open) continue;
+      const ts = time
+        ? new Date(`${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}T${time}Z`).getTime()
+        : new Date(`${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}T12:00:00Z`).getTime();
+      const o = parseFloat(open), h = parseFloat(high), l = parseFloat(low), c = parseFloat(close);
+      if (o > 0) candles.push({ time: ts, open: o, high: h, low: l, close: c });
+    }
+    return candles;
   } catch { return []; }
 }
 
@@ -69,7 +95,7 @@ async function fetchCandles(symbol: string, entryTime: string, exitTime: string)
   const start = new Date(entryTime).getTime() - 5_400_000;
   const range = end - start;
   const interval = range < 7_200_000 ? "1m" : range < 21_600_000 ? "5m" : "15m";
-  const { crypto, isForex, binanceSym, yahooSym, twelveDataSym } = normalizeForFetch(symbol);
+  const { crypto, isForex, binanceSym, yahooSym, twelveDataSym, stooqSym } = normalizeForFetch(symbol);
 
   // Crypto: Binance
   if (crypto) {
@@ -89,15 +115,19 @@ async function fetchCandles(symbol: string, entryTime: string, exitTime: string)
     } catch { return []; }
   }
 
-  // Forex: try Twelve Data first (accurate), fall back to Yahoo Finance
+  // Forex: Twelve Data → Yahoo Finance → Stooq
   if (isForex) {
     const td = await fetchFromTwelveData(twelveDataSym, start, end, interval);
     if (td.length > 0) return td;
-    return fetchFromYahoo(yahooSym, start, end, interval); // Yahoo has =X suffix now
+    const yf = await fetchFromYahoo(yahooSym, start, end, interval);
+    if (yf.length > 0) return yf;
+    return fetchFromStooq(stooqSym, start, end, interval);
   }
 
-  // Stocks / Futures / everything else: Yahoo Finance (with =F suffix for futures)
-  return fetchFromYahoo(yahooSym, start, end, interval);
+  // Stocks / Futures: Yahoo Finance → Stooq
+  const yf = await fetchFromYahoo(yahooSym, start, end, interval);
+  if (yf.length > 0) return yf;
+  return fetchFromStooq(stooqSym, start, end, interval);
 }
 
 export interface TradeReplayProps {

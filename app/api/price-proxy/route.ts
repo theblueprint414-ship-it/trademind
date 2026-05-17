@@ -2,7 +2,11 @@ import { NextRequest } from "next/server";
 
 export const runtime = "nodejs";
 
-const ALLOWED_HOSTS = ["query1.finance.yahoo.com", "query2.finance.yahoo.com"];
+const ALLOWED_HOSTS = [
+  "query1.finance.yahoo.com",
+  "query2.finance.yahoo.com",
+  "stooq.com",
+];
 
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
@@ -47,14 +51,16 @@ export async function GET(request: NextRequest) {
     return Response.json({ error: "host not allowed" }, { status: 403 });
   }
 
-  const auth = await getYahooCrumb();
+  const isYahoo = parsed.hostname.includes("yahoo.com");
+
+  const auth = isYahoo ? await getYahooCrumb() : null;
   const fetchUrl = auth ? `${rawUrl}&crumb=${encodeURIComponent(auth.crumb)}` : rawUrl;
 
   try {
     const res = await fetch(fetchUrl, {
       headers: {
         "User-Agent": UA,
-        "Accept": "application/json",
+        "Accept": isYahoo ? "application/json" : "*/*",
         "Accept-Language": "en-US,en;q=0.9",
         ...(auth ? { "Cookie": auth.cookie } : {}),
       },
@@ -62,6 +68,15 @@ export async function GET(request: NextRequest) {
       cache: "no-store",
     });
     if (!res.ok) return Response.json({ error: `upstream ${res.status}` }, { status: res.status });
+
+    // Stooq returns CSV — pass through as text
+    if (parsed.hostname === "stooq.com") {
+      const text = await res.text();
+      return new Response(text, {
+        headers: { "Content-Type": "text/csv", "Cache-Control": "public, max-age=300" },
+      });
+    }
+
     const data = await res.json();
     return Response.json(data, {
       headers: { "Cache-Control": "public, max-age=60" },
