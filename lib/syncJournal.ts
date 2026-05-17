@@ -61,13 +61,18 @@ export async function syncJournalForUser(
     select: { score: true },
   });
 
-  // Deduplicate: skip entries where same date+symbol already in journal
+  // Deduplicate: prefer brokerTradeId match, fallback to date:symbol:entryTime
   const existing = await db.tradeEntry.findMany({
     where: { userId },
-    select: { date: true, symbol: true },
+    select: { date: true, symbol: true, brokerTradeId: true, entryTime: true },
   });
-  const existingSet = new Set(existing.map((e) => `${e.date}:${e.symbol ?? ""}`));
-  const toCreate = trades.filter((t) => !existingSet.has(`${t.date}:${t.symbol}`));
+  const existingIds  = new Set(existing.map((e) => e.brokerTradeId).filter(Boolean));
+  const existingKeys = new Set(existing.map((e) => `${e.date}:${e.symbol ?? ""}:${e.entryTime ?? ""}`));
+  const toCreate = trades.filter((t) => {
+    if (t.brokerTradeId && existingIds.has(t.brokerTradeId)) return false;
+    if (!t.brokerTradeId && existingKeys.has(`${t.date}:${t.symbol}:${t.entryTime ?? ""}`)) return false;
+    return true;
+  });
 
   if (toCreate.length > 0) {
     await db.tradeEntry.createMany({
@@ -81,6 +86,7 @@ export async function syncJournalForUser(
           symbol: t.symbol.slice(0, 20),
           side: t.side,
           pnl: t.pnl,
+          brokerTradeId: t.brokerTradeId ?? null,
           entryPrice: t.entryPrice ?? null,
           exitPrice: t.exitPrice ?? null,
           entryTime: t.entryTime ?? null,
