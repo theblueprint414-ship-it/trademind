@@ -48,6 +48,7 @@ mac:
 
 dmg:
   title: "EdgeBridge Installer"
+  background: null
   window:
     width: 540
     height: 380
