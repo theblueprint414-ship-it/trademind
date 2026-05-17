@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   const url = `https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(symbol)}&interval=${tdInterval}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&outputsize=500&timezone=UTC&apikey=${apiKey}`;
 
   try {
-    const r = await fetch(url, { next: { revalidate: 60 }, signal: AbortSignal.timeout(10_000) });
+    const r = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(10_000) });
     if (!r.ok) return Response.json({ error: `upstream ${r.status}` }, { status: r.status });
     const d = await r.json() as { status?: string; values?: unknown[] };
     if (d.status === "error" || !d.values?.length) return Response.json({ error: "no_data" }, { status: 204 });
