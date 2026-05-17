@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const end      = searchParams.get("end");
 
     const apiKey = (process.env.TWELVE_DATA_API_KEY ?? "").trim();
-    if (!apiKey) return Response.json({ error: "no_key" }, { status: 204 });
+    if (!apiKey) return new Response(null, { status: 204 });
     if (!symbol || !start || !end) return Response.json({ error: "missing params" }, { status: 400 });
 
     const startMs = parseInt(start, 10);
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     const r = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(10_000) });
     if (!r.ok) return Response.json({ error: `upstream ${r.status}` }, { status: r.status });
     const d = await r.json() as { status?: string; values?: unknown[] };
-    if (d.status === "error" || !d.values?.length) return Response.json({ error: "no_data" }, { status: 204 });
+    if (d.status === "error" || !d.values?.length) return new Response(null, { status: 204 });
     return Response.json(d, { headers: { "Cache-Control": "public, max-age=60" } });
   } catch (e) {
     return Response.json({ error: "internal", detail: String(e) }, { status: 502 });
