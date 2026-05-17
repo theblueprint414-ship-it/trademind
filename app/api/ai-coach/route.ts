@@ -371,9 +371,23 @@ export async function POST(request: NextRequest) {
   if (!apiKey) return Response.json({ error: "AI Coach not configured" }, { status: 503 });
 
   const body = await request.json().catch(() => null);
-  const type: "daily" | "weekly" | "chat" = body?.type ?? "daily";
+  const rawType: string = body?.type ?? "daily";
+  if (!["daily", "weekly", "chat"].includes(rawType)) {
+    return Response.json({ error: "Invalid type" }, { status: 400 });
+  }
+  const type = rawType as "daily" | "weekly" | "chat";
   const stream: boolean = body?.stream === true;
-  const chatMessages: { role: "user" | "assistant"; content: string }[] = body?.messages ?? [];
+  type ChatMsg = { role: "user" | "assistant"; content: string };
+  const rawMessages: unknown[] = Array.isArray(body?.messages) ? body.messages : [];
+  const chatMessages: ChatMsg[] = rawMessages
+    .slice(0, 20)
+    .reduce<ChatMsg[]>((acc, m) => {
+      if (typeof m !== "object" || m === null) return acc;
+      const obj = m as { role?: unknown; content?: unknown };
+      if ((obj.role !== "user" && obj.role !== "assistant") || typeof obj.content !== "string") return acc;
+      acc.push({ role: obj.role, content: obj.content.slice(0, 2000) });
+      return acc;
+    }, []);
 
   // weekly analysis and chat require a paid plan; daily briefing is free
   if (type === "weekly" || type === "chat") {

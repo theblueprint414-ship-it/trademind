@@ -1,10 +1,14 @@
+import { rateLimit } from "@/lib/ratelimit";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextResponse , NextRequest} from "next/server";
 import { randomUUID } from "crypto";
 
 // POST — regenerate extension token
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const rl = await rateLimit(req, "strict");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

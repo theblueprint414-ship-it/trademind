@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/ratelimit";
 import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -28,6 +29,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const rl = await rateLimit(request, "normal");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 });
 

@@ -1,10 +1,14 @@
+import { rateLimit } from "@/lib/ratelimit";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { sendPushToUser } from "@/lib/push";
-import { NextResponse } from "next/server";
+import { NextResponse , NextRequest} from "next/server";
 
 // GET /api/circuit-breaker/override — authenticated, returns last 30 days of overrides
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const rl = await rateLimit(req, "normal");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

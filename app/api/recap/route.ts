@@ -1,11 +1,15 @@
+import { rateLimit } from "@/lib/ratelimit";
 export const runtime = "nodejs";
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
-import { NextResponse } from "next/server";
+import { NextResponse , NextRequest} from "next/server";
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
+  const rl = await rateLimit(req, "normal");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -23,7 +27,10 @@ export async function GET(req: Request) {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  const rl = await rateLimit(req, "normal");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

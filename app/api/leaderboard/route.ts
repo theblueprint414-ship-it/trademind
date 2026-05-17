@@ -1,7 +1,8 @@
+import { rateLimit } from "@/lib/ratelimit";
 import { db } from "@/lib/db";
 import { auth } from "@/auth";
 import { logger } from "@/lib/logger";
-import { NextResponse } from "next/server";
+import { NextResponse , NextRequest} from "next/server";
 
 function consistencyScore(streak: number, checkins30: number, avgScore30: number): number {
   const streakPts = Math.min(streak, 30) * 15;
@@ -17,7 +18,10 @@ function displayName(name: string | null, id: string): string {
   return `${parts[0]} ${parts[parts.length - 1][0]}.`;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const rl = await rateLimit(req, "loose");
+  if (!rl.ok) return rl.response!;
+
   const today = new Date();
   const todayStr = today.toISOString().split("T")[0];
   const thirtyDaysAgo = new Date(today);
@@ -131,7 +135,10 @@ export async function GET() {
   }
 }
 
-export async function PATCH() {
+export async function PATCH(req: NextRequest) {
+  const rl = await rateLimit(req, "normal");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 

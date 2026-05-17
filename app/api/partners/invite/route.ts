@@ -1,9 +1,14 @@
+import { rateLimit } from "@/lib/ratelimit";
+import { NextRequest } from "next/server";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { requirePlan } from "@/lib/planGuard";
 import { logger } from "@/lib/logger";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const rl = await rateLimit(request, "strict");
+  if (!rl.ok) return rl.response!;
+
   const guard = await requirePlan(["pro", "premium"]);
   if (!guard.ok) return guard.response;
 

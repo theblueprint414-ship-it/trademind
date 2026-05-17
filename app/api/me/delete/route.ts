@@ -3,6 +3,7 @@ export const runtime = "nodejs";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { rateLimit } from "@/lib/ratelimit";
 import { NextRequest } from "next/server";
 
 export async function DELETE(req: NextRequest) {

@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/ratelimit";
 import { NextRequest } from "next/server";
 
 // POST — attach lifestyle data to today's check-in (exercise, stress, etc.)
@@ -33,6 +34,9 @@ export async function POST(request: NextRequest) {
 
 // GET — fetch lifestyle breakdown across last N check-ins for correlation display
 export async function GET(request: NextRequest) {
+  const rl = await rateLimit(request, "normal");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 });
 

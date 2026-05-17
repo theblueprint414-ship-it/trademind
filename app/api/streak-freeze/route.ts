@@ -1,3 +1,5 @@
+import { rateLimit } from "@/lib/ratelimit";
+import { NextRequest } from "next/server";
 export const runtime = "nodejs";
 
 import { auth } from "@/auth";
@@ -6,7 +8,10 @@ import { requirePlan } from "@/lib/planGuard";
 import { logger } from "@/lib/logger";
 
 // POST — use streak freeze for today (Pro only)
-export async function POST() {
+export async function POST(req: NextRequest) {
+  const rl = await rateLimit(req, "strict");
+  if (!rl.ok) return rl.response!;
+
   const guard = await requirePlan(["pro", "premium"]);
   if (!guard.ok) return guard.response;
 
@@ -46,7 +51,10 @@ export async function POST() {
 }
 
 // GET — check freeze availability
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const rl = await rateLimit(req, "normal");
+  if (!rl.ok) return rl.response!;
+
   const guard = await requirePlan(["pro", "premium"]);
   if (!guard.ok) return Response.json({ available: false, isPro: false });
 

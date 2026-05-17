@@ -2,6 +2,7 @@ export const runtime = "nodejs";
 
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { rateLimit } from "@/lib/ratelimit";
 import { NextRequest } from "next/server";
 import { randomBytes } from "crypto";
 
@@ -14,7 +15,10 @@ function generateCode(name: string | null): string {
 }
 
 // GET — get or create referral for current user
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const rl = await rateLimit(req, "normal");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.id) return Response.json({ error: "Unauthorized" }, { status: 401 });
 

@@ -1,6 +1,7 @@
+import { rateLimit } from "@/lib/ratelimit";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextResponse , NextRequest} from "next/server";
 
 function escapeCsv(val: string | number | null | undefined): string {
   if (val === null || val === undefined) return "";
@@ -15,7 +16,10 @@ function row(...cols: (string | number | null | undefined)[]): string {
   return cols.map(escapeCsv).join(",");
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const rl = await rateLimit(req, "normal");
+  if (!rl.ok) return rl.response!;
+
   const session = await auth();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
