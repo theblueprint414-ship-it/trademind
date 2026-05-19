@@ -299,6 +299,9 @@ export default function JournalPage() {
   const [preCheckAnswers, setPreCheckAnswers] = useState<(boolean | null)[]>([null, null, null]);
   const [showCsvImport, setShowCsvImport] = useState(false);
   const [csvUploading, setCsvUploading] = useState(false);
+  const [csvHeaders, setCsvHeaders] = useState<string[] | null>(null);
+  const [csvPendingFile, setCsvPendingFile] = useState<File | null>(null);
+  const [csvMapping, setCsvMapping] = useState<Record<string, number>>({});
 
   // Search & filter state
   const [searchQuery, setSearchQuery] = useState("");
@@ -560,18 +563,28 @@ export default function JournalPage() {
     setDeleteConfirmId(null);
   }
 
-  async function handleCsvUpload(file: File) {
+  async function handleCsvUpload(file: File, mapping?: Record<string, number>) {
     setCsvUploading(true);
     setCsvResult(null);
     setCsvError(null);
     try {
       const fd = new FormData();
       fd.append("file", file);
+      if (mapping && Object.keys(mapping).length > 0) fd.append("mapping", JSON.stringify(mapping));
       const res = await fetch("/api/broker/csv-import", { method: "POST", body: fd });
       const data = await res.json();
+      if (data.needsMapping) {
+        setCsvHeaders(data.headers ?? []);
+        setCsvPendingFile(file);
+        setCsvMapping({});
+        setCsvUploading(false);
+        return;
+      }
       if (!res.ok || data.error) {
         setCsvError(data.error ?? "Import failed");
       } else {
+        setCsvHeaders(null);
+        setCsvPendingFile(null);
         setCsvResult({ imported: data.imported ?? 0, skipped: data.skipped ?? 0, format: data.format ?? "auto" });
         fetch("/api/journal?date=all&limit=500").then((r) => r.json()).then((d) => { if (d.entries) setAllEntries(d.entries); });
         fetch(`/api/journal?date=${selectedDate}`).then((r) => r.json()).then((d) => { if (!d.error) setEntries(d.entries ?? []); });
@@ -1175,26 +1188,86 @@ export default function JournalPage() {
         {/* CSV import modal */}
         {showCsvImport && (
           <div style={{ position: "fixed", inset: 0, zIndex: 300, background: "rgba(7,11,20,0.92)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-            <div className="card" style={{ maxWidth: 440, width: "100%", padding: 28, border: "1px solid rgba(94,106,210,0.25)" }}>
+            <div className="card" style={{ maxWidth: csvHeaders ? 520 : 440, width: "100%", padding: 28, border: "1px solid rgba(94,106,210,0.25)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-                <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>IMPORT CSV</div>
-                <button onClick={() => { setShowCsvImport(false); setCsvResult(null); setCsvError(null); }} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
+                <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>
+                  {csvHeaders ? "MAP COLUMNS" : "IMPORT CSV"}
+                </div>
+                <button onClick={() => { setShowCsvImport(false); setCsvResult(null); setCsvError(null); setCsvHeaders(null); setCsvPendingFile(null); }} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
               </div>
 
-              {!csvResult ? (
+              {/* Column Mapper — shown when format can't be auto-detected */}
+              {csvHeaders && !csvResult && (() => {
+                const FIELDS: { key: string; label: string; required: boolean }[] = [
+                  { key: "date",       label: "Date / Close Time", required: true  },
+                  { key: "symbol",     label: "Symbol / Ticker",   required: true  },
+                  { key: "pnl",        label: "P&L / Profit",      required: true  },
+                  { key: "side",       label: "Side (Buy/Sell)",    required: false },
+                  { key: "entryPrice", label: "Entry Price",        required: false },
+                  { key: "exitPrice",  label: "Exit Price",         required: false },
+                  { key: "commission", label: "Commission / Fees",  required: false },
+                ];
+                const canSubmit = csvPendingFile && ["date", "symbol", "pnl"].every((k) => csvMapping[k] !== undefined);
+                return (
+                  <>
+                    <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 20 }}>
+                      We couldn&apos;t auto-detect your CSV format. Tell us which column is which — required fields marked with *.
+                    </p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
+                      {FIELDS.map((f) => (
+                        <div key={f.key} style={{ display: "grid", gridTemplateColumns: "160px 1fr", alignItems: "center", gap: 12 }}>
+                          <label style={{ fontSize: 13, fontWeight: 600, color: f.required ? "var(--text)" : "var(--text-muted)" }}>
+                            {f.label}{f.required && <span style={{ color: "var(--blue)", marginLeft: 2 }}>*</span>}
+                          </label>
+                          <select
+                            value={csvMapping[f.key] !== undefined ? String(csvMapping[f.key]) : ""}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setCsvMapping((prev) => v === "" ? Object.fromEntries(Object.entries(prev).filter(([k]) => k !== f.key)) : { ...prev, [f.key]: parseInt(v) });
+                            }}
+                            style={{ padding: "7px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text)", fontSize: 13, outline: "none" }}
+                          >
+                            <option value="">— skip —</option>
+                            {csvHeaders.map((h, i) => (
+                              <option key={i} value={i}>{h || `Column ${i + 1}`}</option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                    {csvError && (
+                      <div style={{ marginBottom: 14, padding: "10px 14px", borderRadius: 8, background: "rgba(255,59,92,0.07)", border: "1px solid rgba(255,59,92,0.25)", fontSize: 13, color: "var(--red)" }}>{csvError}</div>
+                    )}
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button onClick={() => { setCsvHeaders(null); setCsvPendingFile(null); setCsvError(null); }} style={{ flex: 1, padding: "11px 0", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text-muted)", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Back</button>
+                      <button
+                        disabled={!canSubmit || csvUploading}
+                        onClick={() => csvPendingFile && handleCsvUpload(csvPendingFile, csvMapping)}
+                        className="btn-primary"
+                        style={{ flex: 2, padding: "11px 0", fontSize: 13, opacity: canSubmit ? 1 : 0.5 }}
+                      >
+                        {csvUploading ? "Importing..." : "Import with this mapping →"}
+                      </button>
+                    </div>
+                  </>
+                );
+              })()}
+
+              {/* Upload step */}
+              {!csvHeaders && !csvResult && (
                 <>
-                  <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 20 }}>
-                    Import your trade history from a CSV export. Supported formats are auto-detected.
+                  <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 16 }}>
+                    Import your trade history from a CSV export. Format is auto-detected — or use the column mapper for any custom export.
                   </p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-                    {["MT4 / MT5", "Tradovate", "NinjaTrader", "Generic"].map((fmt) => (
-                      <span key={fmt} style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 20, background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text-muted)", letterSpacing: "0.05em" }}>{fmt}</span>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 18 }}>
+                    {["MT4/MT5", "NinjaTrader", "Tradovate", "IBKR", "Schwab", "thinkorswim", "Tastytrade", "TradeStation", "Generic"].map((fmt) => (
+                      <span key={fmt} style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text-muted)", letterSpacing: "0.05em" }}>{fmt}</span>
                     ))}
                   </div>
                   <label style={{ display: "block", padding: "28px 20px", borderRadius: 12, border: "2px dashed var(--border)", textAlign: "center", cursor: csvUploading ? "wait" : "pointer", background: "var(--surface2)", transition: "border-color 0.15s" }}
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) handleCsvUpload(f); }}>
-                    <input type="file" accept=".csv" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCsvUpload(f); }} disabled={csvUploading} />
+                    <input type="file" accept=".csv,.txt" style={{ display: "none" }} onChange={(e) => { const f = e.target.files?.[0]; if (f) handleCsvUpload(f); }} disabled={csvUploading} />
                     {csvUploading ? (
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
                         <div style={{ width: 32, height: 32, borderRadius: "50%", border: "3px solid var(--surface3)", borderTopColor: "var(--blue)", animation: "spin 0.8s linear infinite" }} />
@@ -1204,7 +1277,7 @@ export default function JournalPage() {
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
                         <svg width="32" height="32" viewBox="0 0 32 32" fill="none" style={{ color: "var(--blue)" }}><path d="M16 20V8M16 20l-4-4M16 20l4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M6 24h20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
                         <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Drop CSV here or click to browse</span>
-                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Format is auto-detected</span>
+                        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Format auto-detected · unknown formats → column mapper</span>
                       </div>
                     )}
                   </label>
@@ -1214,7 +1287,10 @@ export default function JournalPage() {
                     </div>
                   )}
                 </>
-              ) : (
+              )}
+
+              {/* Result step */}
+              {csvResult && (
                 <div style={{ textAlign: "center" }}>
                   <div style={{ width: 72, height: 72, borderRadius: "50%", background: csvResult.imported > 0 ? "rgba(0,232,122,0.1)" : "rgba(255,255,255,0.06)", border: csvResult.imported > 0 ? "1.5px solid rgba(0,232,122,0.3)" : "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: csvResult.imported > 0 ? "var(--green)" : "var(--text-dim)" }}>
                     {csvResult.imported > 0
@@ -1226,10 +1302,10 @@ export default function JournalPage() {
                     {csvResult.imported > 0 ? `${csvResult.imported} Trade${csvResult.imported !== 1 ? "s" : ""} Imported` : "Nothing New"}
                   </div>
                   <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 24 }}>
-                    Format detected: <strong style={{ color: "var(--text)" }}>{csvResult.format.toUpperCase()}</strong>
+                    Format: <strong style={{ color: "var(--text)" }}>{csvResult.format}</strong>
                     {csvResult.skipped > 0 && <> · {csvResult.skipped} duplicate{csvResult.skipped !== 1 ? "s" : ""} skipped</>}
                   </p>
-                  <button className="btn-primary" onClick={() => { setShowCsvImport(false); setCsvResult(null); }} style={{ padding: "12px 32px", fontSize: 14 }}>Done</button>
+                  <button className="btn-primary" onClick={() => { setShowCsvImport(false); setCsvResult(null); setCsvHeaders(null); setCsvPendingFile(null); }} style={{ padding: "12px 32px", fontSize: 14 }}>Done</button>
                 </div>
               )}
             </div>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import BottomNav from "@/components/BottomNav";
 import { Skeleton, SkeletonCard, SkeletonStat } from "@/components/Skeleton";
 import MentalPnL from "@/components/MentalPnL";
@@ -1030,15 +1031,88 @@ function PremiumUpsell() {
   );
 }
 
-export default function AnalyticsPage() {
+// Maps /api/demo response to AnalyticsData shape so all existing components render with demo data
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapDemoToAnalytics(d: any): AnalyticsData {
+  const checkins: { date: string; score: number; verdict: string }[] = d.checkins ?? [];
+  const goCount = checkins.filter((c) => c.verdict === "GO").length;
+  const cautionCount = checkins.filter((c) => c.verdict === "CAUTION").length;
+  const noTradeCount = checkins.filter((c) => c.verdict === "NO-TRADE").length;
+  const avgScore = checkins.length > 0 ? Math.round(checkins.reduce((s: number, c: { score: number }) => s + c.score, 0) / checkins.length) : null;
+  const calendarDays = checkins.map((c) => ({ date: c.date, score: c.score, verdict: c.verdict, pnl: null }));
+  const correlation = (d.recentTrades ?? []).map((t: { date: string; checkinScore: number; pnl: number }) => ({
+    date: t.date, score: t.checkinScore ?? 70, pnl: t.pnl, verdict: (t.checkinScore ?? 70) >= 70 ? "GO" : (t.checkinScore ?? 70) >= 45 ? "CAUTION" : "NO-TRADE",
+  }));
+  const wr = d.winRate ?? 55;
+  return {
+    totalCheckins: checkins.length,
+    avgScore,
+    avg30: avgScore,
+    currentStreak: 5,
+    longestStreak: 12,
+    disciplinePct: 82,
+    verdictCounts: { GO: goCount, CAUTION: cautionCount, "NO-TRADE": noTradeCount },
+    scoreTrend: checkins,
+    correlation,
+    estimatedSaved: Math.round(d.totalPnl * 0.15),
+    respectedNoTradeCount: noTradeCount,
+    tradedOnNoTradeDayCount: 0,
+    calendarDays,
+    totalPnl: d.totalPnl ?? 0,
+    winRate: wr,
+    totalTrades: d.tradeCount ?? 0,
+    scoreRangePerformance: {
+      high: { label: "HIGH (≥70)", checkins: Math.round(checkins.length * 0.6), trades: Math.round(d.tradeCount * 0.6), winRate: Math.min(99, wr + 10), avgPnl: d.avgWin ?? null },
+      mid:  { label: "MID (45–69)", checkins: Math.round(checkins.length * 0.3), trades: Math.round(d.tradeCount * 0.3), winRate: wr, avgPnl: null },
+      low:  { label: "LOW (<45)", checkins: Math.round(checkins.length * 0.1), trades: Math.round(d.tradeCount * 0.1), winRate: Math.max(0, wr - 20), avgPnl: -(d.avgLoss ?? 0) },
+    },
+    byDayOfWeek: (d.dayOfWeek ?? []).map((dw: { label: string; trades: number; winRate: number; pnl: number }) => ({
+      day: dw.label, avgScore: 72, trades: dw.trades, winRate: dw.winRate, avgPnl: dw.trades > 0 ? Math.round(dw.pnl / dw.trades) : null,
+    })),
+    behavioralPatterns: {
+      revengeTrading: { detected: false, days: 0, description: "" },
+      fomoTrades: { detected: false, count: 0 },
+      overtradingDays: { detected: false, days: 0 },
+    },
+    timeOfDay: (d.timeOfDay ?? []).map((h: { hour: number; pnl: number; trades: number; winRate: number }) => ({ ...h, winRate: h.winRate ?? null })),
+    dayOfWeek: (d.dayOfWeek ?? []).map((dw: { day: number; label: string; pnl: number; trades: number; winRate: number }) => ({ ...dw, winRate: dw.winRate ?? null })),
+    symbols: (d.symbols ?? []).map((s: { symbol: string; pnl: number; trades: number; winRate: number; avgR: number }) => ({
+      symbol: s.symbol, trades: s.trades, winRate: s.winRate ?? null,
+      avgPnl: s.trades > 0 ? Math.round(s.pnl / s.trades) : null, totalPnl: s.pnl, avgR: s.avgR ?? null,
+    })),
+    equityCurve: d.equityCurve ?? [],
+    profitFactor: d.profitFactor ?? null,
+    expectancy: d.expectancy ?? null,
+    avgWin: d.avgWin ?? null,
+    avgLoss: d.avgLoss ?? null,
+    maxWinStreak: d.maxWinStreak ?? 0,
+    maxLoseStreak: d.maxLoseStreak ?? 0,
+    avgRMultiple: null,
+    maxDrawdown: d.maxDrawdown ?? 0,
+  };
+}
+
+function AnalyticsPageInner() {
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [benchmarks, setBenchmarks] = useState<BenchmarkData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPremium, setIsPremium] = useState<boolean | null>(null);
   const [trendRange, setTrendRange] = useState<30 | 90>(30);
   const [networkError, setNetworkError] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
+    const demo = searchParams.get("demo") === "true";
+    if (demo) {
+      setIsDemo(true);
+      fetch("/api/demo")
+        .then((r) => r.json())
+        .then((d) => { setIsPremium(true); setData(mapDemoToAnalytics(d)); })
+        .catch(() => { setNetworkError(true); setIsPremium(true); })
+        .finally(() => setLoading(false));
+      return;
+    }
     fetch("/api/analytics")
       .then((r) => {
         if (r.status === 401) { window.location.href = "/login"; return null; }
@@ -1053,7 +1127,7 @@ export default function AnalyticsPage() {
       })
       .catch(() => { setNetworkError(true); setIsPremium(true); })
       .finally(() => setLoading(false));
-  }, []);
+  }, [searchParams]);
 
   if (isPremium === false) return <PremiumUpsell />;
 
@@ -1212,6 +1286,17 @@ export default function AnalyticsPage() {
       </div>
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
+
+        {/* Demo banner */}
+        {isDemo && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 10, background: "rgba(94,106,210,0.08)", border: "1px solid rgba(94,106,210,0.25)", marginBottom: 16 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><circle cx="7" cy="7" r="6" stroke="var(--blue)" strokeWidth="1.3"/><path d="M7 4v3.5M7 10v.5" stroke="var(--blue)" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            <span style={{ fontSize: 13, color: "var(--text-dim)", flex: 1 }}>
+              <strong style={{ color: "var(--blue)" }}>Demo data</strong> — this is a sample of what your analytics will look like once you connect a broker or import trades.
+            </span>
+            <Link href="/settings?tab=broker"><button className="btn-primary" style={{ fontSize: 11, padding: "5px 10px", whiteSpace: "nowrap" }}>Connect Broker →</button></Link>
+          </div>
+        )}
 
         {/* Network error banner */}
         {networkError && (
@@ -1405,4 +1490,7 @@ export default function AnalyticsPage() {
       <BottomNav />
     </div>
   );
+}
+export default function AnalyticsPage() {
+  return <React.Suspense><AnalyticsPageInner /></React.Suspense>;
 }

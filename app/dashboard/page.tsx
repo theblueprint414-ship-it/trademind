@@ -100,6 +100,7 @@ export default function DashboardPage() {
   const [qtError, setQtError] = useState<string | null>(null);
   const [cbStatus, setCbStatus] = useState<{ isActive: boolean; tradeCount: number; effectiveLimit: number; dailyLimit: number; blocked: boolean; remaining: number; verdict: string; scoreAdaptive: boolean; checkinDone: boolean } | null>(null);
   const [cbOverrides, setCbOverrides] = useState<Array<{ id: string; source: string; createdAt: string }>>([]);
+  const [showDemoBanner, setShowDemoBanner] = useState(false);
 
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -212,6 +213,9 @@ export default function DashboardPage() {
                 localStorage.setItem("trademind_challenge_pnl", JSON.stringify(stored));
               }
             }
+          } else {
+            // Show demo banner for users with no broker and no history yet
+            setShowDemoBanner(true);
           }
         }
       } catch {}
@@ -633,6 +637,33 @@ export default function DashboardPage() {
             )}
           </div>
         </div>
+
+        {/* DEMO BANNER — shown when no broker connected */}
+        {showDemoBanner && (
+          <div className="card dash-section s2" style={{ padding: "18px 22px", marginBottom: 16, border: "1px solid rgba(94,106,210,0.28)", background: "linear-gradient(135deg, rgba(94,106,210,0.06) 0%, rgba(0,232,122,0.04) 100%)", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", top: -20, right: -20, width: 120, height: 120, borderRadius: "50%", background: "radial-gradient(circle, rgba(94,106,210,0.12) 0%, transparent 70%)", pointerEvents: "none" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                  <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--blue)", boxShadow: "0 0 6px var(--blue)" }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "var(--blue)" }}>DEMO MODE</span>
+                </div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>See TradeMind with real trading data</div>
+                <div style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6 }}>
+                  Connect a broker or import a CSV to get started. In the meantime, explore a realistic sample of what your analytics will look like.
+                </div>
+              </div>
+              <div style={{ display: "flex", gap: 10, flexShrink: 0, flexWrap: "wrap" }}>
+                <Link href="/analytics?demo=true">
+                  <button className="btn-primary" style={{ padding: "10px 20px", fontSize: 13, whiteSpace: "nowrap" }}>View Demo Analytics →</button>
+                </Link>
+                <Link href="/settings?tab=broker">
+                  <button className="btn-ghost" style={{ padding: "10px 16px", fontSize: 13, whiteSpace: "nowrap" }}>Connect Broker</button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* MORNING BRIEF */}
         {morningBriefInsight && (
