@@ -6,13 +6,14 @@ import Link from "next/link";
 import { MT4Demo, TopstepXDemo, TradovateDemo, BinanceGuide, BybitGuide, CoinbaseGuide, KrakenGuide, AlpacaGuide } from "@/components/BrokerStepsDemo";
 import ScoreRing from "@/components/ScoreRing";
 
-type Step = "welcome" | "trader-type" | "limit" | "broker";
+type Step = "welcome" | "trader-type" | "limit" | "broker" | "first-checkin";
 
 const STEPS_META: { key: Step; label: string }[] = [
-  { key: "welcome",     label: "Welcome"      },
-  { key: "trader-type", label: "Style"        },
-  { key: "limit",       label: "Limit"        },
-  { key: "broker",      label: "Connect"      },
+  { key: "welcome",       label: "Welcome"    },
+  { key: "trader-type",   label: "Style"      },
+  { key: "limit",         label: "Limit"      },
+  { key: "broker",        label: "Connect"    },
+  { key: "first-checkin", label: "Check-in"  },
 ];
 
 const BROKERS = [
@@ -62,6 +63,14 @@ export default function OnboardingPage() {
   const [csvUploading, setCsvUploading] = useState(false);
   const [csvResult, setCsvResult] = useState<{ imported: number; skipped: number } | null>(null);
 
+  // First check-in state
+  const [ciSleep, setCiSleep] = useState<number | null>(null);
+  const [ciEmotion, setCiEmotion] = useState<number | null>(null);
+  const [ciFocus, setCiFocus] = useState<number | null>(null);
+  const [ciSubmitting, setCiSubmitting] = useState(false);
+  const [ciScore, setCiScore] = useState<number | null>(null);
+  const [ciVerdict, setCiVerdict] = useState<string | null>(null);
+
   useEffect(() => {
     fetch("/api/me").then((r) => r.json()).then((d) => {
       setIsPro(d.plan === "pro" || d.plan === "premium");
@@ -74,9 +83,35 @@ export default function OnboardingPage() {
     setStep(next);
   }
 
-  function finish() {
+  function finishOnboarding() {
     document.cookie = "tm_onboarded=1; path=/; max-age=31536000";
-    router.push("/checkin");
+    router.push("/dashboard");
+  }
+
+  async function submitFirstCheckin() {
+    if (ciSleep === null || ciEmotion === null || ciFocus === null) return;
+    setCiSubmitting(true);
+    const today = new Date().toISOString().split("T")[0];
+    try {
+      const res = await fetch("/api/checkin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: today,
+          answers: { sleep: ciSleep, emotion: ciEmotion, focus: ciFocus, financial_stress: 70, recent_performance: 65 },
+        }),
+      });
+      const d = await res.json();
+      if (res.ok && typeof d.score === "number") {
+        setCiScore(d.score);
+        setCiVerdict(d.verdict ?? (d.score >= 70 ? "GO" : d.score >= 45 ? "CAUTION" : "NO-TRADE"));
+      } else {
+        finishOnboarding();
+      }
+    } catch {
+      finishOnboarding();
+    }
+    setCiSubmitting(false);
   }
 
   async function saveTraderType(type: string) {
@@ -141,7 +176,7 @@ export default function OnboardingPage() {
     setConnecting(false);
   }
 
-  const stepIndex = ({ welcome: 1, "trader-type": 2, limit: 3, broker: 4 } as Record<Step, number>)[step];
+  const stepIndex = ({ welcome: 1, "trader-type": 2, limit: 3, broker: 4, "first-checkin": 5 } as Record<Step, number>)[step];
   const brokerMeta = BROKERS.find((b) => b.id === selectedBroker);
 
   const tradeLimitLabels: Record<number, string> = {
@@ -188,7 +223,7 @@ export default function OnboardingPage() {
         <div style={{ display: "flex", alignItems: "center", marginBottom: 16, minHeight: 24 }}>
           {step !== "welcome" && (
             <button
-              onClick={() => goToStep(step === "trader-type" ? "welcome" : step === "limit" ? "trader-type" : "limit", "back")}
+              onClick={() => goToStep(step === "trader-type" ? "welcome" : step === "limit" ? "trader-type" : step === "broker" ? "limit" : "broker", "back")}
               style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 13, padding: 0, display: "flex", alignItems: "center", gap: 5, letterSpacing: "-0.01em" }}
             >
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3L5 7l4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -410,7 +445,7 @@ export default function OnboardingPage() {
                       <button className="btn-primary" style={{ background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start 7-Day Free Trial →</button>
                     </Link>
                   </div>
-                  <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }} onClick={finish}>
+                  <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }} onClick={() => goToStep("first-checkin")}>
                     Skip — connect later in Settings
                   </button>
                 </>
@@ -427,7 +462,7 @@ export default function OnboardingPage() {
                       Your trades will sync automatically. The last 90 days are being imported to your Journal now.
                     </p>
                   </div>
-                  <button className="btn-primary" style={{ width: "100%", padding: "17px", fontSize: 16 }} onClick={finish}>
+                  <button className="btn-primary" style={{ width: "100%", padding: "17px", fontSize: 16 }} onClick={() => goToStep("first-checkin")}>
                     Take My First Check-in →
                   </button>
                 </div>
@@ -486,7 +521,7 @@ export default function OnboardingPage() {
                             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7l3.5 3.5 7-7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                             {csvResult.imported} trade{csvResult.imported !== 1 ? "s" : ""} imported{csvResult.skipped > 0 ? ` · ${csvResult.skipped} duplicates skipped` : ""}
                           </div>
-                          <button className="btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} onClick={finish}>
+                          <button className="btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} onClick={() => goToStep("first-checkin")}>
                             Take My First Check-in →
                           </button>
                         </>
@@ -570,8 +605,105 @@ export default function OnboardingPage() {
                     </div>
                   )}
 
-                  <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }} onClick={finish}>
+                  <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }} onClick={() => goToStep("first-checkin")}>
                     Skip — connect later in Settings
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── First Check-in ── */}
+          {step === "first-checkin" && (
+            <div>
+              {ciScore === null ? (
+                <>
+                  <div style={{ textAlign: "center", marginBottom: 32 }}>
+                    <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px" }}>
+                      <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><circle cx="13" cy="13" r="10" stroke="var(--blue)" strokeWidth="1.6"/><circle cx="13" cy="13" r="5" stroke="var(--blue)" strokeWidth="1.4"/><circle cx="13" cy="13" r="2" fill="var(--blue)"/></svg>
+                    </div>
+                    <h2 className="font-bebas" style={{ fontSize: 34, lineHeight: 1, marginBottom: 10 }}>Your First Check-in</h2>
+                    <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, maxWidth: 380, margin: "0 auto" }}>
+                      3 quick questions — takes 20 seconds. We&apos;ll score your mental readiness right now so you can see exactly how this works.
+                    </p>
+                  </div>
+
+                  {/* Q1 — Sleep */}
+                  <div className="card" style={{ padding: "20px 22px", marginBottom: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 14 }}>How did you sleep last night?</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {[
+                        { label: "8+ hours — fully rested", value: 85 },
+                        { label: "6–7 hours — decent", value: 65 },
+                        { label: "Under 6 hours — tired", value: 40 },
+                      ].map((o) => (
+                        <button key={o.value} onClick={() => setCiSleep(o.value)} style={{ padding: "13px 16px", borderRadius: 10, border: `1px solid ${ciSleep === o.value ? "var(--blue)" : "var(--border)"}`, background: ciSleep === o.value ? "rgba(94,106,210,0.1)" : "var(--surface2)", color: ciSleep === o.value ? "var(--blue)" : "var(--text-dim)", fontSize: 14, cursor: "pointer", textAlign: "left", transition: "all 0.15s", fontWeight: ciSleep === o.value ? 700 : 400 }}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Q2 — Emotion */}
+                  <div className="card" style={{ padding: "20px 22px", marginBottom: 12 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 14 }}>How&apos;s your emotional state right now?</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {[
+                        { label: "Calm & focused", value: 90 },
+                        { label: "Neutral — ok", value: 75 },
+                        { label: "Stressed or emotional", value: 25 },
+                      ].map((o) => (
+                        <button key={o.value} onClick={() => setCiEmotion(o.value)} style={{ padding: "13px 16px", borderRadius: 10, border: `1px solid ${ciEmotion === o.value ? "var(--blue)" : "var(--border)"}`, background: ciEmotion === o.value ? "rgba(94,106,210,0.1)" : "var(--surface2)", color: ciEmotion === o.value ? "var(--blue)" : "var(--text-dim)", fontSize: 14, cursor: "pointer", textAlign: "left", transition: "all 0.15s", fontWeight: ciEmotion === o.value ? 700 : 400 }}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Q3 — Focus/Plan */}
+                  <div className="card" style={{ padding: "20px 22px", marginBottom: 24 }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 14 }}>Do you have a clear plan for today&apos;s session?</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {[
+                        { label: "Yes — defined setups and rules", value: 100 },
+                        { label: "Partially — general idea", value: 60 },
+                        { label: "No — winging it today", value: 25 },
+                      ].map((o) => (
+                        <button key={o.value} onClick={() => setCiFocus(o.value)} style={{ padding: "13px 16px", borderRadius: 10, border: `1px solid ${ciFocus === o.value ? "var(--blue)" : "var(--border)"}`, background: ciFocus === o.value ? "rgba(94,106,210,0.1)" : "var(--surface2)", color: ciFocus === o.value ? "var(--blue)" : "var(--text-dim)", fontSize: 14, cursor: "pointer", textAlign: "left", transition: "all 0.15s", fontWeight: ciFocus === o.value ? 700 : 400 }}>
+                          {o.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    className="btn-primary"
+                    style={{ width: "100%", padding: "17px", fontSize: 16, opacity: (ciSleep === null || ciEmotion === null || ciFocus === null) ? 0.5 : 1 }}
+                    disabled={ciSleep === null || ciEmotion === null || ciFocus === null || ciSubmitting}
+                    onClick={submitFirstCheckin}
+                  >
+                    {ciSubmitting ? "Scoring…" : "Get My Score →"}
+                  </button>
+                </>
+              ) : (
+                /* Score reveal */
+                <div style={{ textAlign: "center" }}>
+                  <div style={{ marginBottom: 28 }}>
+                    <div style={{ position: "relative", display: "inline-block" }}>
+                      <div style={{ position: "absolute", inset: -16, borderRadius: "50%", background: `radial-gradient(circle, ${ciVerdict === "GO" ? "rgba(0,232,122,0.18)" : ciVerdict === "CAUTION" ? "rgba(255,176,32,0.18)" : "rgba(255,59,92,0.18)"} 0%, transparent 70%)`, animation: "pulse-ring 3s ease-in-out infinite" }} />
+                      <ScoreRing score={ciScore} color={ciVerdict === "GO" ? "var(--green)" : ciVerdict === "CAUTION" ? "var(--amber)" : "var(--red)"} size={120} />
+                    </div>
+                  </div>
+                  <div className="font-bebas" style={{ fontSize: 56, lineHeight: 1, color: ciVerdict === "GO" ? "var(--green)" : ciVerdict === "CAUTION" ? "var(--amber)" : "var(--red)", marginBottom: 10, textShadow: `0 0 30px ${ciVerdict === "GO" ? "rgba(0,232,122,0.5)" : ciVerdict === "CAUTION" ? "rgba(255,176,32,0.5)" : "rgba(255,59,92,0.5)"}` }}>{ciVerdict}</div>
+                  <p style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.7, maxWidth: 360, margin: "0 auto 32px" }}>
+                    {ciVerdict === "GO"
+                      ? "Your mental state is strong. You're clear-headed and ready — trade your plan with full size."
+                      : ciVerdict === "CAUTION"
+                      ? "Your score suggests some hesitation. Trade lighter positions and stick strictly to your plan."
+                      : "Your mental state is below threshold. Consider sitting this session out — protect your capital."}
+                  </p>
+                  <button className="btn-primary" style={{ width: "100%", padding: "17px", fontSize: 16 }} onClick={finishOnboarding}>
+                    Go to My Dashboard →
                   </button>
                 </div>
               )}
