@@ -884,9 +884,15 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 <div style={{ display: "flex", gap: 10 }}>
-                  <Link href="/onboarding" style={{ flex: 1 }}>
-                    <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }}>Change Broker</button>
-                  </Link>
+                  {broker.broker === "tradovate" ? (
+                    <Link href="/settings/tradovate" style={{ flex: 1 }}>
+                      <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }}>Manage Tradovate →</button>
+                    </Link>
+                  ) : (
+                    <Link href="/onboarding" style={{ flex: 1 }}>
+                      <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }}>Change Broker</button>
+                    </Link>
+                  )}
                   <button className="btn-ghost" style={{ fontSize: 13, color: "var(--red)", borderColor: "rgba(255,45,45,0.3)" }} onClick={() => setDisconnectConfirm(true)}>
                     Disconnect
                   </button>
@@ -896,15 +902,27 @@ export default function SettingsPage() {
           ) : (
             <div>
               <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>No broker connected. Connect one to auto-count your trades and sync your journal automatically.</p>
-              <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(94,106,210,0.05)", border: "1px solid rgba(94,106,210,0.15)", marginBottom: 16, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.9 }}>
-                <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>Which platform should I connect?</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#FF6B35", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>MT4/MT5</strong> — FTMO, IC Markets, Pepperstone, FxFlat, and any MT4/MT5 broker</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#00C896", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>TopstepX</strong> — TopstepX funded accounts only</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--blue)", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>Tradovate (CSV)</strong> — Apex, Funded Next, Lucid, TopStep futures</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "#F0B90B", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>Binance / Bybit / Kraken / Coinbase</strong> — crypto exchanges</div>
+
+              {/* Quick Tradovate connect — most common futures prop firm platform */}
+              <Link href="/settings/tradovate" style={{ display: "block", textDecoration: "none", marginBottom: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", borderRadius: 12, background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.3)", cursor: "pointer", transition: "border-color 0.15s" }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 9, background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "var(--blue)", letterSpacing: "0.05em", flexShrink: 0 }}>TRD</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>Tradovate</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Apex, Funded Next, Lucid, TopStep futures — login with username &amp; password</div>
+                  </div>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--text-muted)", flexShrink: 0 }}><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+              </Link>
+
+              <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(94,106,210,0.04)", border: "1px solid rgba(94,106,210,0.12)", marginBottom: 16, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.9 }}>
+                <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 5 }}>Other brokers</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "#FF6B35", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>MT4/MT5</strong> — FTMO, IC Markets, Pepperstone, FxFlat</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "#00C896", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>TopstepX</strong> — TopstepX funded accounts</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "#F0B90B", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>Binance / Bybit / Kraken / Coinbase</strong> — crypto exchanges</div>
               </div>
               <Link href="/onboarding">
-                <button className="btn-primary" style={{ fontSize: 14 }}>Connect Broker →</button>
+                <button className="btn-ghost" style={{ fontSize: 13, width: "100%" }}>Connect another broker →</button>
               </Link>
             </div>
           )}

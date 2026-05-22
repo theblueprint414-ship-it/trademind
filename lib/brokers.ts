@@ -312,9 +312,30 @@ async function krakenSign(secret: string, path: string, nonce: string, postData:
 
 // ── Tradovate ────────────────────────────────────────────────────────────────
 // Auth: username + password → access token (token is stored, password is NEVER stored)
+// apiKey field on BrokerConnection stores the Bearer access token after the initial exchange.
 
 const tradovateBase = (env: string) =>
   env === "paper" ? "https://demo.tradovateapi.com/v1" : "https://live.tradovateapi.com/v1";
+
+// Returns all active account IDs for the authenticated user
+async function tradovateGetAccountIds(token: string, env: string): Promise<number[]> {
+  const res = await fetch(`${tradovateBase(env)}/account/list`, {
+    headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
+    signal: withTimeout(REQUEST_TIMEOUT_MS),
+  });
+  if (!res.ok) return [];
+  const accounts: Array<{ id: number; active?: boolean }> = await res.json();
+  if (!Array.isArray(accounts)) return [];
+  return accounts.filter((a) => a.active !== false).map((a) => a.id);
+}
+
+// Infer asset type from Tradovate contract symbol
+function inferTradovateAsset(symbol: string): string {
+  const s = symbol.toUpperCase();
+  if (/NQ|ES|CL|GC|SI|ZB|YM|RTY|MNQ|MES|MCL|ZN|ZF|LE|HE|ZC|ZW|ZS/.test(s)) return "futures";
+  if (/BTC|ETH|SOL/.test(s)) return "crypto";
+  return "futures";
+}
 
 async function testTradovate({ apiKey, apiSecret, environment }: BrokerConfig): Promise<TestResult> {
   if (!apiSecret) return { ok: false, error: "Password required for Tradovate" };
@@ -354,22 +375,24 @@ async function testTradovate({ apiKey, apiSecret, environment }: BrokerConfig): 
 }
 
 async function tradovateTodayTrades({ apiKey, environment }: BrokerConfig): Promise<number | null> {
-  // apiKey here is the stored access token (after token exchange at connect time)
+  const accountIds = await tradovateGetAccountIds(apiKey, environment);
+  if (accountIds.length === 0) return null;
+
   const today = new Date().toISOString().split("T")[0];
-  const startOfDay = new Date(`${today}T00:00:00.000Z`).toISOString();
-  const res = await fetch(
-    `${tradovateBase(environment)}/order/list`,
-    {
-      headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      signal: withTimeout(REQUEST_TIMEOUT_MS),
-    }
-  );
-  if (!res.ok) return null;
-  const orders: Array<{ timestamp?: string; ordStatus?: string }> = await res.json();
-  if (!Array.isArray(orders)) return null;
-  return orders.filter(
-    (o) => o.ordStatus === "Filled" && o.timestamp && o.timestamp >= startOfDay
-  ).length;
+  const startOfDay = `${today}T00:00:00.000Z`;
+
+  let total = 0;
+  for (const accountId of accountIds) {
+    const res = await fetch(
+      `${tradovateBase(environment)}/order/ldeps?masterids=${accountId}`,
+      { headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" }, signal: withTimeout(REQUEST_TIMEOUT_MS) }
+    );
+    if (!res.ok) continue;
+    const orders: Array<{ timestamp?: string; ordStatus?: string }> = await res.json();
+    if (!Array.isArray(orders)) continue;
+    total += orders.filter((o) => o.ordStatus === "Filled" && o.timestamp && o.timestamp >= startOfDay).length;
+  }
+  return total > 0 ? total : null;
 }
 
 // ── Historical trade fetchers ────────────────────────────────────────────────
@@ -538,26 +561,99 @@ async function krakenHistory({ apiKey, apiSecret }: BrokerConfig, days: number):
 }
 
 async function tradovateHistory({ apiKey, environment }: BrokerConfig, days: number): Promise<TradeHistoryEntry[]> {
+  const accountIds = await tradovateGetAccountIds(apiKey, environment);
+  if (accountIds.length === 0) return [];
+
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
   const cutoffStr = cutoff.toISOString();
-  const res = await fetch(`${tradovateBase(environment)}/order/list`, {
-    headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    signal: withTimeout(REQUEST_TIMEOUT_MS),
-  });
-  if (!res.ok) return [];
-  const orders: Array<{ id?: number; timestamp?: string; ordStatus?: string; symbol?: string; action?: string }> = await res.json();
-  if (!Array.isArray(orders)) return [];
-  return orders
-    .filter((o) => o.ordStatus === "Filled" && o.timestamp && o.timestamp >= cutoffStr)
-    .map((o) => ({
-      date: o.timestamp!.split("T")[0],
-      symbol: o.symbol ?? "UNKNOWN",
-      side: o.action === "Buy" ? ("long" as const) : ("short" as const),
-      pnl: null,
-      brokerTradeId: o.id != null ? String(o.id) : undefined,
-      entryTime: o.timestamp,
-    }));
+
+  type TradovateOrder = {
+    id?: number;
+    accountId?: number;
+    timestamp?: string;
+    action?: string;       // "Buy" | "Sell"
+    ordStatus?: string;    // "Filled" | "Cancelled" | ...
+    symbol?: string;
+    avg?: number;          // average fill price
+    qty?: number;          // quantity filled
+    fillQty?: number;
+    clOrdId?: string;
+  };
+
+  const allOrders: TradovateOrder[] = [];
+  for (const accountId of accountIds) {
+    const res = await fetch(
+      `${tradovateBase(environment)}/order/ldeps?masterids=${accountId}`,
+      { headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" }, signal: withTimeout(REQUEST_TIMEOUT_MS) }
+    );
+    if (!res.ok) continue;
+    const orders: TradovateOrder[] = await res.json();
+    if (Array.isArray(orders)) allOrders.push(...orders);
+  }
+
+  // Keep only filled orders within the date window that have a symbol
+  const filled = allOrders.filter(
+    (o) => o.ordStatus === "Filled" && o.symbol && o.timestamp && o.timestamp >= cutoffStr
+  );
+
+  // Group by symbol, then FIFO-match Buy → Sell pairs into round-trip trades
+  const bySymbol: Record<string, TradovateOrder[]> = {};
+  for (const o of filled) {
+    const sym = o.symbol!;
+    if (!bySymbol[sym]) bySymbol[sym] = [];
+    bySymbol[sym].push(o);
+  }
+
+  const trades: TradeHistoryEntry[] = [];
+
+  for (const [symbol, orders] of Object.entries(bySymbol)) {
+    const sorted = [...orders].sort((a, b) => (a.timestamp ?? "").localeCompare(b.timestamp ?? ""));
+    const buys  = sorted.filter((o) => o.action === "Buy");
+    const sells = sorted.filter((o) => o.action === "Sell");
+
+    while (buys.length > 0 && sells.length > 0) {
+      const buy  = buys.shift()!;
+      const sell = sells.shift()!;
+      const qty        = buy.fillQty ?? buy.qty ?? 1;
+      const entryPrice = buy.avg ?? null;
+      const exitPrice  = sell.avg ?? null;
+      const pnl        = entryPrice !== null && exitPrice !== null
+        ? Math.round((exitPrice - entryPrice) * qty * 100) / 100
+        : null;
+
+      trades.push({
+        date: (sell.timestamp ?? new Date().toISOString()).split("T")[0],
+        symbol: symbol.slice(0, 20),
+        side: "long",
+        pnl,
+        brokerTradeId: buy.id != null && sell.id != null ? `${buy.id}:${sell.id}` : undefined,
+        entryPrice,
+        exitPrice,
+        entryTime: buy.timestamp ?? null,
+        exitTime: sell.timestamp ?? null,
+        qty,
+        assetType: inferTradovateAsset(symbol),
+      });
+    }
+
+    // Remaining unpaired sells = short positions entered via sell-first
+    for (const sell of sells) {
+      trades.push({
+        date: (sell.timestamp ?? new Date().toISOString()).split("T")[0],
+        symbol: symbol.slice(0, 20),
+        side: "short",
+        pnl: null,
+        brokerTradeId: sell.id != null ? String(sell.id) : undefined,
+        exitPrice: sell.avg ?? null,
+        exitTime: sell.timestamp ?? null,
+        qty: sell.fillQty ?? sell.qty ?? null,
+        assetType: inferTradovateAsset(symbol),
+      });
+    }
+  }
+
+  return trades.sort((a, b) => (a.exitTime ?? a.date).localeCompare(b.exitTime ?? b.date));
 }
 
 async function binanceHistory({ apiKey, apiSecret }: BrokerConfig, days: number): Promise<TradeHistoryEntry[]> {
