@@ -72,6 +72,13 @@ const BASE_STARTERS = [
   "How do I handle drawdowns mentally?",
 ];
 
+const NEW_USER_STARTERS = [
+  "How does mental state actually affect trading performance?",
+  "What's revenge trading and how do I stop doing it?",
+  "How should I size my positions based on my mental state?",
+  "What daily habits separate profitable traders from losing ones?",
+];
+
 function getContextStarters(context: { score: number; verdict: string } | null): string[] {
   if (!context) return BASE_STARTERS;
   const { score, verdict } = context;
@@ -211,7 +218,7 @@ export default function CoachPage() {
 
         // New users: skip the API call and show a guided onboarding message
         if (isNewUser) {
-          setMessages([{ role: "assistant", content: "Hey — I'm Alex, your trading psychology coach.\n\nI can't give you personalized insights yet because I don't have your data. My coaching gets sharper with every check-in you log.\n\n**Here's how to unlock your edge:**\n- Complete today's check-in (60 seconds)\n- Log a few trades with P&L\n- Come back here — I'll tell you exactly which mental state costs you the most money\n\nWhat's on your mind right now? You can ask me anything about trading psychology or mindset." }]);
+          setMessages([{ role: "assistant", content: "Hey — I'm Alex, your trading psychology coach.\n\nMost traders lose money not because they don't know *how* to trade — but because they ignore the mental state they're trading in. Tired, stressed, or revenge-trading after a loss? Your edge collapses.\n\n**Once you log a few check-ins and trades, I'll tell you:**\n- Which mental states are costing you the most money\n- Your best and worst hours to trade\n- Whether you're revenge trading after losses\n- The one pattern holding back your win rate\n\n**To get started:** Complete today's check-in (60 seconds) and log a few trades. I'll be here with real insights after that.\n\nFor now — ask me anything about trading psychology. What's on your mind?" }]);
           return;
         }
 
@@ -413,10 +420,10 @@ export default function CoachPage() {
         {messages.length <= 1 && ready && (
           <div style={{ marginTop: 24 }}>
             <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10, textAlign: "center" }}>
-              {context ? `SUGGESTED FOR ${context.verdict} DAY` : "SUGGESTED QUESTIONS"}
+              {context ? `SUGGESTED FOR ${context.verdict} DAY` : patterns?.totalTrades === 0 ? "START HERE" : "SUGGESTED QUESTIONS"}
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {getContextStarters(context).map((q) => (
+              {(patterns?.totalTrades === 0 ? NEW_USER_STARTERS : getContextStarters(context)).map((q) => (
                 <button key={q} onClick={() => send(q)}
                   style={{ textAlign: "left", padding: "12px 16px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text-dim)", fontSize: 13, cursor: "pointer", transition: "all 0.15s ease" }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--blue)"; (e.currentTarget as HTMLElement).style.color = "var(--text)"; }}

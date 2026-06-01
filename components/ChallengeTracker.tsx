@@ -190,9 +190,9 @@ export default function ChallengeTracker({ config, verdict }: { config: Challeng
             </div>
           </div>
         </div>
-        <Link href="/settings#challenge" style={{ textDecoration: "none" }}>
+        <Link href="/challenge" style={{ textDecoration: "none" }}>
           <button style={{ background: "none", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 10px", fontSize: 11, color: "var(--text-muted)", cursor: "pointer", minHeight: "unset", minWidth: "unset" }}>
-            Edit
+            View →
           </button>
         </Link>
       </div>

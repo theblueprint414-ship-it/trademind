@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const date = searchParams.get("date") ?? new Date().toISOString().split("T")[0];
 
-  const [trades, checkin, circuitBreaker, user] = await Promise.all([
+  const [trades, checkin, circuitBreaker, user, midCheckins, preTradeRituals] = await Promise.all([
     db.tradeEntry.findMany({
       where: { userId: auth.userId, date },
       orderBy: { createdAt: "asc" },
@@ -29,6 +29,16 @@ export async function GET(request: NextRequest) {
     db.user.findUnique({
       where: { id: auth.userId },
       select: { tradeLimit: true, plan: true },
+    }),
+    db.midSessionCheckin.findMany({
+      where: { userId: auth.userId, date },
+      select: { id: true, score: true, mood: true, note: true, time: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
+    }),
+    db.preTradeRitual.findMany({
+      where: { userId: auth.userId, date },
+      select: { id: true, setupType: true, conviction: true, reason: true, hasStopLoss: true, createdAt: true },
+      orderBy: { createdAt: "asc" },
     }),
   ]);
 
@@ -49,5 +59,7 @@ export async function GET(request: NextRequest) {
     losers,
     winRate,
     plan: user?.plan ?? "free",
+    midCheckins,
+    preTradeRituals,
   });
 }

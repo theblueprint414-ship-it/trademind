@@ -33,6 +33,9 @@ type TradeEntry = {
 
 type AiAnalysis = { alignment: string; risk: string; lesson: string };
 
+type MidCheckin = { id: string; score: number; mood: string | null; note: string | null; time: string | null; createdAt: string };
+type PreTradeRitual = { id: string; setupType: string | null; conviction: number | null; reason: string | null; hasStopLoss: boolean; createdAt: string };
+
 type SessionData = {
   date: string;
   trades: TradeEntry[];
@@ -44,6 +47,8 @@ type SessionData = {
   losers: number;
   winRate: number | null;
   plan: string;
+  midCheckins: MidCheckin[];
+  preTradeRituals: PreTradeRitual[];
 };
 
 type CoachInsight = { summary: string; strength: string; watchOut: string };
@@ -510,6 +515,65 @@ Provide a brief JSON response with:
                 </div>
               </div>
             ) : null}
+          </div>
+        )}
+
+        {/* Pre-Trade Rituals */}
+        {session && session.preTradeRituals && session.preTradeRituals.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--amber)" }}><path d="M8 1.5C8 1.5 11.5 4 11.5 7.5c0 1-.5 2-1.25 2.75C9.5 11 8.5 11.5 8 11.5c-1 0-2-.5-2.25-1.25C5 9.5 4.5 8.5 4.5 7.5c0-2 1-3.5 2-4.5-.5 2.5 1 4 2 4 0-1 0-4 0-5.5z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" fill="none"/></svg>
+                <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0, letterSpacing: "0.03em" }}>PRE-TRADE RITUALS</h2>
+              </div>
+              <Link href="/pretrade" style={{ fontSize: 11, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Add ritual →</Link>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {session.preTradeRituals.map((r) => {
+                const convColor = r.conviction !== null && r.conviction >= 8 ? "var(--green)" : r.conviction !== null && r.conviction >= 5 ? "var(--amber)" : "var(--red)";
+                const timeLabel = new Date(r.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+                return (
+                  <div key={r.id} style={{ background: "var(--surface)", border: "1px solid rgba(255,176,32,0.2)", borderRadius: 12, padding: "14px 16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: r.reason ? 8 : 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        {r.setupType && <span style={{ fontSize: 11, fontWeight: 700, background: "rgba(255,176,32,0.12)", color: "var(--amber)", padding: "3px 8px", borderRadius: 6 }}>{r.setupType}</span>}
+                        {r.conviction !== null && <span style={{ fontSize: 13, fontWeight: 800, color: convColor }}>{r.conviction}/10</span>}
+                        {r.hasStopLoss && <span style={{ fontSize: 10, color: "var(--green)", fontWeight: 600 }}>✓ SL confirmed</span>}
+                      </div>
+                      <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{timeLabel}</span>
+                    </div>
+                    {r.reason && <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, lineHeight: 1.5 }}>{r.reason}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Mid-Session Check-ins */}
+        {session && session.midCheckins && session.midCheckins.length > 0 && (
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--blue)" }}><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.3"/><path d="M8 5v3l2 1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <h2 style={{ fontSize: 14, fontWeight: 700, margin: 0, letterSpacing: "0.03em" }}>MID-SESSION PULSE</h2>
+              </div>
+              <Link href="/mid-checkin" style={{ fontSize: 11, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Log pulse →</Link>
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {session.midCheckins.map((mc) => {
+                const scoreColor = mc.score >= 8 ? "var(--green)" : mc.score >= 6 ? "var(--blue)" : mc.score >= 4 ? "var(--amber)" : "var(--red)";
+                const timeLabel = mc.time ?? new Date(mc.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+                return (
+                  <div key={mc.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: "12px 16px", minWidth: 120 }}>
+                    <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 5 }}>{timeLabel}</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: scoreColor, lineHeight: 1, marginBottom: 3 }}>{mc.score}<span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-muted)" }}>/10</span></div>
+                    {mc.mood && <div style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "capitalize" }}>{mc.mood}</div>}
+                    {mc.note && <p style={{ fontSize: 11, color: "var(--text-dim)", margin: "6px 0 0", lineHeight: 1.4, maxWidth: 160 }}>{mc.note}</p>}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

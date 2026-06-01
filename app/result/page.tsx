@@ -826,19 +826,36 @@ function ResultContent() {
           </Link>
         </div>
 
-        {/* Actions */}
-        <div className="card-stagger-4" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <Link href="/dashboard" style={{ display: "block" }}>
-            <button className="btn-primary" style={{ width: "100%", padding: "14px" }}>Go to Dashboard</button>
-          </Link>
-          <button
-            className="btn-ghost"
-            style={{ width: "100%", padding: "14px", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-            onClick={() => setShowShareCard(true)}
-          >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="12" cy="2.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/><circle cx="2.5" cy="7.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/><circle cx="12" cy="12.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M4 7.5l6.5-4M10.5 11.5L4 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
-            Share Score
-          </button>
+        {/* Primary CTA — context-aware */}
+        <div className="card-stagger-4" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {verdict.label !== "NO-TRADE" ? (
+            <Link href={`/session?date=${new Date().toISOString().split("T")[0]}`} style={{ display: "block", textDecoration: "none" }}>
+              <button className="btn-primary" style={{ width: "100%", padding: "16px", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, background: verdict.label === "GO" ? "var(--green)" : "var(--amber)", color: verdict.label === "GO" ? "#000" : "#000" }}>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5"/><path d="M7 9l2 2 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                {verdict.label === "GO" ? "Start Trading Session →" : "Start Session — A+ Setups Only →"}
+              </button>
+            </Link>
+          ) : (
+            <Link href="/journal" style={{ display: "block", textDecoration: "none" }}>
+              <button className="btn-ghost" style={{ width: "100%", padding: "16px", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="4" y="2" width="10" height="14" rx="2" stroke="currentColor" strokeWidth="1.3"/><path d="M7 6h4M7 9h4M7 12h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                Review Past Trades →
+              </button>
+            </Link>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            <Link href="/dashboard" style={{ display: "block", textDecoration: "none" }}>
+              <button className="btn-ghost" style={{ width: "100%", padding: "12px", fontSize: 14 }}>Dashboard</button>
+            </Link>
+            <button
+              className="btn-ghost"
+              style={{ width: "100%", padding: "12px", fontSize: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+              onClick={() => setShowShareCard(true)}
+            >
+              <svg width="14" height="14" viewBox="0 0 15 15" fill="none"><circle cx="12" cy="2.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/><circle cx="2.5" cy="7.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/><circle cx="12" cy="12.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M4 7.5l6.5-4M10.5 11.5L4 8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+              Share Score
+            </button>
+          </div>
         </div>
 
         {/* Streak card */}

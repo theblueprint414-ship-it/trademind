@@ -57,6 +57,13 @@ const MORE_ITEMS = [
     color: "var(--amber)",
   },
   {
+    href: "/challenge",
+    label: "Challenge",
+    emoji: "🏆",
+    description: "Prop firm challenge tracker",
+    color: "var(--amber)",
+  },
+  {
     href: "/setup-library",
     label: "Setup Library",
     emoji: "📖",

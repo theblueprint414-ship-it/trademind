@@ -1237,16 +1237,26 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* EOD RECAP PROMPT — after market hours if checked in today */}
-        {isAfterMarket && todayScore !== null && (
+        {/* EOD RECAP PROMPT — show when user traded today, even stronger after market */}
+        {(todaySession && todaySession.tradeCount > 0) && (
           <Link href="/recap" style={{ textDecoration: "none" }}>
-            <div className="dash-section s5" style={{ marginBottom: 20, padding: "16px 20px", borderRadius: 12, background: "rgba(0,232,122,0.04)", border: "1px solid rgba(0,232,122,0.15)", display: "flex", alignItems: "center", gap: 14, cursor: "pointer" }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="var(--green)" strokeWidth="1.3"/><path d="M8 5v3l2 1.5" stroke="var(--green)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <div className="dash-section s5" style={{ marginBottom: 20, padding: "18px 20px", borderRadius: 14, background: isAfterMarket ? "rgba(0,232,122,0.07)" : "rgba(94,106,210,0.05)", border: `1px solid ${isAfterMarket ? "rgba(0,232,122,0.3)" : "rgba(94,106,210,0.2)"}`, display: "flex", alignItems: "center", gap: 14, cursor: "pointer", transition: "border-color 0.15s" }}>
+              <div style={{ width: 40, height: 40, borderRadius: "50%", background: isAfterMarket ? "rgba(0,232,122,0.12)" : "rgba(94,106,210,0.1)", border: `1px solid ${isAfterMarket ? "rgba(0,232,122,0.25)" : "rgba(94,106,210,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: isAfterMarket ? "var(--green)" : "var(--blue)" }}>
+                <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L16.5 15H1.5L9 2z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" fill="none"/><path d="M9 7v3.5M9 13v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--green)", marginBottom: 2 }}>Close your session</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Log P&L · Playbook compliance · One lesson — 60 seconds</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: isAfterMarket ? "var(--green)" : "var(--blue)", marginBottom: 3 }}>
+                  {isAfterMarket ? "Close your session" : "End-of-day recap"}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  {todaySession.tradeCount} trade{todaySession.tradeCount !== 1 ? "s" : ""} today
+                  {todaySession.totalPnl !== 0 && (
+                    <span style={{ color: todaySession.totalPnl > 0 ? "var(--green)" : "var(--red)", fontWeight: 600, marginLeft: 6 }}>
+                      {todaySession.totalPnl > 0 ? "+" : ""}${Math.abs(todaySession.totalPnl).toFixed(0)}
+                    </span>
+                  )}
+                  {" · "}<span style={{ color: "var(--text-muted)" }}>Log playbook · lesson · mood</span>
+                </div>
               </div>
               <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "var(--text-muted)", flexShrink: 0 }}><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
