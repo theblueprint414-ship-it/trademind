@@ -867,6 +867,24 @@ export default function LandingPage() {
                 title: "Pre-Trade Ritual",
                 desc: "Rate your conviction (1–10), articulate your edge in writing, confirm your stop loss is set — before every single trade. Traders who write down their thesis take better trades. Simple.",
               },
+              {
+                bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.18)", color: "var(--green)", tag: "TRADE QUALITY",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6.5H21l-5.5 4 2.1 6.5L12 15l-5.6 4 2.1-6.5L3 8.5h6.6L12 2z" stroke="var(--green)" strokeWidth="1.5" strokeLinejoin="round"/></svg>,
+                title: "Trade Grade A–D",
+                desc: "Every trade is automatically graded A through D based on setup quality, reflection, risk management, and playbook adherence. Your grade distribution is your edge, in a single number.",
+              },
+              {
+                bg: "rgba(255,59,92,0.08)", bd: "rgba(255,59,92,0.18)", color: "var(--red)", tag: "LOSS PROTECTION",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--red)" strokeWidth="1.5"/><path d="M12 7v6M12 15.5v.5" stroke="var(--red)" strokeWidth="1.6" strokeLinecap="round"/></svg>,
+                title: "Daily Loss Limit",
+                desc: "Set your personal max daily loss in dollars. TradeMind warns you at 80% — in the journal and dashboard — before you cross the line. The alert you wish you had on your worst day.",
+              },
+              {
+                bg: "rgba(94,106,210,0.08)", bd: "rgba(94,106,210,0.18)", color: "var(--blue)", tag: "LIVE CHART",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="3,18 8,11 13,14 19,5" stroke="var(--blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="19" cy="5" r="2" fill="var(--blue)" opacity="0.3" stroke="var(--blue)" strokeWidth="1.3"/></svg>,
+                title: "TradingView Replay",
+                desc: "One tap to open a live TradingView chart directly inside your trade journal entry. Review the exact market context of any trade — without leaving TradeMind.",
+              },
             ].map((feature, i) => (
               <div key={feature.title} className={`card card-lift reveal reveal-delay-${Math.min(i + 1, 4)}`} style={{ padding: "22px 24px", borderColor: feature.bd, display: "flex", gap: 16, alignItems: "flex-start" }}>
                 <div style={{ width: 42, height: 42, borderRadius: 10, background: feature.bg, border: `1px solid ${feature.bd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>

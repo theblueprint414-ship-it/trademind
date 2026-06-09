@@ -279,9 +279,26 @@ const EMPTY_FORM: FormState = {
 };
 
 
+function toTvSymbol(raw: string): string {
+  const s = raw.toUpperCase().replace(/\s+/g, "");
+  const FUTURES: Record<string, string> = {
+    ES: "CME_MINI:ES1!", MES: "CME:MES1!", NQ: "CME_MINI:NQ1!", MNQ: "CME:MNQ1!",
+    YM: "CBOT_MINI:YM1!", MYM: "CBOT:MYM1!", RTY: "CME_MINI:RTY1!", M2K: "CME:M2K1!",
+    CL: "NYMEX:CL1!", MCL: "NYMEX:MCL1!", GC: "COMEX:GC1!", MGC: "COMEX:MGC1!",
+    SI: "COMEX:SI1!", ZB: "CBOT:ZB1!", ZN: "CBOT:ZN1!", ZF: "CBOT:ZF1!",
+    NG: "NYMEX:NG1!", HG: "COMEX:HG1!", ZC: "CBOT:ZC1!", ZS: "CBOT:ZS1!",
+  };
+  if (FUTURES[s]) return FUTURES[s];
+  const clean = s.replace("/", "");
+  if (/^(BTCUSD|ETHUSD|SOLUSD|BTCUSDT|ETHUSDT|SOLUSDT|BNBUSD|XRPUSD)T?$/.test(clean)) return `BINANCE:${clean}`;
+  if (/^[A-Z]{6}$/.test(clean) && clean.length === 6) return `FX:${clean}`;
+  return s;
+}
+
 function TradingViewChart({ symbol }: { symbol: string }) {
   const [open, setOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const tvSymbol = toTvSymbol(symbol);
   React.useEffect(() => {
     if (!open || !containerRef.current) return;
     const c = containerRef.current;
@@ -293,7 +310,7 @@ function TradingViewChart({ symbol }: { symbol: string }) {
     script.type = "text/javascript";
     script.async = true;
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
-    script.textContent = JSON.stringify({ symbol, width: "100%", height: 200, locale: "en", dateRange: "1M", colorTheme: "dark", isTransparent: true, autosize: true });
+    script.textContent = JSON.stringify({ symbol: tvSymbol, width: "100%", height: 200, locale: "en", dateRange: "1M", colorTheme: "dark", isTransparent: true, autosize: true });
     c.appendChild(script);
     return () => { c.innerHTML = ""; };
   }, [open, symbol]);
@@ -584,6 +601,7 @@ export default function JournalPage() {
   const [allEntries, setAllEntries] = useState<TradeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [isPro, setIsPro] = useState<boolean | null>(null);
+  const [dailyLossLimit, setDailyLossLimit] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [todayScore, setTodayScore] = useState<number | null>(null);
@@ -656,7 +674,7 @@ export default function JournalPage() {
     fetch("/api/me").then((r) => {
       if (r.status === 401) { window.location.href = "/login"; return null; }
       return r.json();
-    }).then((d) => { if (d) { setIsPro(d.plan === "pro" || d.plan === "premium"); } }).catch(() => setIsPro(false));
+    }).then((d) => { if (d) { setIsPro(d.plan === "pro" || d.plan === "premium"); if (d.dailyLossLimit) setDailyLossLimit(d.dailyLossLimit); } }).catch(() => setIsPro(false));
     fetch("/api/broker").then((r) => r.json()).then((d) => {
       if (d.connected) {
         setBroker(d);
@@ -1504,6 +1522,25 @@ export default function JournalPage() {
           </div>
         )}
 
+        {/* Daily loss limit alert */}
+        {(() => {
+          if (!dailyLossLimit || selectedDate !== today) return null;
+          const todayPnl = entries.reduce((s, e) => s + (e.pnl ?? 0), 0);
+          if (todayPnl >= 0 || Math.abs(todayPnl) < dailyLossLimit * 0.8) return null;
+          const pct = Math.round((Math.abs(todayPnl) / dailyLossLimit) * 100);
+          const hit = Math.abs(todayPnl) >= dailyLossLimit;
+          return (
+            <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 10, background: hit ? "rgba(255,59,92,0.1)" : "rgba(255,176,32,0.08)", border: `1px solid ${hit ? "rgba(255,59,92,0.4)" : "rgba(255,176,32,0.35)"}`, marginBottom: 16 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}><circle cx="8" cy="8" r="6.5" stroke={hit ? "var(--red)" : "var(--amber)"} strokeWidth="1.3"/><path d="M8 4.5v4M8 10.5v.5" stroke={hit ? "var(--red)" : "var(--amber)"} strokeWidth="1.4" strokeLinecap="round"/></svg>
+              <span style={{ fontSize: 13, flex: 1 }}>
+                {hit
+                  ? <><strong style={{ color: "var(--red)" }}>Daily loss limit reached</strong> — you&apos;ve hit your ${dailyLossLimit} limit. Consider stopping for today.</>
+                  : <><strong style={{ color: "var(--amber)" }}>Approaching daily limit</strong> — ${Math.abs(todayPnl).toFixed(0)} of your ${dailyLossLimit} ({pct}%). Watch out.</>}
+              </span>
+            </div>
+          );
+        })()}
+
         {/* Log trade button */}
         {!showForm && (
           <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
@@ -1805,12 +1842,15 @@ export default function JournalPage() {
               </div>
             );
           })() : (
-          <div className="card" style={{ padding: 40, textAlign: "center", border: "1px dashed var(--border)" }}>
-            <div style={{ marginBottom: 16, display: "flex", justifyContent: "center", color: "var(--text-muted)" }}><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="8" y="5" width="24" height="30" rx="4" stroke="currentColor" strokeWidth="2"/><path d="M14 14h12M14 20h12M14 26h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></div>
+          <div className="card" style={{ padding: 36, textAlign: "center", border: "1px dashed var(--border)" }}>
+            <div style={{ marginBottom: 14, display: "flex", justifyContent: "center", color: "var(--text-muted)" }}><svg width="40" height="40" viewBox="0 0 40 40" fill="none"><rect x="8" y="5" width="24" height="30" rx="4" stroke="currentColor" strokeWidth="2"/><path d="M14 14h12M14 20h12M14 26h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></div>
             <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>No trades logged on this day</div>
-            <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6 }}>
-              Log every trade — wins, losses, and flat. The journal reveals your patterns.
+            <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 20 }}>
+              Log every trade — wins and losses. After 10 trades TradeMind reveals which mental states cost you the most.
             </p>
+            <button className="btn-primary" onClick={handleLogClick} style={{ padding: "11px 28px", fontSize: 13 }}>
+              Log a Trade →
+            </button>
           </div>
           )
         ) : (
