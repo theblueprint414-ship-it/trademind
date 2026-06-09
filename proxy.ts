@@ -36,7 +36,7 @@ const PUBLIC_PATHS = [
 ];
 const GATE_PATHS = ["/dashboard", "/partners", "/settings", "/checkin", "/journal", "/analytics", "/coach", "/recap", "/playbook", "/leaderboard", "/circles"];
 
-export default auth((req: NextAuthRequest) => {
+export const proxy = auth((req: NextAuthRequest) => {
   const { pathname } = req.nextUrl;
 
   // Block oversized requests on API routes (max 1MB)
