@@ -31,6 +31,15 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Keep Prisma + LibSQL out of the Edge Runtime bundle (middleware runs in Edge).
+  // Without this, Vercel rejects the deploy because node:fs/os/crypto etc. are imported.
+  serverExternalPackages: [
+    "@prisma/client",
+    "@prisma/adapter-libsql",
+    "@libsql/client",
+    "@libsql/hrana-client",
+    "prisma",
+  ],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
