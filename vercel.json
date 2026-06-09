@@ -29,7 +29,11 @@
     },
     {
       "path": "/api/cron/auto-sync-journal",
-      "schedule": "0 6 * * *"
+      "schedule": "*/30 * * * *"
+    },
+    {
+      "path": "/api/cron/tradovate-token-refresh",
+      "schedule": "0 */12 * * *"
     },
     {
       "path": "/api/cron/mid-session-push",

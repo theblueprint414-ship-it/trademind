@@ -30,6 +30,7 @@ export async function testBrokerConnection(config: BrokerConfig): Promise<TestRe
       case "tradovate":    return await testTradovate(config);
       case "topstepx":     return await testTopstepX(config);
       case "metaapi":      return await testMetaApi(config);
+      case "dxtrade":      return await testDXTrade(config);
       case "tradestation": return { ok: false, error: "TradeStation integration coming soon" };
       case "ibkr":         return { ok: false, error: "IBKR integration coming soon" };
       case "mt4":          return { ok: false, error: "MT4/MT5 integration coming soon" };
@@ -74,6 +75,7 @@ export async function fetchHistoricalTrades(
       case "binance":   return await binanceHistory(config, days);
       case "topstepx":  return await topstepXHistory(config, days);
       case "metaapi":   return await metaApiHistory(config, days);
+      case "dxtrade":   return await dxtradeHistory(config, days);
       default:          return [];
     }
   } catch {
@@ -94,6 +96,7 @@ export async function fetchTodayTrades(config: BrokerConfig): Promise<number | n
       case "tradovate": return await tradovateTodayTrades(config);
       case "topstepx":  return await topstepXTodayTrades(config);
       case "metaapi":   return await metaApiTodayTrades(config);
+      case "dxtrade":   return await dxtradeTodayTrades(config);
       default:          return null;
     }
   } catch {
@@ -372,6 +375,27 @@ async function testTradovate({ apiKey, apiSecret, environment }: BrokerConfig): 
   }
 
   return { ok: true, token: data.accessToken };
+}
+
+// Renews an expiring Tradovate access token. Returns the new token on success.
+// DB persistence is the caller's responsibility.
+export async function refreshTradovateToken(
+  currentToken: string,
+  environment: string
+): Promise<{ ok: boolean; newToken?: string }> {
+  const res = await fetch(`${tradovateBase(environment)}/auth/renewaccesstoken`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${currentToken}`,
+      "Content-Type": "application/json",
+    },
+    signal: AbortSignal.timeout(10_000),
+  }).catch(() => null);
+
+  if (!res?.ok) return { ok: false };
+  const data = await res.json().catch(() => null);
+  if (!data?.accessToken) return { ok: false };
+  return { ok: true, newToken: data.accessToken };
 }
 
 async function tradovateTodayTrades({ apiKey, environment }: BrokerConfig): Promise<number | null> {
@@ -888,6 +912,91 @@ async function topstepXHistory({ apiKey, apiSecret }: BrokerConfig, days: number
     commission: t.fees ?? null,
     assetType: "futures",
   }));
+}
+
+// ── DXTrade (FTMO, BrightFunded, Funded Trading Plus, DNA Funded, etc.) ─────
+// environment = broker's DXTrade domain, e.g. "dxtrade.ftmo.com"
+// apiKey      = DXTrade username
+// apiSecret   = DXTrade password
+
+const dxtradeBase = (domain: string) => `https://${domain}/dxtrade/api/v1`;
+
+async function dxtradeFetchToken(domain: string, username: string, password: string): Promise<string | null> {
+  const res = await fetch(`${dxtradeBase(domain)}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ clientId: username, password }),
+    signal: withTimeout(REQUEST_TIMEOUT_MS),
+  }).catch(() => null);
+  if (!res?.ok) return null;
+  const data = await res.json().catch(() => null);
+  return data?.token ?? null;
+}
+
+async function testDXTrade({ apiKey, apiSecret, environment }: BrokerConfig): Promise<TestResult> {
+  if (!apiSecret) return { ok: false, error: "Password required for DXTrade" };
+  const token = await dxtradeFetchToken(environment, apiKey, apiSecret);
+  if (!token) return { ok: false, error: "Invalid credentials or DXTrade domain" };
+  return { ok: true };
+}
+
+async function dxtradeHistory({ apiKey, apiSecret, environment }: BrokerConfig, days: number): Promise<TradeHistoryEntry[]> {
+  if (!apiSecret) return [];
+  const token = await dxtradeFetchToken(environment, apiKey, apiSecret);
+  if (!token) return [];
+
+  const from = new Date();
+  from.setDate(from.getDate() - days);
+  const fromStr = from.toISOString().split(".")[0] + "Z";
+  const toStr = new Date().toISOString().split(".")[0] + "Z";
+
+  const res = await fetch(
+    `${dxtradeBase(environment)}/positions?status=CLOSED&from=${fromStr}&to=${toStr}&limit=500`,
+    { headers: { Authorization: `Bearer ${token}` }, signal: withTimeout(REQUEST_TIMEOUT_MS) }
+  ).catch(() => null);
+  if (!res?.ok) return [];
+
+  const data = await res.json().catch(() => null);
+  const positions: {
+    positionId?: string; symbol?: string; openTime?: string; closeTime?: string;
+    profit?: number; side?: string; volume?: number;
+    openPrice?: number; closePrice?: number; commission?: number;
+  }[] = Array.isArray(data) ? data : (data?.positions ?? []);
+
+  return positions.map((p) => {
+    const closeDate = p.closeTime ? p.closeTime.split("T")[0] : (p.openTime?.split("T")[0] ?? "");
+    const side = (p.side ?? "").toUpperCase() === "BUY" ? "long" : "short";
+    return {
+      date: closeDate,
+      symbol: p.symbol ?? "UNKNOWN",
+      side: side as "long" | "short",
+      pnl: p.profit ?? null,
+      brokerTradeId: p.positionId ?? null,
+      entryPrice: p.openPrice ?? null,
+      exitPrice: p.closePrice ?? null,
+      entryTime: p.openTime ?? null,
+      exitTime: p.closeTime ?? null,
+      qty: p.volume ?? null,
+      commission: p.commission ?? null,
+    };
+  });
+}
+
+async function dxtradeTodayTrades({ apiKey, apiSecret, environment }: BrokerConfig): Promise<number | null> {
+  if (!apiSecret) return null;
+  const token = await dxtradeFetchToken(environment, apiKey, apiSecret);
+  if (!token) return null;
+
+  const today = new Date().toISOString().split("T")[0];
+  const res = await fetch(
+    `${dxtradeBase(environment)}/positions?status=CLOSED&from=${today}T00:00:00Z&to=${today}T23:59:59Z`,
+    { headers: { Authorization: `Bearer ${token}` }, signal: withTimeout(REQUEST_TIMEOUT_MS) }
+  ).catch(() => null);
+  if (!res?.ok) return null;
+
+  const data = await res.json().catch(() => null);
+  const positions = Array.isArray(data) ? data : (data?.positions ?? []);
+  return positions.length;
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────

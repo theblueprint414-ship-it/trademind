@@ -18,13 +18,14 @@ const STEPS_META: { key: Step; label: string }[] = [
 
 const BROKERS = [
   { id: "topstepx",     name: "TopstepX",        abbr: "TSX", color: "#00C896", needsSecret: true,  secretLabel: "API Key",          keyLabel: "USERNAME",       keyPlaceholder: "Your TopstepX username", firms: "TopstepX funded accounts" },
-  { id: "metaapi",      name: "MT4/MT5 (Forex)",  abbr: "MT4", color: "#FF6B35", needsSecret: true,  secretLabel: "Investor Password", keyLabel: "ACCOUNT NUMBER", keyPlaceholder: "e.g. 12345678",          firms: "FTMO, IC Markets, FxFlat, any MT4/MT5 broker" },
+  { id: "tradovate",    name: "Tradovate",        abbr: "TRD", color: "#5e6ad2", needsSecret: true,  secretLabel: "Password",          keyLabel: "USERNAME",       keyPlaceholder: "Your Tradovate username", firms: "Apex, Funded Next, Lucid, TopStep futures" },
+  { id: "dxtrade",      name: "DXTrade",          abbr: "DXT", color: "#00B4D8", needsSecret: true,  secretLabel: "Password",          keyLabel: "USERNAME",       keyPlaceholder: "Your DXTrade username",   firms: "FTMO, BrightFunded, Funded Trading Plus, DNA Funded" },
+  { id: "metaapi",      name: "MT4/MT5 (Forex)",  abbr: "MT4", color: "#FF6B35", needsSecret: true,  secretLabel: "Investor Password", keyLabel: "ACCOUNT NUMBER", keyPlaceholder: "e.g. 12345678",          firms: "IC Markets, FxFlat, any MT4/MT5 broker" },
   { id: "alpaca",       name: "Alpaca",           abbr: "ALP", color: "#00E87A", needsSecret: true,  secretLabel: "API Secret",        keyLabel: "API KEY",        keyPlaceholder: "Paste your API key",     firms: "US stocks & options" },
   { id: "binance",      name: "Binance",          abbr: "BNB", color: "#F0B90B", needsSecret: true,  secretLabel: "API Secret",        keyLabel: "API KEY",        keyPlaceholder: "Paste your API key",     firms: "Binance crypto" },
   { id: "bybit",        name: "Bybit",            abbr: "BYB", color: "#F7A600", needsSecret: true,  secretLabel: "API Secret",        keyLabel: "API KEY",        keyPlaceholder: "Paste your API key",     firms: "Bybit crypto" },
   { id: "coinbase",     name: "Coinbase",         abbr: "CB",  color: "#0052FF", needsSecret: true,  secretLabel: "API Secret",        keyLabel: "API KEY",        keyPlaceholder: "Paste your API key",     firms: "Coinbase Advanced Trade" },
   { id: "kraken",       name: "Kraken",           abbr: "KRK", color: "#5741D9", needsSecret: true,  secretLabel: "Private Key",       keyLabel: "API KEY",        keyPlaceholder: "Paste your API key",     firms: "Kraken crypto" },
-  { id: "tradovate",    name: "Tradovate",        abbr: "TRD", color: "#5e6ad2", needsSecret: true,  secretLabel: "Password",          keyLabel: "USERNAME",       keyPlaceholder: "Your Tradovate username", firms: "Apex, Funded Next, Lucid, TopStep futures" },
   { id: "tradestation", name: "TradeStation",     abbr: "TS",  color: "#FF3B5C", needsSecret: false, secretLabel: "",                  keyLabel: "API KEY",        keyPlaceholder: "",                       firms: "" },
   { id: "ibkr",         name: "IBKR",             abbr: "IB",  color: "#CC0000", needsSecret: false, secretLabel: "",                  keyLabel: "API KEY",        keyPlaceholder: "",                       firms: "" },
 ];
@@ -57,6 +58,7 @@ export default function OnboardingPage() {
   const [apiSecret, setApiSecret] = useState("");
   const [environment, setEnvironment] = useState<"live" | "paper">("live");
   const [metaApiServer, setMetaApiServer] = useState("");
+  const [dxtradeDomain, setDxtradeDomain] = useState("");
   const [connecting, setConnecting] = useState(false);
   const [connectError, setConnectError] = useState("");
   const [connected, setConnected] = useState(false);
@@ -156,13 +158,20 @@ export default function OnboardingPage() {
       setConnectError("MT4/MT5 server name is required. Open MT4/MT5 → File → Login to find it.");
       return;
     }
+    if (selectedBroker === "dxtrade" && !dxtradeDomain.trim()) {
+      setConnectError("DXTrade domain is required, e.g. dxtrade.ftmo.com");
+      return;
+    }
     setConnecting(true);
     setConnectError("");
+    const envValue = selectedBroker === "metaapi" ? metaApiServer.trim()
+      : selectedBroker === "dxtrade" ? dxtradeDomain.trim()
+      : environment;
     try {
       const res = await fetch("/api/broker", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ broker: selectedBroker, apiKey: apiKey.trim(), apiSecret: apiSecret.trim() || undefined, environment: selectedBroker === "metaapi" ? metaApiServer.trim() : environment }),
+        body: JSON.stringify({ broker: selectedBroker, apiKey: apiKey.trim(), apiSecret: apiSecret.trim() || undefined, environment: envValue }),
       });
       const data = await res.json();
       if (data.ok) {
@@ -576,7 +585,15 @@ export default function OnboardingPage() {
                           </div>
                         )}
 
-                        {selectedBroker !== "topstepx" && selectedBroker !== "metaapi" && (
+                        {selectedBroker === "dxtrade" && (
+                          <div>
+                            <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.07em", display: "block", marginBottom: 8 }}>DXTRADE DOMAIN <span style={{ color: "var(--red)" }}>*</span></label>
+                            <input type="text" value={dxtradeDomain} onChange={(e) => setDxtradeDomain(e.target.value.toLowerCase().trim())} placeholder="e.g. dxtrade.ftmo.com" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 13, borderColor: !dxtradeDomain.trim() ? "rgba(255,59,92,0.35)" : undefined }} />
+                            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 6 }}>The domain your prop firm uses for DXTrade — check your broker&apos;s platform URL</div>
+                          </div>
+                        )}
+
+                        {selectedBroker !== "topstepx" && selectedBroker !== "metaapi" && selectedBroker !== "dxtrade" && (
                           <div>
                             <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.07em", display: "block", marginBottom: 8 }}>ENVIRONMENT</label>
                             <div style={{ display: "flex", gap: 8 }}>

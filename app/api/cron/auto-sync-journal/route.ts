@@ -10,32 +10,28 @@ export async function GET(req: NextRequest) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const today = new Date().toISOString().split("T")[0];
-  const cooldownCutoff = new Date(Date.now() - 10 * 60 * 1000); // 10 min ago
+  const cooldownCutoff = new Date(Date.now() - 10 * 60 * 1000);
 
-  // Active Pro/Premium users: checked in today + broker connected + cooldown expired
-  const users = await db.user.findMany({
+  // Find users with at least one active broker connection whose cooldown expired
+  const connectionsToSync = await db.brokerConnection.findMany({
     where: {
-      plan: { in: ["pro", "premium"] },
-      brokerConnection: {
-        status: "active",
-        OR: [
-          { lastSyncAt: null },
-          { lastSyncAt: { lt: cooldownCutoff } },
-        ],
-      },
-      checkins: { some: { date: today } },
+      status: "active",
+      OR: [{ lastSyncAt: null }, { lastSyncAt: { lt: cooldownCutoff } }],
+      user: { plan: { in: ["pro", "premium"] } },
     },
-    select: { id: true },
-    take: 30, // cap per run to stay within 60s timeout
+    select: { userId: true },
+    distinct: ["userId"],
+    take: 50,
   });
+
+  const userIds = connectionsToSync.map((c) => c.userId);
 
   let synced = 0;
   let imported = 0;
 
-  for (const user of users) {
+  for (const userId of userIds) {
     try {
-      const result = await syncJournalForUser(user.id, { notify: true });
+      const result = await syncJournalForUser(userId, { notify: true });
       if (result && !result.skipped) {
         synced++;
         imported += result.imported;
@@ -45,5 +41,5 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  return Response.json({ ok: true, synced, imported, candidates: users.length });
+  return Response.json({ ok: true, synced, imported, candidates: userIds.length });
 }

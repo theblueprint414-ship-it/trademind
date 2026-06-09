@@ -1,7 +1,6 @@
 import { rateLimit } from "@/lib/ratelimit";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
-import { sendPushToUser } from "@/lib/push";
 import { NextResponse , NextRequest} from "next/server";
 
 // GET /api/circuit-breaker/override — authenticated, returns last 30 days of overrides
@@ -62,27 +61,7 @@ export async function POST(req: Request) {
     data: { userId, source: token ? "extension" : "dashboard", reason: reason ?? null },
   });
 
-  // Notify accountability partners (fire-and-forget)
-  notifyPartners(userId).catch(() => {});
-
   return NextResponse.json({ ok: true, id: override.id, createdAt: override.createdAt }, { headers: CORS });
-}
-
-async function notifyPartners(userId: string) {
-  const partnerships = await db.partnership.findMany({
-    where: { OR: [{ userAId: userId }, { userBId: userId }], status: "active" },
-    select: { userAId: true, userBId: true },
-  });
-  const partnerIds = partnerships.map((p) => p.userAId === userId ? p.userBId : p.userAId);
-  await Promise.allSettled(
-    partnerIds.map((pid) =>
-      sendPushToUser(pid, {
-        title: "TradeMind — Partner Override",
-        body: "Your accountability partner triggered an Emergency Override on their circuit breaker.",
-        url: "/partners",
-      })
-    )
-  );
 }
 
 export async function OPTIONS() {

@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
   const guard = await requirePlan(["premium"]);
   if (!guard.ok) return guard.response;
 
-  const conn = await db.brokerConnection.findUnique({ where: { userId: guard.userId } });
+  const conn = await db.brokerConnection.findFirst({ where: { userId: guard.userId } });
   if (!conn) return Response.json({ error: "No broker connected" }, { status: 404 });
 
   const trades = await fetchHistoricalTrades({

@@ -26,7 +26,15 @@ export async function GET(req: NextRequest) {
     }),
     db.tradeEntry.findMany({
       where: { userId },
-      select: { date: true, symbol: true, side: true, pnl: true, setup: true, emotionBefore: true, emotionAfter: true, mistake: true, notes: true, reflection: true, tags: true, checkinScore: true, createdAt: true },
+      select: {
+        date: true, symbol: true, side: true, pnl: true,
+        entryPrice: true, exitPrice: true, stopLoss: true, takeProfit: true,
+        riskAmount: true, rMultiple: true, commission: true,
+        assetType: true, duration: true, mae: true, mfe: true,
+        setup: true, emotionBefore: true, emotionAfter: true,
+        mistake: true, notes: true, reflection: true, tags: true,
+        checkinScore: true, source: true, brokerTradeId: true, createdAt: true,
+      },
       orderBy: { date: "asc" },
     }),
     db.dailyRecap.findMany({

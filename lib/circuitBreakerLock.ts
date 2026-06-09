@@ -29,7 +29,7 @@ async function logBrokerError(userId: string, broker: string, action: string, er
 // ─── Public API ───────────────────────────────────────────────────────────────
 
 export async function lockBroker(userId: string): Promise<void> {
-  const conn = await db.brokerConnection.findUnique({
+  const conn = await db.brokerConnection.findFirst({
     where: { userId },
     select: { broker: true, apiKey: true, apiSecret: true, environment: true },
   });
@@ -60,7 +60,7 @@ export async function lockBroker(userId: string): Promise<void> {
 }
 
 export async function unlockBroker(userId: string): Promise<void> {
-  const conn = await db.brokerConnection.findUnique({
+  const conn = await db.brokerConnection.findFirst({
     where: { userId },
     select: { broker: true, apiKey: true, apiSecret: true, environment: true },
   });

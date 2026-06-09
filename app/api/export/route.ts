@@ -42,6 +42,9 @@ export async function GET(req: NextRequest) {
       orderBy: { date: "desc" },
       select: {
         date: true, symbol: true, side: true, pnl: true,
+        entryPrice: true, exitPrice: true, stopLoss: true, takeProfit: true,
+        riskAmount: true, rMultiple: true, commission: true,
+        assetType: true, duration: true, mae: true, mfe: true,
         setup: true, emotionBefore: true, emotionAfter: true,
         mistake: true, notes: true, checkinScore: true,
         tags: true, reflection: true, createdAt: true,
@@ -59,10 +62,13 @@ export async function GET(req: NextRequest) {
 
   lines.push("");
   lines.push("=== TRADE JOURNAL ===");
-  lines.push(row("Date", "Symbol", "Side", "PnL", "Setup", "Emotion Before (1-5)", "Emotion After (1-5)", "Mistake", "Notes", "Mental Score", "Tags", "Reflection", "Logged At"));
+  lines.push(row("Date", "Symbol", "Side", "PnL", "EntryPrice", "ExitPrice", "StopLoss", "TakeProfit", "RiskAmount", "RMultiple", "Commission", "AssetType", "DurationSec", "MAE", "MFE", "Setup", "EmotionBefore", "EmotionAfter", "Mistake", "Notes", "MentalScore", "Tags", "Reflection", "Logged At"));
   for (const t of trades) {
     lines.push(row(
       t.date, t.symbol, t.side, t.pnl,
+      t.entryPrice, t.exitPrice, t.stopLoss, t.takeProfit,
+      t.riskAmount, t.rMultiple, t.commission,
+      t.assetType, t.duration, t.mae, t.mfe,
       t.setup, t.emotionBefore, t.emotionAfter,
       t.mistake, t.notes, t.checkinScore,
       t.tags, t.reflection,

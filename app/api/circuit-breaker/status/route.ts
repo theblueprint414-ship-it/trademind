@@ -46,7 +46,7 @@ export async function GET(req: Request) {
   let tradeCount = 0;
   let countSource: "broker" | "ea_report" | "journal" = "journal";
 
-  const brokerConn = await db.brokerConnection.findUnique({
+  const brokerConn = await db.brokerConnection.findFirst({
     where: { userId: cb.userId },
     select: { broker: true, apiKey: true, apiSecret: true, environment: true, status: true },
   });

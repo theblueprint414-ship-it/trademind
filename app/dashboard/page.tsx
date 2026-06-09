@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import ScoreRing from "@/components/ScoreRing";
-import PartnerCard from "@/components/PartnerCard";
 import TradeLimit from "@/components/TradeLimit";
 import ChallengeTracker from "@/components/ChallengeTracker";
 import PositionSizing from "@/components/PositionSizing";
@@ -14,11 +13,6 @@ import StatCard from "@/components/StatCard";
 import { Skeleton, SkeletonCard, SkeletonStat } from "@/components/Skeleton";
 
 type HistoryEntry = { date: string; score: number; verdict?: string };
-type Partner = {
-  id: string; name: string; avatar: string;
-  score: number | null; verdict: "GO" | "CAUTION" | "NO-TRADE" | null;
-  streak: number; lastCheckin: string;
-};
 type WeeklyStats = { pnl: number; trades: number; winRate: number | null };
 
 function getVerdict(score: number) {
@@ -65,11 +59,9 @@ export default function DashboardPage() {
   const [goCount, setGoCount] = useState(0);
   const [isPro, setIsPro] = useState(false);
   const [savedLosses, setSavedLosses] = useState<number | null>(null);
-  const [broker, setBroker] = useState<{ broker: string; status: string } | null>(null);
+  const [broker, setBroker] = useState<{ broker: string; status: string; lastSyncAt: string | null } | null>(null);
   const [todaySession, setTodaySession] = useState<{ totalPnl: number; tradeCount: number; tradeLimit: number; winRate: number | null } | null>(null);
   const [endingSession, setEndingSession] = useState(false);
-  const [partners, setPartners] = useState<Partner[]>([]);
-  const [partnersLoading, setPartnersLoading] = useState(false);
   const [weeklyStats, setWeeklyStats] = useState<WeeklyStats | null>(null);
   const [weeklyInsight, setWeeklyInsight] = useState<{ text: string; positive: boolean } | null>(null);
   const [weeklyCoach, setWeeklyCoach] = useState<string | null>(null);
@@ -144,14 +136,6 @@ export default function DashboardPage() {
           if (d.tradeLimit) localStorage.setItem("trademind_trade_limit", String(d.tradeLimit));
           if (d.challenge?.enabled) setChallengeConfig({ firm: d.challenge.firm ?? null, accountSize: d.challenge.accountSize ?? 0, dailyLimit: d.challenge.dailyLimit ?? 5, maxDrawdown: d.challenge.maxDrawdown ?? 10, profitTarget: d.challenge.profitTarget ?? null, tradingDaysTarget: d.challenge.tradingDaysTarget ?? null, startDate: d.challenge.startDate ?? null, endDate: d.challenge.endDate ?? null });
           if (pro) {
-            setPartnersLoading(true);
-            fetch("/api/partners")
-              .then((r) => r.json())
-              .then((pd) => { if (Array.isArray(pd.partners)) setPartners(pd.partners); })
-              .catch(() => {})
-              .finally(() => setPartnersLoading(false));
-          }
-          if (pro) {
             fetch("/api/analytics")
               .then((r) => r.json())
               .then((ad) => { if (ad.estimatedSaved > 0) setSavedLosses(ad.estimatedSaved); })
@@ -202,7 +186,7 @@ export default function DashboardPage() {
         if (bRes.ok) {
           const bData = await bRes.json();
           if (bData.connected) {
-            setBroker({ broker: bData.broker, status: bData.status });
+            setBroker({ broker: bData.broker, status: bData.status, lastSyncAt: bData.lastSyncAt ?? null });
             const sRes = await fetch("/api/broker/sync", { method: "POST" });
             if (sRes.ok) {
               const sData = await sRes.json();
@@ -552,6 +536,51 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* PERFORMANCE BANNER — P&L first, always visible when there's data */}
+        {(weeklyStats || todaySession) && (
+          <div className="dash-section s1" style={{ marginBottom: 16, padding: "16px 18px", borderRadius: 14, background: "var(--surface)", border: "1px solid var(--border)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>PERFORMANCE</span>
+              {broker?.lastSyncAt && (
+                <span style={{ fontSize: 10, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
+                  <div style={{ width: 5, height: 5, borderRadius: "50%", background: broker.status === "active" ? "var(--green)" : "var(--amber)", flexShrink: 0 }} />
+                  Synced {(() => {
+                    const ms = Date.now() - new Date(broker.lastSyncAt).getTime();
+                    const m = Math.floor(ms / 60000);
+                    if (m < 1) return "just now";
+                    if (m < 60) return `${m}m ago`;
+                    const h = Math.floor(m / 60);
+                    return `${h}h ago`;
+                  })()}
+                </span>
+              )}
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              {/* Today P&L */}
+              <div style={{ textAlign: "center" }}>
+                <div className="font-bebas" style={{ fontSize: 26, lineHeight: 1, color: (todaySession?.totalPnl ?? 0) >= 0 ? "var(--green)" : "var(--red)", marginBottom: 3 }}>
+                  {(todaySession?.totalPnl ?? 0) >= 0 ? "+" : ""}${Math.abs(todaySession?.totalPnl ?? 0).toFixed(0)}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>TODAY P&L</div>
+              </div>
+              {/* Week P&L */}
+              <div style={{ textAlign: "center", borderLeft: "1px solid var(--border)", borderRight: "1px solid var(--border)" }}>
+                <div className="font-bebas" style={{ fontSize: 26, lineHeight: 1, color: (weeklyStats?.pnl ?? 0) >= 0 ? "var(--green)" : "var(--red)", marginBottom: 3 }}>
+                  {(weeklyStats?.pnl ?? 0) >= 0 ? "+" : ""}${Math.abs(weeklyStats?.pnl ?? 0).toFixed(0)}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>WEEK P&L</div>
+              </div>
+              {/* Win Rate */}
+              <div style={{ textAlign: "center" }}>
+                <div className="font-bebas" style={{ fontSize: 26, lineHeight: 1, color: (weeklyStats?.winRate ?? todaySession?.winRate ?? null) !== null ? ((weeklyStats?.winRate ?? todaySession?.winRate ?? 0) >= 50 ? "var(--green)" : "var(--red)") : "var(--text-dim)", marginBottom: 3 }}>
+                  {weeklyStats?.winRate !== null && weeklyStats?.winRate !== undefined ? `${weeklyStats.winRate}%` : todaySession?.winRate !== null && todaySession?.winRate !== undefined ? `${todaySession.winRate}%` : "—"}
+                </div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>{weeklyStats ? `${weeklyStats.trades} TRADES` : "WIN RATE"}</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* TODAY HERO CARD */}
         <div className={`card dash-section s1 ${verdict?.cardClass ?? ""}`} style={{ padding: 0, marginBottom: 20, overflow: "hidden", position: "relative" }}>
           {verdict && (
@@ -816,7 +845,7 @@ export default function DashboardPage() {
                 You&apos;ve done {monthlyCount} check-ins — unlock what the data is hiding
               </div>
               <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, lineHeight: 1.5 }}>
-                TradeMind unlocks your full 90-day history, P&L vs. psychology correlation, AI Coach, and accountability partners.
+                TradeMind unlocks your full 90-day history, P&L vs. psychology correlation, and AI Coach.
               </p>
             </div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
@@ -1301,14 +1330,6 @@ export default function DashboardPage() {
                 chip: null,
               },
               {
-                href: "/partners",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="8.5" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6"/><circle cx="16.5" cy="8" r="3.5" stroke="currentColor" strokeWidth="1.6"/><path d="M2 21c0-3.314 2.91-6 6.5-6M14 15c3.59 0 6.5 2.686 6.5 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg>,
-                label: "Partners",
-                sub: "Accountability circles",
-                color: "#5E6AD2", hex: "#5E6AD2",
-                chip: null,
-              },
-              {
                 href: "/coach",
                 icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="4" stroke="currentColor" strokeWidth="1.6"/><path d="M4 21c0-3.866 3.582-7 8-7s8 3.134 8 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><path d="M19.5 2l1.5-1.5M22 5.5h1.5M19.5 9l1.5 1.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>,
                 label: "AI Coach",
@@ -1355,14 +1376,6 @@ export default function DashboardPage() {
                 label: "Pre-Trade",
                 sub: "Ritual before each trade",
                 color: "#00E87A", hex: "#00E87A",
-                chip: null,
-              },
-              {
-                href: "/bridge",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 9v6M21 9v6M3 12h5M16 12h5M8 7v10M16 7v10M8 9.5C8 8.1 9.8 7 12 7s4 1.1 4 2.5v5c0 1.4-1.8 2.5-4 2.5s-4-1.1-4-2.5V9.5Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                label: "EdgeBridge",
-                sub: "MT4/MT5, NinjaTrader sync",
-                color: "#06B6D4", hex: "#06B6D4",
                 chip: null,
               },
               {
@@ -1479,49 +1492,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Partners */}
-        <div className="dash-section s6">
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>ACCOUNTABILITY PARTNERS</h3>
-            <Link href="/partners" style={{ fontSize: 11, color: "var(--blue)", textDecoration: "none", fontWeight: 700, letterSpacing: "0.06em" }}>
-              {isPro ? "MANAGE →" : "UPGRADE →"}
-            </Link>
-          </div>
-
-          {isPro ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {partnersLoading ? (
-                <div className="card" style={{ padding: 20, textAlign: "center" }}>
-                  <div style={{ width: 20, height: 20, borderRadius: "50%", border: "2px solid var(--surface3)", borderTopColor: "var(--blue)", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
-                </div>
-              ) : partners.length > 0 ? (
-                partners.map((p) => <PartnerCard key={p.id} partner={p} />)
-              ) : (
-                <div className="card" style={{ padding: "28px 24px", display: "flex", alignItems: "center", gap: 20, border: "1px dashed var(--border)" }}>
-                  <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(94,106,210,0.08)", border: "1px dashed rgba(94,106,210,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{ color: "var(--blue)" }}><circle cx="7" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/><circle cx="14" cy="8" r="3" stroke="currentColor" strokeWidth="1.5"/><path d="M1 17c0-2.76 2.686-5 6-5M11 12c3.314 0 6 2.24 6 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 700, marginBottom: 4 }}>No partners yet</div>
-                    <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, lineHeight: 1.5 }}>Partners see your morning score. Mutual visibility = fewer emotional mistakes.</p>
-                  </div>
-                  <Link href="/partners"><button className="btn-primary" style={{ fontSize: 13, padding: "10px 18px", whiteSpace: "nowrap" }}>Invite →</button></Link>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="card" style={{ padding: "24px 20px", display: "flex", alignItems: "center", gap: 16, border: "1px dashed var(--border)" }}>
-              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--blue)" }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>Add accountability partners</div>
-                <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, lineHeight: 1.5 }}>Your trading partner sees your score every morning. Discipline is easier when someone&apos;s watching.</p>
-              </div>
-              <Link href="/settings"><button className="btn-primary" style={{ fontSize: 13, padding: "10px 18px", whiteSpace: "nowrap" }}>Upgrade →</button></Link>
-            </div>
-          )}
-        </div>
       </div>
       )}
 

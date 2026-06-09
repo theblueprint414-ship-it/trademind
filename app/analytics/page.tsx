@@ -58,15 +58,21 @@ type AnalyticsData = {
   tradedOnNoTradeDayCount: number;
   calendarDays: { date: string; score: number | null; verdict: string | null; pnl: number | null }[];
   totalPnl: number;
+  totalNetPnl?: number;
+  totalCommissions?: number;
+  pctReturn?: number | null;
+  startingBalance?: number | null;
   winRate: number | null;
   totalTrades: number;
   scoreRangePerformance: { high: ScoreRangeEntry; mid: ScoreRangeEntry; low: ScoreRangeEntry };
   byDayOfWeek: DayOfWeekEntry[];
   behavioralPatterns: BehavioralPatterns;
-  // New analytics
   timeOfDay: { hour: number; pnl: number; trades: number; winRate: number | null }[];
   dayOfWeek: { day: number; label: string; pnl: number; trades: number; winRate: number | null }[];
   symbols: { symbol: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number; avgR: number | null }[];
+  setups: { setup: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number; avgR: number | null; avgDurationMin?: number | null; avgMae?: number | null; avgMfe?: number | null; avgEfficiency?: number | null }[];
+  monthlyStats: { month: string; label: string; totalPnl: number; netPnl?: number; commissions?: number; trades: number; winRate: number | null }[];
+  durationStats?: { label: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number }[];
   equityCurve: { date: string; dailyPnl: number; cumPnl: number }[];
   profitFactor: number | null;
   expectancy: number | null;
@@ -74,8 +80,16 @@ type AnalyticsData = {
   avgLoss: number | null;
   maxWinStreak: number;
   maxLoseStreak: number;
+  currentWinStreak?: number;
+  currentLoseStreak?: number;
+  profitableDayStreak?: number;
   avgRMultiple: number | null;
   maxDrawdown: number;
+  sharpeRatio?: number | null;
+  sortinoRatio?: number | null;
+  filtered?: boolean;
+  filterStartDate?: string | null;
+  filterEndDate?: string | null;
 };
 
 function verdictColor(verdict: string | null) {
@@ -992,6 +1006,349 @@ function SymbolPerformanceTable({ data }: { data: AnalyticsData["symbols"] }) {
   );
 }
 
+type SetupSortKey = "trades" | "winRate" | "avgPnl" | "totalPnl" | "avgR" | "avgMae" | "avgMfe" | "avgEfficiency";
+
+function SetupPerformanceTable({ data }: { data: AnalyticsData["setups"] }) {
+  const [sortKey, setSortKey] = useState<SetupSortKey>("totalPnl");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  if (!data || data.length === 0) return null;
+
+  function handleSort(key: SetupSortKey) {
+    if (key === sortKey) setSortDir((d) => d === "desc" ? "asc" : "desc");
+    else { setSortKey(key); setSortDir("desc"); }
+  }
+
+  const sorted = [...data].sort((a, b) => {
+    const va = (a[sortKey] as number | null) ?? (sortDir === "desc" ? -Infinity : Infinity);
+    const vb = (b[sortKey] as number | null) ?? (sortDir === "desc" ? -Infinity : Infinity);
+    return sortDir === "desc" ? vb - va : va - vb;
+  });
+
+  const SortArrow = ({ col }: { col: SetupSortKey }) => {
+    if (col !== sortKey) return <span style={{ opacity: 0.3, marginLeft: 3 }}>↕</span>;
+    return <span style={{ marginLeft: 3, color: "var(--blue)" }}>{sortDir === "desc" ? "↓" : "↑"}</span>;
+  };
+
+  const hasMaeMfe = data.some((s) => s.avgMae !== null || s.avgMfe !== null);
+
+  const cols: { label: string; key?: SetupSortKey; align: "left" | "right" }[] = [
+    { label: "Setup", align: "left" },
+    { label: "Trades", key: "trades", align: "right" },
+    { label: "Win %", key: "winRate", align: "right" },
+    { label: "Avg P&L", key: "avgPnl", align: "right" },
+    { label: "Total P&L", key: "totalPnl", align: "right" },
+    { label: "Avg R", key: "avgR", align: "right" },
+    ...(hasMaeMfe ? [
+      { label: "Avg MAE", key: "avgMae" as SetupSortKey, align: "right" as const },
+      { label: "Avg MFE", key: "avgMfe" as SetupSortKey, align: "right" as const },
+      { label: "Efficiency", key: "avgEfficiency" as SetupSortKey, align: "right" as const },
+    ] : []),
+  ];
+
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>SETUP PERFORMANCE (ICT / SMC)</h3>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid var(--border)" }}>
+              {cols.map((c) => (
+                <th
+                  key={c.label}
+                  onClick={() => c.key && handleSort(c.key)}
+                  style={{ padding: "6px 10px", textAlign: c.align, fontSize: 9, color: c.key === sortKey ? "var(--blue)" : "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", whiteSpace: "nowrap", cursor: c.key ? "pointer" : "default", userSelect: "none" }}
+                >
+                  {c.label.toUpperCase()}{c.key && <SortArrow col={c.key} />}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((s) => (
+              <tr key={s.setup} style={{ borderBottom: "1px solid var(--border)" }}>
+                <td style={{ padding: "10px 10px", fontWeight: 700, fontFamily: "var(--font-geist-mono)", fontSize: 13, color: "var(--blue)" }}>{s.setup}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", color: "var(--text-muted)" }}>{s.trades}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", fontWeight: 700, color: s.winRate !== null ? (s.winRate >= 50 ? "var(--green)" : "var(--red)") : "var(--text-muted)" }}>{s.winRate !== null ? `${s.winRate}%` : "—"}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", color: s.avgPnl !== null ? (s.avgPnl >= 0 ? "var(--green)" : "var(--red)") : "var(--text-muted)" }}>{s.avgPnl !== null ? `${s.avgPnl >= 0 ? "+" : ""}$${Math.abs(s.avgPnl).toFixed(0)}` : "—"}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", fontWeight: 700, color: s.totalPnl >= 0 ? "var(--green)" : "var(--red)" }}>{s.totalPnl >= 0 ? "+" : ""}${Math.abs(s.totalPnl).toFixed(0)}</td>
+                <td style={{ padding: "10px 10px", textAlign: "right", color: s.avgR !== null ? (s.avgR >= 0 ? "var(--green)" : "var(--red)") : "var(--text-muted)", fontFamily: "var(--font-geist-mono)" }}>{s.avgR !== null ? `${s.avgR >= 0 ? "+" : ""}${s.avgR.toFixed(2)}R` : "—"}</td>
+                {hasMaeMfe && (
+                  <>
+                    <td style={{ padding: "10px 10px", textAlign: "right", color: "var(--red)", fontFamily: "var(--font-geist-mono)" }}>{s.avgMae != null ? `$${s.avgMae.toFixed(0)}` : "—"}</td>
+                    <td style={{ padding: "10px 10px", textAlign: "right", color: "var(--green)", fontFamily: "var(--font-geist-mono)" }}>{s.avgMfe != null ? `$${s.avgMfe.toFixed(0)}` : "—"}</td>
+                    <td style={{ padding: "10px 10px", textAlign: "right", fontWeight: 700, color: s.avgEfficiency != null ? (s.avgEfficiency >= 60 ? "var(--green)" : s.avgEfficiency >= 30 ? "var(--amber)" : "var(--red)") : "var(--text-muted)" }}>{s.avgEfficiency != null ? `${s.avgEfficiency}%` : "—"}</td>
+                  </>
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {hasMaeMfe && (
+        <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 10 }}>Efficiency = P&L ÷ MFE — how much of the favorable move you captured.</p>
+      )}
+    </div>
+  );
+}
+
+function MonthlyBreakdownTable({ data }: { data: AnalyticsData["monthlyStats"] }) {
+  if (!data || data.length < 2) return null;
+
+  const maxAbs = Math.max(...data.map((m) => Math.abs(m.totalPnl)), 1);
+
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 20 }}>MONTHLY PERFORMANCE</h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {[...data].reverse().map((m) => {
+          const barPct = Math.abs(m.totalPnl) / maxAbs;
+          const isPos = m.totalPnl >= 0;
+          return (
+            <div key={m.month} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 68, fontSize: 11, fontWeight: 700, color: "var(--text-muted)", flexShrink: 0 }}>{m.label}</div>
+              <div style={{ flex: 1, position: "relative", height: 22, borderRadius: 4, background: "var(--surface2)", overflow: "hidden" }}>
+                <div style={{ position: "absolute", top: 0, bottom: 0, left: 0, width: `${Math.round(barPct * 100)}%`, background: isPos ? "var(--green)" : "var(--red)", opacity: 0.7, borderRadius: 4, transition: "width 0.4s ease" }} />
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", paddingLeft: 8, gap: 8 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: isPos ? "var(--green)" : "var(--red)", lineHeight: 1 }}>
+                    {isPos ? "+" : ""}${Math.abs(m.totalPnl).toFixed(0)}
+                  </span>
+                </div>
+              </div>
+              <div style={{ width: 32, textAlign: "right", fontSize: 11, color: "var(--text-muted)", flexShrink: 0 }}>{m.trades}</div>
+              <div style={{ width: 36, textAlign: "right", fontSize: 11, fontWeight: 700, color: m.winRate !== null ? (m.winRate >= 50 ? "var(--green)" : "var(--red)") : "var(--text-muted)", flexShrink: 0 }}>
+                {m.winRate !== null ? `${m.winRate}%` : "—"}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ display: "flex", gap: 10, marginTop: 12, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+        <div style={{ width: 68, flexShrink: 0 }} />
+        <div style={{ flex: 1 }} />
+        <div style={{ width: 32, textAlign: "right", fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "var(--text-muted)", flexShrink: 0 }}>TRADES</div>
+        <div style={{ width: 36, textAlign: "right", fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "var(--text-muted)", flexShrink: 0 }}>WIN%</div>
+      </div>
+    </div>
+  );
+}
+
+function PnLCalendar({ days }: { days: { date: string; pnl: number | null }[] }) {
+  const [monthOffset, setMonthOffset] = React.useState(0);
+  const [tooltip, setTooltip] = React.useState<{ day: (typeof days)[0]; x: number; y: number } | null>(null);
+
+  const today = new Date();
+  const targetMonth = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+  const year = targetMonth.getFullYear();
+  const month = targetMonth.getMonth();
+  const monthLabel = targetMonth.toLocaleString("en-US", { month: "long", year: "numeric" });
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const firstDow = new Date(year, month, 1).getDay();
+
+  const dayMap: Record<string, number> = {};
+  for (const d of days) if (d.pnl !== null) dayMap[d.date] = d.pnl;
+
+  const cells: { date: string; pnl: number | null }[] = [];
+  for (let i = 0; i < firstDow; i++) cells.push({ date: "", pnl: null });
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    cells.push({ date: dateStr, pnl: dayMap[dateStr] ?? null });
+  }
+  while (cells.length % 7 !== 0) cells.push({ date: "", pnl: null });
+  const weeks: (typeof cells)[] = [];
+  for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+
+  const todayStr = today.toISOString().split("T")[0];
+  const maxAbs = Math.max(...days.filter((d) => d.pnl !== null).map((d) => Math.abs(d.pnl!)), 1);
+
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <button onClick={() => setMonthOffset((o) => o - 1)} style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 10px", fontSize: 13, color: "var(--text-dim)", cursor: "pointer", minHeight: "unset", minWidth: "unset" }}>←</button>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", letterSpacing: "0.04em" }}>{monthLabel}</span>
+        <button onClick={() => monthOffset < 0 && setMonthOffset((o) => o + 1)} style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 10px", fontSize: 13, color: monthOffset < 0 ? "var(--text-dim)" : "var(--surface3)", cursor: monthOffset < 0 ? "pointer" : "default", minHeight: "unset", minWidth: "unset" }}>→</button>
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 4 }}>
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+          <div key={d} style={{ textAlign: "center", fontSize: 9, color: "var(--text-muted)", paddingBottom: 2 }}>{d}</div>
+        ))}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {weeks.map((wk, wi) => (
+          <div key={wi} style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+            {wk.map((day, di) => {
+              if (!day.date) return <div key={di} />;
+              const isToday = day.date === todayStr;
+              const isFuture = day.date > todayStr;
+              const hasPnl = day.pnl !== null;
+              const intensity = hasPnl ? Math.min(1, Math.abs(day.pnl!) / maxAbs) : 0;
+              const isWin = (day.pnl ?? 0) >= 0;
+              const bg = hasPnl
+                ? isWin
+                  ? `rgba(0,232,122,${0.15 + intensity * 0.6})`
+                  : `rgba(255,59,92,${0.15 + intensity * 0.6})`
+                : isFuture ? "transparent" : "var(--surface2)";
+              const dayNum = parseInt(day.date.split("-")[2]);
+              return (
+                <div
+                  key={di}
+                  onMouseEnter={(e) => setTooltip({ day, x: e.clientX, y: e.clientY })}
+                  onMouseLeave={() => setTooltip(null)}
+                  style={{
+                    borderRadius: 6, padding: "5px 3px 4px", background: bg,
+                    border: isToday ? "1.5px solid var(--blue)" : hasPnl ? `1px solid ${isWin ? "rgba(0,232,122,0.3)" : "rgba(255,59,92,0.3)"}` : "1px solid transparent",
+                    cursor: hasPnl ? "pointer" : "default", textAlign: "center", minHeight: 38,
+                  }}
+                >
+                  <div style={{ fontSize: 10, fontWeight: isToday ? 800 : 500, color: hasPnl ? "#fff" : "var(--text-muted)", opacity: hasPnl || isToday ? 1 : 0.5 }}>{dayNum}</div>
+                  {hasPnl && (
+                    <div style={{ fontSize: 8, fontWeight: 700, color: isWin ? "#00E87A" : "#FF3B5C", marginTop: 1 }}>
+                      {day.pnl! >= 0 ? "+" : ""}${Math.abs(day.pnl!).toFixed(0)}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+      {tooltip?.day.pnl !== null && tooltip && (
+        <div style={{ marginTop: 10, padding: "10px 14px", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 10, fontSize: 12, display: "flex", gap: 16, flexWrap: "wrap" }}>
+          <span style={{ color: "var(--text-muted)" }}>{tooltip.day.date}</span>
+          <span style={{ color: (tooltip.day.pnl ?? 0) >= 0 ? "var(--green)" : "var(--red)", fontWeight: 700 }}>
+            {(tooltip.day.pnl ?? 0) >= 0 ? "+" : ""}${Math.abs(tooltip.day.pnl ?? 0).toFixed(2)}
+          </span>
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 12, marginTop: 12, fontSize: 10, color: "var(--text-muted)", flexWrap: "wrap" }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(0,232,122,0.7)", display: "inline-block" }} /> Profitable day</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: "rgba(255,59,92,0.7)", display: "inline-block" }} /> Loss day</span>
+        <span style={{ display: "flex", alignItems: "center", gap: 4 }}><span style={{ width: 10, height: 10, borderRadius: 2, background: "var(--surface2)", display: "inline-block" }} /> No trades</span>
+      </div>
+    </div>
+  );
+}
+
+function DurationStatsCard({ data }: { data: NonNullable<AnalyticsData["durationStats"]> }) {
+  if (data.length === 0) return null;
+  const maxAbs = Math.max(...data.map((d) => Math.abs(d.totalPnl)), 1);
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>TRADE DURATION BREAKDOWN</h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {data.map((b) => {
+          const barPct = (Math.abs(b.totalPnl) / maxAbs) * 100;
+          const isPos = b.totalPnl >= 0;
+          return (
+            <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 110, fontSize: 11, color: "var(--text-dim)", flexShrink: 0 }}>{b.label}</div>
+              <div style={{ flex: 1, height: 20, background: "var(--surface2)", borderRadius: 4, overflow: "hidden", position: "relative" }}>
+                <div style={{ width: `${barPct}%`, height: "100%", background: isPos ? "var(--green)" : "var(--red)", opacity: 0.7, borderRadius: 4, transition: "width 0.4s" }} />
+              </div>
+              <div style={{ width: 32, textAlign: "right", fontSize: 11, color: "var(--text-muted)", flexShrink: 0 }}>{b.trades}t</div>
+              <div style={{ width: 36, textAlign: "right", fontSize: 11, color: b.winRate !== null ? (b.winRate >= 50 ? "var(--green)" : "var(--red)") : "var(--text-muted)", flexShrink: 0 }}>
+                {b.winRate !== null ? `${b.winRate}%` : "—"}
+              </div>
+              <div style={{ width: 56, textAlign: "right", fontSize: 11, fontWeight: 700, color: isPos ? "var(--green)" : "var(--red)", flexShrink: 0, fontFamily: "var(--font-geist-mono)" }}>
+                {isPos ? "+" : ""}${Math.abs(b.totalPnl).toFixed(0)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--border)" }}>
+        <div style={{ width: 110, flexShrink: 0 }} />
+        <div style={{ flex: 1 }} />
+        <div style={{ width: 32, textAlign: "right", fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "var(--text-muted)" }}>TRADES</div>
+        <div style={{ width: 36, textAlign: "right", fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "var(--text-muted)" }}>WIN%</div>
+        <div style={{ width: 56, textAlign: "right", fontSize: 9, fontWeight: 700, letterSpacing: "0.06em", color: "var(--text-muted)" }}>P&L</div>
+      </div>
+    </div>
+  );
+}
+
+function AdvancedMetricsCard({ data }: { data: AnalyticsData }) {
+  const metrics: { label: string; value: string; sub?: string; color: string }[] = [];
+
+  if (data.totalNetPnl !== undefined && data.totalCommissions !== undefined && data.totalCommissions > 0) {
+    metrics.push({
+      label: "GROSS P&L", value: `${(data.totalPnl ?? 0) >= 0 ? "+" : ""}$${Math.abs(data.totalPnl ?? 0).toFixed(0)}`,
+      sub: `After fees: ${(data.totalNetPnl ?? 0) >= 0 ? "+" : ""}$${Math.abs(data.totalNetPnl ?? 0).toFixed(0)}`,
+      color: (data.totalPnl ?? 0) >= 0 ? "var(--green)" : "var(--red)",
+    });
+    metrics.push({
+      label: "COMMISSIONS", value: `-$${(data.totalCommissions ?? 0).toFixed(0)}`,
+      sub: `${data.totalTrades > 0 ? `$${((data.totalCommissions ?? 0) / data.totalTrades).toFixed(1)}/trade` : ""}`,
+      color: "var(--red)",
+    });
+  }
+
+  if (data.pctReturn !== undefined && data.pctReturn !== null) {
+    metrics.push({
+      label: "% RETURN", value: `${data.pctReturn >= 0 ? "+" : ""}${data.pctReturn.toFixed(1)}%`,
+      sub: data.startingBalance ? `on $${data.startingBalance.toLocaleString()} account` : undefined,
+      color: data.pctReturn >= 0 ? "var(--green)" : "var(--red)",
+    });
+  }
+
+  if (data.sharpeRatio !== undefined && data.sharpeRatio !== null) {
+    metrics.push({
+      label: "SHARPE RATIO", value: data.sharpeRatio.toFixed(2),
+      sub: "annualized",
+      color: data.sharpeRatio >= 1 ? "var(--green)" : data.sharpeRatio >= 0 ? "var(--amber)" : "var(--red)",
+    });
+  }
+
+  if (data.sortinoRatio !== undefined && data.sortinoRatio !== null) {
+    metrics.push({
+      label: "SORTINO RATIO", value: data.sortinoRatio.toFixed(2),
+      sub: "annualized",
+      color: data.sortinoRatio >= 2 ? "var(--green)" : data.sortinoRatio >= 0 ? "var(--amber)" : "var(--red)",
+    });
+  }
+
+  if ((data.profitableDayStreak ?? 0) > 0) {
+    metrics.push({
+      label: "PROFITABLE DAYS STREAK", value: `${data.profitableDayStreak}`,
+      sub: "consecutive",
+      color: "var(--green)",
+    });
+  }
+
+  if (metrics.length === 0) return null;
+
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>ADVANCED METRICS</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10 }}>
+        {metrics.map((m) => (
+          <div key={m.label} style={{ textAlign: "center", padding: "14px 10px", borderRadius: 10, background: "var(--surface2)" }}>
+            <div className="font-bebas" style={{ fontSize: 22, color: m.color, lineHeight: 1, marginBottom: 4 }}>{m.value}</div>
+            {m.sub && <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 4 }}>{m.sub}</div>}
+            <div style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.07em", lineHeight: 1.3 }}>{m.label}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function CurrentStreakBadge({ data }: { data: AnalyticsData }) {
+  const cw = data.currentWinStreak ?? 0;
+  const cl = data.currentLoseStreak ?? 0;
+  if (cw === 0 && cl === 0) return null;
+  const isWin = cw > 0;
+  const count = isWin ? cw : cl;
+  const color = isWin ? "var(--green)" : "var(--red)";
+  const label = isWin ? "WIN STREAK" : "LOSE STREAK";
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "8px 14px", borderRadius: 8, background: isWin ? "rgba(0,232,122,0.08)" : "rgba(255,59,92,0.08)", border: `1px solid ${isWin ? "rgba(0,232,122,0.25)" : "rgba(255,59,92,0.25)"}` }}>
+      <span className="font-bebas" style={{ fontSize: 22, color, lineHeight: 1 }}>{count}</span>
+      <span style={{ fontSize: 10, color, letterSpacing: "0.06em", fontWeight: 700 }}>{label}</span>
+    </div>
+  );
+}
+
 function PremiumUpsell() {
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
@@ -1080,6 +1437,12 @@ function mapDemoToAnalytics(d: any): AnalyticsData {
       symbol: s.symbol, trades: s.trades, winRate: s.winRate ?? null,
       avgPnl: s.trades > 0 ? Math.round(s.pnl / s.trades) : null, totalPnl: s.pnl, avgR: s.avgR ?? null,
     })),
+    setups: (d.setups ?? []).map((s: { setup: string; pnl: number; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number; avgR: number | null }) => ({
+      setup: s.setup, trades: s.trades, winRate: s.winRate ?? null,
+      avgPnl: s.avgPnl ?? null, totalPnl: s.totalPnl, avgR: s.avgR ?? null, avgDurationMin: null,
+    })),
+    monthlyStats: (d.monthlyStats ?? []).map((m: { month: string; label: string; totalPnl: number; trades: number; winRate: number | null }) => ({ ...m, netPnl: m.totalPnl, commissions: 0 })),
+    durationStats: [],
     equityCurve: d.equityCurve ?? [],
     profitFactor: d.profitFactor ?? null,
     expectancy: d.expectancy ?? null,
@@ -1087,8 +1450,17 @@ function mapDemoToAnalytics(d: any): AnalyticsData {
     avgLoss: d.avgLoss ?? null,
     maxWinStreak: d.maxWinStreak ?? 0,
     maxLoseStreak: d.maxLoseStreak ?? 0,
+    currentWinStreak: 3,
+    currentLoseStreak: 0,
+    profitableDayStreak: 2,
     avgRMultiple: null,
     maxDrawdown: d.maxDrawdown ?? 0,
+    sharpeRatio: null,
+    sortinoRatio: null,
+    totalNetPnl: d.totalPnl ?? 0,
+    totalCommissions: 0,
+    pctReturn: null,
+    startingBalance: null,
   };
 }
 
@@ -1100,20 +1472,18 @@ function AnalyticsPageInner() {
   const [trendRange, setTrendRange] = useState<30 | 90>(30);
   const [networkError, setNetworkError] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [filterApplied, setFilterApplied] = useState(false);
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const demo = searchParams.get("demo") === "true";
-    if (demo) {
-      setIsDemo(true);
-      fetch("/api/demo")
-        .then((r) => r.json())
-        .then((d) => { setIsPremium(true); setData(mapDemoToAnalytics(d)); })
-        .catch(() => { setNetworkError(true); setIsPremium(true); })
-        .finally(() => setLoading(false));
-      return;
-    }
-    fetch("/api/analytics")
+  const fetchAnalytics = React.useCallback((sd?: string, ed?: string) => {
+    setLoading(true);
+    const params = new URLSearchParams();
+    if (sd) params.set("startDate", sd);
+    if (ed) params.set("endDate", ed);
+    const url = `/api/analytics${params.toString() ? `?${params}` : ""}`;
+    fetch(url)
       .then((r) => {
         if (r.status === 401) { window.location.href = "/login"; return null; }
         if (r.status === 403) { setIsPremium(false); return null; }
@@ -1127,7 +1497,21 @@ function AnalyticsPageInner() {
       })
       .catch(() => { setNetworkError(true); setIsPremium(true); })
       .finally(() => setLoading(false));
-  }, [searchParams]);
+  }, []);
+
+  useEffect(() => {
+    const demo = searchParams.get("demo") === "true";
+    if (demo) {
+      setIsDemo(true);
+      fetch("/api/demo")
+        .then((r) => r.json())
+        .then((d) => { setIsPremium(true); setData(mapDemoToAnalytics(d)); })
+        .catch(() => { setNetworkError(true); setIsPremium(true); })
+        .finally(() => setLoading(false));
+      return;
+    }
+    fetchAnalytics();
+  }, [searchParams, fetchAnalytics]);
 
   if (isPremium === false) return <PremiumUpsell />;
 
@@ -1283,6 +1667,10 @@ function AnalyticsPageInner() {
           <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
         </Link>
         <span className="font-bebas" style={{ fontSize: 20, color: "var(--text-muted)", letterSpacing: "0.05em" }}>ANALYTICS</span>
+        <button type="button" onClick={() => window.print()} style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 12px", fontSize: 11, color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M3 4V2h7v2M2 4h9a1 1 0 011 1v4H9v2H4V9H1V5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          PDF
+        </button>
       </div>
 
       <div style={{ maxWidth: 900, margin: "0 auto", padding: "24px 16px" }}>
@@ -1307,22 +1695,108 @@ function AnalyticsPageInner() {
           </div>
         )}
 
-        {/* Top KPI row */}
-        <div className="analytics-kpi-grid">
+        {/* Date range filter */}
+        {!isDemo && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
+              style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12, color: "var(--text)", colorScheme: "dark", cursor: "pointer" }} />
+            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>to</span>
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)}
+              style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 10px", fontSize: 12, color: "var(--text)", colorScheme: "dark", cursor: "pointer" }} />
+            <button type="button" onClick={() => { setFilterApplied(true); fetchAnalytics(startDate || undefined, endDate || undefined); }}
+              style={{ background: "var(--blue)", border: "none", borderRadius: 8, padding: "6px 14px", fontSize: 12, color: "#fff", cursor: "pointer", fontWeight: 700 }}>Apply</button>
+            {filterApplied && (
+              <button type="button" onClick={() => { setStartDate(""); setEndDate(""); setFilterApplied(false); fetchAnalytics(); }}
+                style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 12px", fontSize: 12, color: "var(--text-muted)", cursor: "pointer" }}>Clear</button>
+            )}
+            {filterApplied && <span style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700 }}>Filtered</span>}
+          </div>
+        )}
+
+        {/* Trading KPI row — P&L-first */}
+        <div className="analytics-kpi-grid" style={{ marginBottom: 8 }}>
           {[
-            { label: "TOTAL CHECK-INS", value: data.totalCheckins, color: "var(--blue)" },
-            { label: "AVG SCORE", value: data.avgScore ?? "—", color: scoreColor(data.avgScore), suffix: data.avgScore ? "/100" : "" },
-            { label: "CURRENT STREAK", value: data.currentStreak > 0 ? `${data.currentStreak}` : "—", color: data.currentStreak >= 3 ? "var(--amber)" : "var(--text-muted)" },
-            { label: "DISCIPLINE", value: `${data.disciplinePct}%`, color: data.disciplinePct >= 80 ? "var(--green)" : data.disciplinePct >= 50 ? "var(--amber)" : "var(--red)" },
+            { label: "TOTAL P&L", value: data.totalPnl >= 0 ? `+$${Math.abs(data.totalPnl).toLocaleString()}` : `-$${Math.abs(data.totalPnl).toLocaleString()}`, color: data.totalPnl >= 0 ? "var(--green)" : "var(--red)" },
+            { label: "WIN RATE", value: data.winRate !== null ? `${data.winRate}%` : "—", color: (data.winRate ?? 0) >= 50 ? "var(--green)" : "var(--red)" },
+            { label: "PROFIT FACTOR", value: data.profitFactor !== null ? `${data.profitFactor}` : "—", color: (data.profitFactor ?? 0) >= 1.5 ? "var(--green)" : (data.profitFactor ?? 0) >= 1 ? "var(--amber)" : "var(--red)" },
+            { label: "TOTAL TRADES", value: data.totalTrades > 0 ? `${data.totalTrades}` : "—", color: "var(--blue)" },
           ].map((kpi) => (
             <div key={kpi.label} className="card" style={{ padding: "16px 12px", textAlign: "center" }}>
               <div className="font-bebas" style={{ fontSize: 26, color: kpi.color, lineHeight: 1, marginBottom: 4 }}>
-                {kpi.value}{kpi.suffix ?? ""}
+                {kpi.value}
               </div>
               <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", lineHeight: 1.3 }}>{kpi.label}</div>
             </div>
           ))}
         </div>
+
+        {/* Net P&L + current streak row */}
+        <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
+          {data.totalCommissions !== undefined && data.totalCommissions > 0 && data.totalNetPnl !== undefined && (
+            <div style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, color: "var(--text-muted)", padding: "6px 12px", background: "var(--surface2)", borderRadius: 8, border: "1px solid var(--border)" }}>
+              <span>Net after fees:</span>
+              <span style={{ fontWeight: 700, color: (data.totalNetPnl ?? 0) >= 0 ? "var(--green)" : "var(--red)" }}>
+                {(data.totalNetPnl ?? 0) >= 0 ? "+" : ""}${Math.abs(data.totalNetPnl ?? 0).toFixed(0)}
+              </span>
+              <span style={{ color: "var(--red)", fontSize: 11 }}>(-${(data.totalCommissions ?? 0).toFixed(0)} fees)</span>
+            </div>
+          )}
+          {data.pctReturn !== undefined && data.pctReturn !== null && (
+            <div style={{ display: "flex", gap: 6, alignItems: "center", fontSize: 12, color: "var(--text-muted)", padding: "6px 12px", background: "var(--surface2)", borderRadius: 8, border: "1px solid var(--border)" }}>
+              <span>Return:</span>
+              <span style={{ fontWeight: 700, color: data.pctReturn >= 0 ? "var(--green)" : "var(--red)" }}>
+                {data.pctReturn >= 0 ? "+" : ""}{data.pctReturn.toFixed(1)}%
+              </span>
+            </div>
+          )}
+          <CurrentStreakBadge data={data} />
+        </div>
+
+        {/* Trading sections */}
+        {data.equityCurve && data.equityCurve.length >= 2 && <EquityCurveCard data={data.equityCurve} />}
+        {data.equityCurve && data.equityCurve.length >= 3 && <DrawdownChart equityCurve={data.equityCurve} />}
+        {data.profitFactor !== undefined && <ProfitMetricsRow data={data} />}
+        <AdvancedMetricsCard data={data} />
+        {/* P&L Calendar — trading section */}
+        {data.calendarDays && data.calendarDays.some((d) => d.pnl !== null) && (
+          <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>P&L CALENDAR</h3>
+            <PnLCalendar days={data.calendarDays} />
+          </div>
+        )}
+        {data.timeOfDay && data.timeOfDay.length > 0 && <TimeOfDayCard data={data.timeOfDay} />}
+        {data.durationStats && data.durationStats.length > 0 && <DurationStatsCard data={data.durationStats} />}
+        {data.symbols && data.symbols.length > 0 && <SymbolPerformanceTable data={data.symbols} />}
+        {data.setups && data.setups.length > 0 && <SetupPerformanceTable data={data.setups} />}
+        {data.monthlyStats && data.monthlyStats.length >= 2 && <MonthlyBreakdownTable data={data.monthlyStats} />}
+
+        {/* Psychology & mind section divider */}
+        {data.totalCheckins > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, marginTop: 8 }}>
+            <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", whiteSpace: "nowrap" }}>MIND LAYER</span>
+            <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
+          </div>
+        )}
+
+        {/* Psychology KPI row */}
+        {data.totalCheckins > 0 && (
+          <div className="analytics-kpi-grid" style={{ marginBottom: 20 }}>
+            {[
+              { label: "CHECK-INS", value: data.totalCheckins, color: "var(--blue)" },
+              { label: "AVG SCORE", value: data.avgScore ?? "—", color: scoreColor(data.avgScore), suffix: data.avgScore ? "/100" : "" },
+              { label: "STREAK", value: data.currentStreak > 0 ? `${data.currentStreak}` : "—", color: data.currentStreak >= 3 ? "var(--amber)" : "var(--text-muted)" },
+              { label: "DISCIPLINE", value: `${data.disciplinePct}%`, color: data.disciplinePct >= 80 ? "var(--green)" : data.disciplinePct >= 50 ? "var(--amber)" : "var(--red)" },
+            ].map((kpi) => (
+              <div key={kpi.label} className="card" style={{ padding: "16px 12px", textAlign: "center" }}>
+                <div className="font-bebas" style={{ fontSize: 26, color: kpi.color, lineHeight: 1, marginBottom: 4 }}>
+                  {kpi.value}{(kpi as { suffix?: string }).suffix ?? ""}
+                </div>
+                <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", lineHeight: 1.3 }}>{kpi.label}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Top Insight */}
         <TopInsightCard data={data} />
@@ -1456,23 +1930,8 @@ function AnalyticsPageInner() {
           <BestDaysCard data={data.byDayOfWeek} />
         )}
 
-        {/* NEW: Behavioral Patterns */}
+        {/* Behavioral Patterns */}
         {data.behavioralPatterns && <BehavioralPatternsCard data={data.behavioralPatterns} />}
-
-        {/* Equity Curve */}
-        {data.equityCurve && data.equityCurve.length >= 2 && <EquityCurveCard data={data.equityCurve} />}
-
-        {/* Drawdown */}
-        {data.equityCurve && data.equityCurve.length >= 3 && <DrawdownChart equityCurve={data.equityCurve} />}
-
-        {/* Profit Metrics */}
-        {data.profitFactor !== undefined && <ProfitMetricsRow data={data} />}
-
-        {/* Best Hours */}
-        {data.timeOfDay && data.timeOfDay.length > 0 && <TimeOfDayCard data={data.timeOfDay} />}
-
-        {/* Symbol Performance */}
-        {data.symbols && data.symbols.length > 0 && <SymbolPerformanceTable data={data.symbols} />}
 
         {/* CTA: Playbook */}
         <div className="card" style={{ padding: 24, textAlign: "center", border: "1px solid rgba(94,106,210,0.2)", background: "rgba(94,106,210,0.03)" }}>

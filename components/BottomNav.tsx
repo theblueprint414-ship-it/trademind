@@ -85,20 +85,6 @@ const MORE_ITEMS = [
     color: "#A78BFA",
   },
   {
-    href: "/bridge",
-    label: "EdgeBridge",
-    emoji: "🔗",
-    description: "Desktop sync for MT4/MT5",
-    color: "#3B82F6",
-  },
-  {
-    href: "/circles",
-    label: "Circles",
-    emoji: "👥",
-    description: "Group accountability",
-    color: "#EC4899",
-  },
-  {
     href: "/settings",
     label: "Settings",
     emoji: "⚙️",

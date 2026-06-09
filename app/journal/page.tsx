@@ -32,6 +32,8 @@ type TradeEntry = {
   duration: number | null;
   entryPrice: number | null;
   exitPrice: number | null;
+  mae: number | null;
+  mfe: number | null;
 };
 
 const EMOTION_LABELS = ["Terrible", "Bad", "Neutral", "Good", "Great"];
@@ -264,6 +266,8 @@ type FormState = {
   assetType: string;
   plannedEntry: string;
   entryPrice: string;
+  mae: string;
+  mfe: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -271,6 +275,7 @@ const EMPTY_FORM: FormState = {
   emotionBefore: null, emotionAfter: null,
   mistake: "", notes: "", tags: [], ictSetups: [], reflection: "", chartUrl: null,
   stopLoss: "", takeProfit: "", riskAmount: "", commission: "", assetType: "", plannedEntry: "", entryPrice: "",
+  mae: "", mfe: "",
 };
 
 export default function JournalPage() {
@@ -309,6 +314,7 @@ export default function JournalPage() {
   const [filterResult, setFilterResult] = useState<"all" | "win" | "loss">("all");
   const [filterPeriod, setFilterPeriod] = useState<"today" | "7d" | "30d" | "all">("today");
   const [showFilters, setShowFilters] = useState(false);
+  const [filterSetup, setFilterSetup] = useState<string>("all");
   const [csvResult, setCsvResult] = useState<{ imported: number; skipped: number; format: string } | null>(null);
   const [csvError, setCsvError] = useState<string | null>(null);
   const [chartUploading, setChartUploading] = useState(false);
@@ -439,6 +445,8 @@ export default function JournalPage() {
           commission: form.commission ? parseFloat(form.commission) : null,
           assetType: form.assetType || null,
           plannedEntry: form.plannedEntry ? parseFloat(form.plannedEntry) : null,
+          mae: form.mae ? parseFloat(form.mae) : null,
+          mfe: form.mfe ? parseFloat(form.mfe) : null,
         }),
       });
       const data = await res.json();
@@ -479,6 +487,8 @@ export default function JournalPage() {
       assetType: entry.assetType ?? "",
       plannedEntry: entry.plannedEntry !== null ? String(entry.plannedEntry) : "",
       entryPrice: entry.entryPrice !== null ? String(entry.entryPrice) : "",
+      mae: (entry as { mae?: number | null }).mae !== null && (entry as { mae?: number | null }).mae !== undefined ? String((entry as { mae?: number | null }).mae) : "",
+      mfe: (entry as { mfe?: number | null }).mfe !== null && (entry as { mfe?: number | null }).mfe !== undefined ? String((entry as { mfe?: number | null }).mfe) : "",
     });
   }
 
@@ -508,6 +518,8 @@ export default function JournalPage() {
           commission: editForm.commission ? parseFloat(editForm.commission) : null,
           assetType: editForm.assetType || null,
           plannedEntry: editForm.plannedEntry ? parseFloat(editForm.plannedEntry) : null,
+          mae: editForm.mae ? parseFloat(editForm.mae) : null,
+          mfe: editForm.mfe ? parseFloat(editForm.mfe) : null,
         }),
       });
       const data = await res.json();
@@ -596,7 +608,7 @@ export default function JournalPage() {
     setCsvUploading(false);
   }
 
-  const isFiltered = filterPeriod !== "today" || filterSide !== "all" || filterResult !== "all" || searchQuery.trim() !== "";
+  const isFiltered = filterPeriod !== "today" || filterSide !== "all" || filterResult !== "all" || searchQuery.trim() !== "" || filterSetup !== "all";
 
   const filteredEntries = useMemo(() => {
     const cutoff = (days: number) => {
@@ -616,8 +628,12 @@ export default function JournalPage() {
     if (filterSide !== "all") pool = pool.filter((e) => e.side === filterSide);
     if (filterResult === "win") pool = pool.filter((e) => (e.pnl ?? 0) > 0);
     if (filterResult === "loss") pool = pool.filter((e) => (e.pnl ?? 0) < 0);
+    if (filterSetup !== "all") pool = pool.filter((e) => {
+      if (!e.ictSetups) return false;
+      try { return (JSON.parse(e.ictSetups) as string[]).includes(filterSetup); } catch { return false; }
+    });
     return pool;
-  }, [entries, allEntries, filterPeriod, searchQuery, filterSide, filterResult]);
+  }, [entries, allEntries, filterPeriod, searchQuery, filterSide, filterResult, filterSetup]);
 
   const displayEntries = isFiltered ? filteredEntries : entries;
 
@@ -625,10 +641,11 @@ export default function JournalPage() {
     const rows = displayEntries.map((e) => [
       e.date, e.symbol ?? "", e.side ?? "", e.pnl ?? "", e.entryPrice ?? "", e.exitPrice ?? "",
       e.stopLoss ?? "", e.takeProfit ?? "", e.rMultiple ?? "", e.riskAmount ?? "", e.commission ?? "",
-      e.assetType ?? "", e.setup ?? "", e.checkinScore ?? "", e.duration ?? "",
+      e.assetType ?? "", e.mae ?? "", e.mfe ?? "",
+      e.setup ?? "", e.checkinScore ?? "", e.duration ?? "",
       e.emotionBefore ?? "", e.emotionAfter ?? "", (e.notes ?? "").replace(/,/g, ";"), (e.mistake ?? "").replace(/,/g, ";"),
     ]);
-    const header = ["Date","Symbol","Side","PnL","EntryPrice","ExitPrice","StopLoss","TakeProfit","RMultiple","RiskAmount","Commission","AssetType","Setup","MentalScore","DurationSec","EmotionBefore","EmotionAfter","Notes","Mistake"];
+    const header = ["Date","Symbol","Side","PnL","EntryPrice","ExitPrice","StopLoss","TakeProfit","RMultiple","RiskAmount","Commission","AssetType","MAE","MFE","Setup","MentalScore","DurationSec","EmotionBefore","EmotionAfter","Notes","Mistake"];
     const csv = [header, ...rows].map((r) => r.join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -639,6 +656,9 @@ export default function JournalPage() {
 
   const totalPnl = displayEntries.reduce((s, e) => s + (e.pnl ?? 0), 0);
   const hasPnl = displayEntries.some((e) => e.pnl !== null);
+  const filteredWithPnl = displayEntries.filter((e) => e.pnl !== null);
+  const filteredWinners = filteredWithPnl.filter((e) => (e.pnl ?? 0) > 0).length;
+  const filteredWinRate = filteredWithPnl.length > 0 ? Math.round((filteredWinners / filteredWithPnl.length) * 100) : null;
 
   const allPnl = allEntries.reduce((s, e) => s + (e.pnl ?? 0), 0);
   const allWithPnl = allEntries.filter((e) => e.pnl !== null);
@@ -883,6 +903,20 @@ export default function JournalPage() {
                   </div>
                 </div>
 
+                {/* MAE / MFE */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 4 }}>MAE ($)</label>
+                    <div style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 6 }}>Max move against you</div>
+                    <input type="number" placeholder="e.g. 120" value={f.mae} onChange={(e) => setF({ ...f, mae: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 4 }}>MFE ($)</label>
+                    <div style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 6 }}>Max move in your favor</div>
+                    <input type="number" placeholder="e.g. 350" value={f.mfe} onChange={(e) => setF({ ...f, mfe: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                  </div>
+                </div>
+
                 {/* Asset Type */}
                 <div>
                   <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>ASSET TYPE</label>
@@ -982,6 +1016,28 @@ export default function JournalPage() {
                 </p>
               </>
             )}
+          </div>
+        )}
+
+        {/* Filtered stats bar — shown when filter active */}
+        {isFiltered && filteredWithPnl.length > 0 && (
+          <div style={{ marginBottom: 12, padding: "12px 16px", borderRadius: 12, background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.2)", display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+            <div style={{ textAlign: "center" }}>
+              <div className="font-bebas" style={{ fontSize: 20, color: totalPnl >= 0 ? "var(--green)" : "var(--red)", lineHeight: 1 }}>
+                {totalPnl >= 0 ? "+" : ""}${Math.abs(totalPnl).toFixed(0)}
+              </div>
+              <div style={{ fontSize: 9, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.06em", marginTop: 3 }}>FILTERED P&L</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div className="font-bebas" style={{ fontSize: 20, color: (filteredWinRate ?? 0) >= 50 ? "var(--green)" : "var(--red)", lineHeight: 1 }}>
+                {filteredWinRate !== null ? `${filteredWinRate}%` : "—"}
+              </div>
+              <div style={{ fontSize: 9, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.06em", marginTop: 3 }}>WIN RATE</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div className="font-bebas" style={{ fontSize: 20, color: "var(--blue)", lineHeight: 1 }}>{displayEntries.length}</div>
+              <div style={{ fontSize: 9, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.06em", marginTop: 3 }}>TRADES</div>
+            </div>
           </div>
         )}
 
@@ -1445,8 +1501,25 @@ export default function JournalPage() {
                   </div>
                 </div>
 
+                {/* ICT/SMC Setup */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 8 }}>ICT / SMC SETUP</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    <button type="button" onClick={() => setFilterSetup("all")}
+                      style={{ padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1.5px solid ${filterSetup === "all" ? "var(--blue)" : "var(--border)"}`, background: filterSetup === "all" ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: filterSetup === "all" ? "var(--blue)" : "var(--text-muted)", transition: "all 0.15s" }}>
+                      All
+                    </button>
+                    {ICT_SETUPS.map(({ code, label }) => (
+                      <button type="button" key={code} onClick={() => setFilterSetup(code === filterSetup ? "all" : code)}
+                        style={{ padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${filterSetup === code ? "var(--blue)" : "var(--border)"}`, background: filterSetup === code ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: filterSetup === code ? "var(--blue)" : "var(--text-muted)", transition: "all 0.15s", letterSpacing: "0.03em" }}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 {isFiltered && (
-                  <button onClick={() => { setSearchQuery(""); setFilterSide("all"); setFilterResult("all"); setFilterPeriod("today"); }}
+                  <button onClick={() => { setSearchQuery(""); setFilterSide("all"); setFilterResult("all"); setFilterPeriod("today"); setFilterSetup("all"); }}
                     style={{ alignSelf: "flex-start", fontSize: 12, color: "var(--red)", background: "none", border: "none", cursor: "pointer", padding: 0, fontWeight: 600 }}>
                     ✕ Clear all filters
                   </button>
@@ -1659,6 +1732,27 @@ export default function JournalPage() {
                           )}
                           {entry.commission !== null && (
                             <span>fees: ${entry.commission.toFixed(2)}</span>
+                          )}
+                        </div>
+                      )}
+                      {(entry.mae !== null || entry.mfe !== null) && (
+                        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", fontSize: 12, color: "var(--text-muted)", marginBottom: 8 }}>
+                          {entry.mae !== null && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <span style={{ color: "var(--red)", fontWeight: 700, fontSize: 10, letterSpacing: "0.06em" }}>MAE</span>
+                              <span style={{ fontFamily: "var(--font-geist-mono)", color: "var(--red)" }}>${entry.mae.toFixed(0)}</span>
+                            </span>
+                          )}
+                          {entry.mfe !== null && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                              <span style={{ color: "var(--green)", fontWeight: 700, fontSize: 10, letterSpacing: "0.06em" }}>MFE</span>
+                              <span style={{ fontFamily: "var(--font-geist-mono)", color: "var(--green)" }}>${entry.mfe.toFixed(0)}</span>
+                            </span>
+                          )}
+                          {entry.mae !== null && entry.mfe !== null && entry.pnl !== null && entry.mfe > 0 && (
+                            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                              {Math.round((entry.pnl / entry.mfe) * 100)}% efficiency
+                            </span>
                           )}
                         </div>
                       )}

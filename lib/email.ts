@@ -1,12 +1,14 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.AUTH_RESEND_KEY);
+function getResend() {
+  return new Resend(process.env.AUTH_RESEND_KEY ?? "re_placeholder");
+}
 const FROM = process.env.AUTH_EMAIL_FROM ?? "TradeMind <noreply@trademindedge.com>";
 const BASE_URL = "https://trademindedge.com";
 
 export async function sendWelcomeEmail(to: string, name?: string) {
   const firstName = name?.split(" ")[0] ?? "Trader";
-  await resend.emails.send({
+  await getResend().emails.send({
     from: FROM,
     to,
     subject: "Your TradeMind account is ready — first check-in takes 60 seconds",

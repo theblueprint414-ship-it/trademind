@@ -44,19 +44,13 @@ model User {
   trades            Trade[]
   tradeEntries      TradeEntry[]
   playbook          Playbook?
-  partnersAsA       Partnership[]    @relation("PartnerA")
-  partnersAsB       Partnership[]    @relation("PartnerB")
-  invitesSent       PartnerInvite[]
-  brokerConnection  BrokerConnection?
+  brokerConnections BrokerConnection[]
   circuitBreaker    CircuitBreaker?
   cbOverrides       CircuitBreakerOverride[]
-  circlesCreated    Circle[]
-  circleMembers     CircleMember[]
   dailyRecaps       DailyRecap[]
   referral          Referral?
   pushSubscriptions PushSubscription[]
   midSessionCheckins MidSessionCheckin[]
-  bridgeTokens      BridgeToken[]
   preTradeRituals   PreTradeRitual[]
 }
 
@@ -131,42 +125,23 @@ model Trade {
   @@index([userId, date])
 }
 
-model Partnership {
-  id        String   @id @default(cuid())
-  userAId   String
-  userBId   String
-  status    String   @default("active")
-  createdAt DateTime @default(now())
-
-  userA User @relation("PartnerA", fields: [userAId], references: [id], onDelete: Cascade)
-  userB User @relation("PartnerB", fields: [userBId], references: [id], onDelete: Cascade)
-
-  @@unique([userAId, userBId])
-}
-
 model BrokerConnection {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  broker      String   // "alpaca" | "binance" | "ibkr" | "bybit"
-  apiKey      String
-  apiSecret   String?
-  environment String   @default("live") // "live" | "paper"
-  status      String   @default("active") // "active" | "error"
-  lastSyncAt  DateTime?
-  createdAt   DateTime @default(now())
+  id              String   @id @default(cuid())
+  userId          String
+  name            String?  // user-defined label, e.g. "FTMO Apex"
+  broker          String   // "alpaca" | "binance" | "ibkr" | "bybit" | "tradovate" | "dxtrade"
+  apiKey          String
+  apiSecret       String?
+  environment     String   @default("live") // "live" | "paper" | domain for DXTrade
+  status          String   @default("active") // "active" | "error"
+  startingBalance Float?   // account starting balance for % return calculation
+  lastSyncAt      DateTime?
+  createdAt       DateTime @default(now())
 
+  tradeEntries TradeEntry[]
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
 
-model PartnerInvite {
-  id        String   @id @default(cuid())
-  fromId    String
-  toEmail   String
-  token     String   @unique @default(cuid())
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
-
-  from User @relation(fields: [fromId], references: [id], onDelete: Cascade)
+  @@index([userId])
 }
 
 model TradeEntry {
@@ -201,11 +176,15 @@ model TradeEntry {
   duration      Int?     // seconds from entry to exit
   isPublic      Boolean  @default(false)
   // ICT/SMC structured tags + source tracking
-  ictSetups     String?  // JSON array e.g. ["FVG","OB","BOS"]
-  source        String?  // "manual"|"edgebridge"|"csv"
-  brokerTradeId String?  // broker-side trade ID for dedup
-  createdAt     DateTime @default(now())
+  ictSetups          String?  // JSON array e.g. ["FVG","OB","BOS"]
+  source             String?  // "manual"|"broker"|"csv"
+  brokerTradeId      String?  // broker-side trade ID for dedup
+  brokerConnectionId String?  // which BrokerConnection this came from
+  mae                Float?   // Maximum Adverse Excursion ($)
+  mfe                Float?   // Maximum Favorable Excursion ($)
+  createdAt          DateTime @default(now())
 
+  brokerConnection BrokerConnection? @relation(fields: [brokerConnectionId], references: [id], onDelete: SetNull)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
@@ -226,29 +205,6 @@ model MidSessionCheckin {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, date])
-}
-
-model Circle {
-  id        String   @id @default(cuid())
-  name      String
-  createdBy String
-  token     String   @unique @default(cuid())
-  createdAt DateTime @default(now())
-
-  creator User           @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  members CircleMember[]
-}
-
-model CircleMember {
-  id       String   @id @default(cuid())
-  circleId String
-  userId   String
-  joinedAt DateTime @default(now())
-
-  circle Circle @relation(fields: [circleId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([circleId, userId])
 }
 
 model Playbook {
@@ -352,21 +308,6 @@ model CircuitBreakerOverride {
 
   @@index([userId])
   @@index([userId, createdAt])
-}
-
-model BridgeToken {
-  id         String    @id @default(cuid())
-  userId     String
-  token      String    @unique @default(cuid())
-  deviceName String?
-  platform   String?   // "windows"|"mac"|"linux"
-  brokers    String?   // JSON array of connected brokers
-  lastUsedAt DateTime?
-  createdAt  DateTime  @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }
 
 model PreTradeRitual {

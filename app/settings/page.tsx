@@ -90,11 +90,16 @@ export default function SettingsPage() {
     custom:      { dailyLimit: "5", maxDrawdown: "10", profitTarget: "10", tradingDays: "0" },
   };
 
-  // Broker
+  // Broker (multi-account)
+  type BrokerConn = { id: string; name: string | null; broker: string; environment: string; status: string; lastSyncAt: string | null; startingBalance: number | null };
+  const [brokerConns, setBrokerConns] = useState<BrokerConn[]>([]);
   const [broker, setBroker] = useState<{ broker: string; status: string; lastSyncAt: string | null } | null>(null);
   const [brokerLoading, setBrokerLoading] = useState(true);
-  const [disconnecting, setDisconnecting] = useState(false);
-  const [disconnectConfirm, setDisconnectConfirm] = useState(false);
+  const [disconnecting, setDisconnecting] = useState<string | null>(null);
+  const [disconnectConfirmId, setDisconnectConfirmId] = useState<string | null>(null);
+  const [editingConnId, setEditingConnId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [editingBalance, setEditingBalance] = useState("");
 
   // Circuit Breaker
   const [cb, setCb] = useState<{ isActive: boolean; dailyLimit: number; scoreAdaptive: boolean; extensionToken: string; resetHour: number } | null>(null);
@@ -162,10 +167,15 @@ export default function SettingsPage() {
       .then((d) => { if (d.code) setReferral(d); })
       .catch(() => {});
 
-    // Load broker
+    // Load broker connections
     fetch("/api/broker")
       .then((r) => r.json())
-      .then((d) => { if (d.connected) setBroker(d); })
+      .then((d) => {
+        if (d.connected) {
+          setBroker(d);
+          setBrokerConns(d.connections ?? []);
+        }
+      })
       .catch(() => {})
       .finally(() => setBrokerLoading(false));
 
@@ -338,13 +348,26 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 2000);
   }
 
-  async function disconnectBroker() {
-    setDisconnecting(true);
-    await fetch("/api/broker", { method: "DELETE" });
-    setBroker(null);
-    setDisconnecting(false);
-    setDisconnectConfirm(false);
+  async function disconnectBroker(id: string) {
+    setDisconnecting(id);
+    await fetch("/api/broker", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    const updated = brokerConns.filter((c) => c.id !== id);
+    setBrokerConns(updated);
+    if (updated.length === 0) setBroker(null);
+    setDisconnecting(null);
+    setDisconnectConfirmId(null);
     showToast("Broker disconnected", "info");
+  }
+
+  async function saveConnEdit(id: string) {
+    await fetch("/api/broker", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, name: editingName, startingBalance: editingBalance ? Number(editingBalance) : null }),
+    });
+    setBrokerConns((prev) => prev.map((c) => c.id === id ? { ...c, name: editingName || null, startingBalance: editingBalance ? Number(editingBalance) : null } : c));
+    setEditingConnId(null);
+    showToast("Account updated", "success");
   }
 
   function scheduleReminder(timeStr: string) {
@@ -440,6 +463,7 @@ export default function SettingsPage() {
     alpaca: { abbr: "ALP", color: "#00E87A" }, binance: { abbr: "BNB", color: "#F0B90B" },
     bybit: { abbr: "BYB", color: "#F7A600" }, coinbase: { abbr: "CB", color: "#0052FF" },
     kraken: { abbr: "KRK", color: "#5741D9" }, tradovate: { abbr: "TRD", color: "#5e6ad2" },
+    dxtrade: { abbr: "DXT", color: "#00B4D8" },
     tradestation: { abbr: "TS", color: "#FF3B5C" }, ibkr: { abbr: "IB", color: "#CC0000" }, mt4: { abbr: "MT4", color: "#2196F3" },
   };
 
@@ -857,55 +881,78 @@ export default function SettingsPage() {
           </div>
           {brokerLoading ? (
             <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Loading...</p>
-          ) : broker ? (
+          ) : brokerConns.length > 0 ? (
             <>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 0", borderBottom: "1px solid var(--border)", marginBottom: 16 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 8, background: `${(BROKER_META[broker.broker] ?? BROKER_META.alpaca).color}20`, border: `1px solid ${(BROKER_META[broker.broker] ?? BROKER_META.alpaca).color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 800, color: (BROKER_META[broker.broker] ?? BROKER_META.alpaca).color, letterSpacing: "0.04em", flexShrink: 0 }}>{(BROKER_META[broker.broker] ?? { abbr: broker.broker.slice(0,3).toUpperCase() }).abbr}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 700, fontSize: 15, textTransform: "capitalize" }}>{broker.broker}</div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "var(--text-muted)", marginTop: 2 }}>
-                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: broker.status === "active" ? "var(--green)" : "var(--red)" }} />
-                    {broker.status === "active" ? "Connected" : "Error"}
-                    {broker.lastSyncAt && (
-                      <span style={{ marginLeft: 8 }}>· Last sync: {new Date(broker.lastSyncAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
-                    )}
-                  </div>
-                </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+                {brokerConns.map((conn) => {
+                  const meta = BROKER_META[conn.broker] ?? { abbr: conn.broker.slice(0, 3).toUpperCase(), color: "#888" };
+                  const isEditing = editingConnId === conn.id;
+                  const isConfirmDisconnect = disconnectConfirmId === conn.id;
+                  return (
+                    <div key={conn.id} style={{ borderRadius: 12, border: `1px solid ${conn.status === "error" ? "rgba(255,59,92,0.3)" : "var(--border)"}`, background: "var(--surface2)", padding: "14px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: isEditing ? 12 : 0 }}>
+                        <div style={{ width: 38, height: 38, borderRadius: 8, background: `${meta.color}20`, border: `1px solid ${meta.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: meta.color, letterSpacing: "0.04em", flexShrink: 0 }}>{meta.abbr}</div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontWeight: 700, fontSize: 14, textTransform: "capitalize" }}>{conn.name ?? conn.broker}</div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", marginTop: 2, flexWrap: "wrap" }}>
+                            <div style={{ width: 6, height: 6, borderRadius: "50%", background: conn.status === "active" ? "var(--green)" : "var(--red)", flexShrink: 0 }} />
+                            {conn.status === "active" ? "Connected" : "Error"}
+                            {conn.lastSyncAt && <span>· Synced {new Date(conn.lastSyncAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>}
+                            {conn.startingBalance && <span>· ${conn.startingBalance.toLocaleString()} account</span>}
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                          <button type="button" onClick={() => { if (isEditing) { setEditingConnId(null); } else { setEditingConnId(conn.id); setEditingName(conn.name ?? ""); setEditingBalance(conn.startingBalance ? String(conn.startingBalance) : ""); } }}
+                            style={{ background: "none", border: "1px solid var(--border)", borderRadius: 6, padding: "5px 8px", fontSize: 11, color: "var(--text-muted)", cursor: "pointer" }}>
+                            {isEditing ? "Cancel" : "Edit"}
+                          </button>
+                          <button type="button" onClick={() => setDisconnectConfirmId(conn.id)}
+                            style={{ background: "none", border: "1px solid rgba(255,59,92,0.3)", borderRadius: 6, padding: "5px 8px", fontSize: 11, color: "var(--red)", cursor: "pointer" }}>
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+
+                      {isEditing && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                          <div>
+                            <label style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Account label</label>
+                            <input value={editingName} onChange={(e) => setEditingName(e.target.value)} placeholder={`e.g. "FTMO ${conn.broker} main"`}
+                              style={{ width: "100%", background: "var(--surface3)", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "var(--text)", outline: "none" }} />
+                          </div>
+                          <div>
+                            <label style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginBottom: 4 }}>Starting balance ($) — for % return</label>
+                            <input type="number" value={editingBalance} onChange={(e) => setEditingBalance(e.target.value)} placeholder="e.g. 50000"
+                              style={{ width: "100%", background: "var(--surface3)", border: "1px solid var(--border)", borderRadius: 8, padding: "8px 10px", fontSize: 13, color: "var(--text)", outline: "none" }} />
+                          </div>
+                          <button type="button" className="btn-primary" style={{ fontSize: 13, padding: "9px 0" }} onClick={() => saveConnEdit(conn.id)}>Save</button>
+                        </div>
+                      )}
+
+                      {isConfirmDisconnect && (
+                        <div style={{ marginTop: 10, padding: "12px 14px", borderRadius: 8, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.2)" }}>
+                          <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 10, lineHeight: 1.5 }}>Remove this connection? Trades already synced stay in your journal.</p>
+                          <div style={{ display: "flex", gap: 8 }}>
+                            <button type="button" className="btn-ghost" style={{ flex: 1, fontSize: 13 }} onClick={() => setDisconnectConfirmId(null)}>Cancel</button>
+                            <button type="button" className="btn-ghost" style={{ flex: 1, fontSize: 13, color: "var(--red)", borderColor: "rgba(255,45,45,0.3)" }} onClick={() => disconnectBroker(conn.id)} disabled={disconnecting === conn.id}>
+                              {disconnecting === conn.id ? "Removing..." : "Yes, remove"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-              {disconnectConfirm ? (
-                <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.2)" }}>
-                  <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 12, lineHeight: 1.5 }}>Disconnect your broker? You can reconnect anytime from onboarding.</p>
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button className="btn-ghost" style={{ flex: 1, fontSize: 13 }} onClick={() => setDisconnectConfirm(false)}>Cancel</button>
-                    <button className="btn-ghost" style={{ flex: 1, fontSize: 13, color: "var(--red)", borderColor: "rgba(255,45,45,0.3)" }} onClick={disconnectBroker} disabled={disconnecting}>
-                      {disconnecting ? "Disconnecting..." : "Yes, disconnect"}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: "flex", gap: 10 }}>
-                  {broker.broker === "tradovate" ? (
-                    <Link href="/settings/tradovate" style={{ flex: 1 }}>
-                      <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }}>Manage Tradovate →</button>
-                    </Link>
-                  ) : (
-                    <Link href="/onboarding" style={{ flex: 1 }}>
-                      <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }}>Change Broker</button>
-                    </Link>
-                  )}
-                  <button className="btn-ghost" style={{ fontSize: 13, color: "var(--red)", borderColor: "rgba(255,45,45,0.3)" }} onClick={() => setDisconnectConfirm(true)}>
-                    Disconnect
-                  </button>
-                </div>
-              )}
+              <Link href="/onboarding">
+                <button type="button" className="btn-ghost" style={{ fontSize: 13, width: "100%" }}>+ Add another broker account</button>
+              </Link>
             </>
           ) : (
             <div>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>No broker connected. Connect one to auto-count your trades and sync your journal automatically.</p>
-
-              {/* Quick Tradovate connect — most common futures prop firm platform */}
+              <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>No broker connected. Connect one to auto-sync your journal and count trades automatically.</p>
               <Link href="/settings/tradovate" style={{ display: "block", textDecoration: "none", marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", borderRadius: 12, background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.3)", cursor: "pointer", transition: "border-color 0.15s" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "16px 18px", borderRadius: 12, background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.3)", cursor: "pointer" }}>
                   <div style={{ width: 36, height: 36, borderRadius: 9, background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "var(--blue)", letterSpacing: "0.05em", flexShrink: 0 }}>TRD</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>Tradovate</div>
@@ -914,15 +961,15 @@ export default function SettingsPage() {
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--text-muted)", flexShrink: 0 }}><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
               </Link>
-
               <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(94,106,210,0.04)", border: "1px solid rgba(94,106,210,0.12)", marginBottom: 16, fontSize: 12, color: "var(--text-dim)", lineHeight: 1.9 }}>
                 <div style={{ fontWeight: 700, color: "var(--text)", marginBottom: 5 }}>Other brokers</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "#FF6B35", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>MT4/MT5</strong> — FTMO, IC Markets, Pepperstone, FxFlat</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "#00B4D8", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>DXTrade</strong> — FTMO, BrightFunded, Funded Trading Plus, DNA Funded</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "#FF6B35", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>MT4/MT5</strong> — IC Markets, Pepperstone, FxFlat via MetaApi</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "#00C896", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>TopstepX</strong> — TopstepX funded accounts</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}><span style={{ width: 7, height: 7, borderRadius: "50%", background: "#F0B90B", flexShrink: 0, display: "inline-block" }} /><strong style={{ color: "var(--text)" }}>Binance / Bybit / Kraken / Coinbase</strong> — crypto exchanges</div>
               </div>
               <Link href="/onboarding">
-                <button className="btn-ghost" style={{ fontSize: 13, width: "100%" }}>Connect another broker →</button>
+                <button type="button" className="btn-ghost" style={{ fontSize: 13, width: "100%" }}>Connect a broker →</button>
               </Link>
             </div>
           )}
