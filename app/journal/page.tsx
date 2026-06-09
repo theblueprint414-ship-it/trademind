@@ -583,6 +583,8 @@ export default function JournalPage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [csvResult, setCsvResult] = useState<{ imported: number; skipped: number; format: string } | null>(null);
   const [csvError, setCsvError] = useState<string | null>(null);
+  const [aiDetecting, setAiDetecting] = useState(false);
+  const [aiDetectedFormat, setAiDetectedFormat] = useState<string | null>(null);
   const [chartUploading, setChartUploading] = useState(false);
   const [chartUploadError, setChartUploadError] = useState<string | null>(null);
   const [pretradeRitualDone, setPretradeRitualDone] = useState(false);
@@ -868,6 +870,36 @@ export default function JournalPage() {
     }
     setDeletingId(null);
     setDeleteConfirmId(null);
+  }
+
+  async function handleAiDetect() {
+    if (!csvPendingFile || !csvHeaders) return;
+    setAiDetecting(true);
+    setCsvError(null);
+    try {
+      const text = await csvPendingFile.text();
+      const lines = text.split(/\r?\n/).filter(Boolean);
+      const sampleRows = lines.slice(1, 4).map((l) => l.split(",").map((v) => v.trim().replace(/^"|"$/g, "")));
+      const res = await fetch("/api/broker/csv-ai-map", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ headers: csvHeaders, sampleRows }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setCsvError(data.error ?? "AI detection failed");
+      } else {
+        const m: Record<string, number> = {};
+        for (const [k, v] of Object.entries(data.mapping as Record<string, number>)) {
+          if (v >= 0) m[k] = v;
+        }
+        setCsvMapping(m);
+        setAiDetectedFormat("AI");
+      }
+    } catch {
+      setCsvError("AI detection failed. Please map columns manually.");
+    }
+    setAiDetecting(false);
   }
 
   async function handleCsvUpload(file: File, mapping?: Record<string, number>) {
@@ -1316,9 +1348,28 @@ export default function JournalPage() {
                 const canSubmit = csvPendingFile && ["date", "symbol", "pnl"].every((k) => csvMapping[k] !== undefined);
                 return (
                   <>
-                    <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 20 }}>
-                      We couldn&apos;t auto-detect your CSV format. Tell us which column is which — required fields marked with *.
-                    </p>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+                      <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, margin: 0 }}>
+                        We couldn&apos;t auto-detect your CSV format. Use AI or map manually — required fields marked with *.
+                      </p>
+                    </div>
+                    {aiDetectedFormat && (
+                      <div style={{ marginBottom: 14, padding: "8px 12px", borderRadius: 8, background: "rgba(0,232,122,0.07)", border: "1px solid rgba(0,232,122,0.25)", fontSize: 12, color: "var(--green)", display: "flex", alignItems: "center", gap: 6 }}>
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3 3 6-6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        AI mapped your columns — review below and adjust if needed
+                      </div>
+                    )}
+                    <button
+                      onClick={handleAiDetect}
+                      disabled={aiDetecting}
+                      style={{ width: "100%", marginBottom: 16, padding: "10px 0", borderRadius: 10, border: "1px solid rgba(94,106,210,0.4)", background: "rgba(94,106,210,0.08)", color: "var(--blue)", fontSize: 13, fontWeight: 700, cursor: aiDetecting ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+                    >
+                      {aiDetecting ? (
+                        <><svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ animation: "spin 1s linear infinite" }}><circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.5" strokeDasharray="20 15" strokeLinecap="round"/></svg> Detecting with AI...</>
+                      ) : (
+                        <><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5l1.2 3.7h3.9l-3.2 2.3 1.2 3.7L7 9l-3.1 2.2 1.2-3.7L1.9 5.2h3.9L7 1.5z" fill="currentColor"/></svg> Auto-detect columns with AI</>
+                      )}
+                    </button>
                     <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
                       {FIELDS.map((f) => (
                         <div key={f.key} style={{ display: "grid", gridTemplateColumns: "160px 1fr", alignItems: "center", gap: 12 }}>

@@ -92,6 +92,8 @@ type AnalyticsData = {
   filterEndDate?: string | null;
   tagStats?: { tag: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number }[];
   mistakeStats?: { mistake: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number }[];
+  avgHoldByHour?: { hour: number; avgSec: number; trades: number }[];
+  commissionDrainPct?: number | null;
 };
 
 function verdictColor(verdict: string | null) {
@@ -1269,6 +1271,31 @@ function DurationStatsCard({ data }: { data: NonNullable<AnalyticsData["duration
   );
 }
 
+function TimeInPositionCard({ data }: { data: NonNullable<AnalyticsData["avgHoldByHour"]> }) {
+  if (data.length === 0) return null;
+  const maxSec = Math.max(...data.map((d) => d.avgSec), 1);
+  const fmtDur = (s: number) => s >= 3600 ? `${(s / 3600).toFixed(1)}h` : s >= 60 ? `${Math.round(s / 60)}m` : `${s}s`;
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 4 }}>AVG HOLD TIME BY HOUR</h3>
+      <p style={{ fontSize: 12, color: "var(--text-dim)", marginBottom: 16 }}>How long you typically stay in a trade based on entry hour</p>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 80 }}>
+        {data.map((d) => {
+          const heightPct = Math.round((d.avgSec / maxSec) * 100);
+          const label = `${d.hour}:00`;
+          return (
+            <div key={d.hour} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+              <div style={{ fontSize: 9, color: "var(--text-muted)", whiteSpace: "nowrap" }}>{fmtDur(d.avgSec)}</div>
+              <div style={{ width: "100%", height: heightPct, background: "rgba(94,106,210,0.5)", borderRadius: "3px 3px 0 0", minHeight: 4 }} />
+              <div style={{ fontSize: 9, color: "var(--text-dim)", whiteSpace: "nowrap" }}>{label}</div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function TagStatsCard({ data }: { data: NonNullable<AnalyticsData["tagStats"]> }) {
   if (data.length === 0) return null;
   const maxAbs = Math.max(...data.map((d) => Math.abs(d.totalPnl)), 1);
@@ -1349,6 +1376,13 @@ function AdvancedMetricsCard({ data }: { data: AnalyticsData }) {
       sub: `${data.totalTrades > 0 ? `$${((data.totalCommissions ?? 0) / data.totalTrades).toFixed(1)}/trade` : ""}`,
       color: "var(--red)",
     });
+    if (data.commissionDrainPct !== null && data.commissionDrainPct !== undefined) {
+      metrics.push({
+        label: "FEE DRAG", value: `${data.commissionDrainPct.toFixed(1)}%`,
+        sub: "of gross P&L",
+        color: data.commissionDrainPct > 20 ? "var(--red)" : data.commissionDrainPct > 10 ? "var(--amber)" : "var(--text-muted)",
+      });
+    }
   }
 
   if (data.pctReturn !== undefined && data.pctReturn !== null) {
@@ -1834,6 +1868,7 @@ function AnalyticsPageInner() {
         )}
         {data.timeOfDay && data.timeOfDay.length > 0 && <TimeOfDayCard data={data.timeOfDay} />}
         {data.durationStats && data.durationStats.length > 0 && <DurationStatsCard data={data.durationStats} />}
+        {data.avgHoldByHour && data.avgHoldByHour.length > 0 && <TimeInPositionCard data={data.avgHoldByHour} />}
         {data.symbols && data.symbols.length > 0 && <SymbolPerformanceTable data={data.symbols} />}
         {data.setups && data.setups.length > 0 && <SetupPerformanceTable data={data.setups} />}
         {data.tagStats && data.tagStats.length > 0 && <TagStatsCard data={data.tagStats} />}

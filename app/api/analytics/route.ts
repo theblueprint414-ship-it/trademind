@@ -456,6 +456,25 @@ export async function GET(request: NextRequest) {
     };
   }).filter((b) => b.trades > 0);
 
+  // ── Avg hold duration by hour of day ────────────────────────────────────
+  const holdByHour: Record<number, { totalSec: number; count: number }> = {};
+  for (const t of tradeEntries) {
+    if (t.duration === null || t.duration === undefined) continue;
+    const entryHour = t.entryTime ? new Date(t.entryTime).getHours() : (t.date ? new Date(t.date + "T12:00:00").getHours() : null);
+    if (entryHour === null) continue;
+    if (!holdByHour[entryHour]) holdByHour[entryHour] = { totalSec: 0, count: 0 };
+    holdByHour[entryHour].totalSec += t.duration;
+    holdByHour[entryHour].count++;
+  }
+  const avgHoldByHour = Object.entries(holdByHour)
+    .map(([h, v]) => ({ hour: parseInt(h), avgSec: Math.round(v.totalSec / v.count), trades: v.count }))
+    .sort((a, b) => a.hour - b.hour);
+
+  // ── Commission drain ─────────────────────────────────────────────────────
+  const commissionDrainPct = totalGrossPnl !== 0
+    ? Math.round((totalCommissions / Math.abs(totalGrossPnl)) * 10000) / 100
+    : null;
+
   // ── Day of week (full 0–6) ────────────────────────────────────────────────
   const DOW_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const dowMap: Record<number, { pnl: number; trades: number; wins: number }> = {};
@@ -483,6 +502,7 @@ export async function GET(request: NextRequest) {
     totalPnl: Math.round(totalGrossPnl * 100) / 100,
     totalNetPnl: Math.round(totalNetPnl * 100) / 100,
     totalCommissions: Math.round(totalCommissions * 100) / 100,
+    commissionDrainPct,
     winRate, totalTrades: tradeEntries.length,
     pctReturn, startingBalance,
     // ── Streaks ──
@@ -491,7 +511,7 @@ export async function GET(request: NextRequest) {
     profitableDayStreak,
     // ── Charts & tables ──
     timeOfDay, dayOfWeek, symbols, setups, monthlyStats,
-    equityCurve, durationStats, tagStats, mistakeStats,
+    equityCurve, durationStats, tagStats, mistakeStats, avgHoldByHour,
     // ── Risk metrics ──
     profitFactor, expectancy, avgWin,
     avgLoss: avgLossTrade,

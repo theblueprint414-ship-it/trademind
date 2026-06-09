@@ -113,6 +113,31 @@ function detectFormat(raw: string[]): DetectedCols | null {
     return { date: idx(h, "exitdate", "entrydate", "date"), symbol: idx(h, "symbol"), side: idx(h, "type", "side", "direction"), pnl: idx(h, "totalpl", "netprofit", "pnl", "profit"), entryPrice: idx(h, "entryprice"), exitPrice: idx(h, "exitprice"), commission: idx(h, "commission"), entryTime: idx(h, "entrytime", "entrydate"), format: "TradeStation" };
   }
 
+  // Quantower — "baseasset" or "tradingpair" or "fillside" columns
+  if (h.some((x) => x === "baseasset" || x === "tradingpair" || x === "fillside" || x === "tradeside")) {
+    return { date: idx(h, "closetime", "opentime", "time", "date"), symbol: idx(h, "baseasset", "tradingpair", "symbol", "instrument"), side: idx(h, "fillside", "tradeside", "side", "direction"), pnl: idx(h, "grossprofit", "netprofit", "realizedpnl", "pnl", "profit"), entryPrice: idx(h, "avgopenprice", "openprice", "entryprice", "price"), exitPrice: idx(h, "avgcloseprice", "closeprice", "exitprice"), commission: idx(h, "commission", "fees"), entryTime: idx(h, "opentime", "entrytime", "time"), format: "Quantower" };
+  }
+
+  // FTMO / prop firm MT4 export — "comment" column + ticket + swap (FTMO-specific)
+  if (h.some((x) => x === "swap") && h.some((x) => x === "ticket" || x === "order") && h.includes("profit")) {
+    return { date: idx(h, "closetime", "time"), symbol: idx(h, "symbol", "item"), side: idx(h, "type", "action"), pnl: idx(h, "profit"), entryPrice: idx(h, "openprice", "price"), exitPrice: idx(h, "closeprice"), commission: idx(h, "commission"), entryTime: idx(h, "opentime", "time"), format: "FTMO/MT4" };
+  }
+
+  // Topstep / Rithmic-style — "accountid" or "execid" or "clorderid" columns
+  if (h.some((x) => x === "accountid" || x === "execid" || x === "clorderid" || x === "fillid")) {
+    return { date: idx(h, "filltime", "exectime", "timestamp", "date"), symbol: idx(h, "symbol", "instrument", "contract"), side: idx(h, "side", "bs", "buysell", "direction"), pnl: idx(h, "pnl", "realizedpnl", "profit", "pl"), entryPrice: idx(h, "execprice", "fillprice", "price"), exitPrice: -1, commission: idx(h, "commission", "fees"), entryTime: idx(h, "filltime", "exectime", "timestamp"), format: "Rithmic/Topstep" };
+  }
+
+  // Apex Trader Funding — "tradeid" or "orderid" with "instrumentsymbol"
+  if (h.some((x) => x === "instrumentsymbol" || x === "tradeid") && h.some((x) => x.includes("realized"))) {
+    return { date: idx(h, "exittime", "closetime", "date"), symbol: idx(h, "instrumentsymbol", "symbol", "instrument"), side: idx(h, "tradetype", "side", "direction", "action"), pnl: idx(h, "realizedpnl", "netpl", "profitloss"), entryPrice: idx(h, "entryprice", "avgentryprice"), exitPrice: idx(h, "exitprice", "avgexitprice"), commission: idx(h, "commission", "fees"), entryTime: idx(h, "entrytime", "entrydate"), format: "Apex/Funded" };
+  }
+
+  // ATAS / OrderFlow+ — "bartime" or "signature" or "magicnumber" columns
+  if (h.some((x) => x === "bartime" || x === "magicnumber" || x === "signature" || x === "ordernotes")) {
+    return { date: idx(h, "closetime", "bartime", "exittime"), symbol: idx(h, "symbol", "instrument"), side: idx(h, "direction", "side", "type"), pnl: idx(h, "profit", "pnl", "realizedpnl"), entryPrice: idx(h, "entryprice", "openprice"), exitPrice: idx(h, "exitprice", "closeprice"), commission: idx(h, "commission", "fees"), entryTime: idx(h, "entrytime", "bartime", "opentime"), format: "ATAS" };
+  }
+
   // Generic fallback — needs at least a date col + pnl col
   const dateIdx = idx(h, "date", "datetime", "closetime", "opentime", "time", "close");
   const pnlIdx  = idx(h, "pnl", "pl", "profit", "realizedpl", "netpl", "profitloss");
