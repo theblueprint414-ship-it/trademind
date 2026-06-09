@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     db.checkin.findMany({ where: checkinWhere, orderBy: { date: "desc" }, take: 90 }),
     db.tradeEntry.findMany({ where: tradeWhere, orderBy: { date: "desc" }, take: 1000 }),
     db.user.findUnique({ where: { id: userId }, select: { createdAt: true } }),
-    db.dailyRecap.findMany({ where: { userId }, orderBy: { date: "desc" }, take: 90, select: { date: true, mood: true, pnl: true, playbookScore: true, lesson: true, tradesCount: true } }),
+    db.dailyRecap.findMany({ where: { userId, ...(startDate || endDate ? { date: { ...(startDate ? { gte: startDate } : {}), ...(endDate ? { lte: endDate } : {}) } } : {}) }, orderBy: { date: "desc" }, take: 90, select: { date: true, mood: true, pnl: true, playbookScore: true, lesson: true, tradesCount: true } }),
     db.brokerConnection.findMany({ where: { userId }, select: { startingBalance: true }, take: 5 }),
   ]);
 

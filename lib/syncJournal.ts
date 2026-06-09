@@ -117,14 +117,6 @@ async function syncConnection(
     });
   }
 
-  const todayCount = trades.filter((t) => t.date === today).length;
-  await db.trade.deleteMany({ where: { userId, date: today } });
-  if (todayCount > 0) {
-    await db.trade.createMany({
-      data: Array.from({ length: todayCount }).map(() => ({ userId, date: today })),
-    });
-  }
-
   await db.brokerConnection.update({
     where: { id: connId },
     data: { lastSyncAt: new Date(), status: "active" },

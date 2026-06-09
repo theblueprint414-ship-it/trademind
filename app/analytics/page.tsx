@@ -1495,7 +1495,7 @@ function AnalyticsPageInner() {
         setData(d);
         fetch("/api/benchmarks").then((r) => r.json()).then((b) => setBenchmarks(b)).catch(() => {});
       })
-      .catch(() => { setNetworkError(true); setIsPremium(true); })
+      .catch(() => { setNetworkError(true); })
       .finally(() => setLoading(false));
   }, []);
 

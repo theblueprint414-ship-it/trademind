@@ -255,8 +255,8 @@ export default function DashboardPage() {
         } catch {}
       }
 
-      const bRes2 = await fetch("/api/broker").then((r) => r.json()).catch(() => ({ connected: false }));
-      if (bRes2.connected && !todayCheckinDone) setShowGate(true);
+      const brokerConnected = !!broker?.broker;
+      if (brokerConnected && !todayCheckinDone) setShowGate(true);
       setGateChecked(true);
 
       // Last week review
@@ -330,9 +330,9 @@ export default function DashboardPage() {
 
     loadData();
 
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState === "visible") loadData();
-    });
+    const onVisibility = () => { if (document.visibilityState === "visible") loadData(); };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   useEffect(() => {

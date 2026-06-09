@@ -360,8 +360,9 @@ export default function JournalPage() {
   }, [today]);
 
   useEffect(() => {
-    if (isPro === false) return;
-    fetch("/api/journal?date=all&limit=500")
+    if (isPro === null) return;
+    const limit = isPro ? 500 : 50;
+    fetch(`/api/journal?date=all&limit=${limit}`)
       .then((r) => r.json())
       .then((d) => { if (d.entries) setAllEntries(d.entries); })
       .catch(() => {});
@@ -444,6 +445,7 @@ export default function JournalPage() {
           riskAmount: form.riskAmount ? parseFloat(form.riskAmount) : null,
           commission: form.commission ? parseFloat(form.commission) : null,
           assetType: form.assetType || null,
+          entryPrice: form.entryPrice ? parseFloat(form.entryPrice) : null,
           plannedEntry: form.plannedEntry ? parseFloat(form.plannedEntry) : null,
           mae: form.mae ? parseFloat(form.mae) : null,
           mfe: form.mfe ? parseFloat(form.mfe) : null,
@@ -517,6 +519,7 @@ export default function JournalPage() {
           riskAmount: editForm.riskAmount ? parseFloat(editForm.riskAmount) : null,
           commission: editForm.commission ? parseFloat(editForm.commission) : null,
           assetType: editForm.assetType || null,
+          entryPrice: editForm.entryPrice ? parseFloat(editForm.entryPrice) : null,
           plannedEntry: editForm.plannedEntry ? parseFloat(editForm.plannedEntry) : null,
           mae: editForm.mae ? parseFloat(editForm.mae) : null,
           mfe: editForm.mfe ? parseFloat(editForm.mfe) : null,
@@ -864,7 +867,7 @@ export default function JournalPage() {
 
                 {/* Live R:R display */}
                 {(() => {
-                  const entry = parseFloat(f.entryPrice || f.pnl);
+                  const entry = parseFloat(f.entryPrice);
                   const sl = parseFloat(f.stopLoss);
                   const tp = parseFloat(f.takeProfit);
                   if (f.entryPrice && f.stopLoss && f.takeProfit && !isNaN(entry) && !isNaN(sl) && !isNaN(tp) && Math.abs(entry - sl) > 0) {
@@ -1531,7 +1534,7 @@ export default function JournalPage() {
             {isFiltered && !showFilters && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{displayEntries.length} trade{displayEntries.length !== 1 ? "s" : ""} matched</span>
-                <button onClick={() => { setSearchQuery(""); setFilterSide("all"); setFilterResult("all"); setFilterPeriod("today"); }}
+                <button onClick={() => { setSearchQuery(""); setFilterSide("all"); setFilterResult("all"); setFilterPeriod("today"); setFilterSetup("all"); }}
                   style={{ fontSize: 11, color: "var(--red)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                   Clear filters
                 </button>
@@ -1562,7 +1565,7 @@ export default function JournalPage() {
                 <svg width="36" height="36" viewBox="0 0 36 36" fill="none"><circle cx="15" cy="15" r="10" stroke="currentColor" strokeWidth="2"/><path d="M23 23l8 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M11 15h8M15 11v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
               </div>
               <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>No trades match these filters</div>
-              <button onClick={() => { setSearchQuery(""); setFilterSide("all"); setFilterResult("all"); setFilterPeriod("today"); }}
+              <button onClick={() => { setSearchQuery(""); setFilterSide("all"); setFilterResult("all"); setFilterPeriod("today"); setFilterSetup("all"); }}
                 style={{ fontSize: 13, color: "var(--blue)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", padding: 0 }}>
                 Clear filters
               </button>

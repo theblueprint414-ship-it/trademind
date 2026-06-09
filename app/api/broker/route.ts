@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       apiSecret: encryptedSecret,
       environment: String(environment),
       status: "active",
-      startingBalance: startingBalance ? Number(startingBalance) : null,
+      startingBalance: startingBalance ? (isNaN(Number(startingBalance)) ? null : Number(startingBalance)) : null,
     },
   });
 
