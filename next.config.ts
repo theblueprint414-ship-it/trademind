@@ -31,6 +31,13 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: [
+    "@prisma/client",
+    "@prisma/adapter-libsql",
+    "@libsql/client",
+    "@libsql/hrana-client",
+    "prisma",
+  ],
   async headers() {
     return [{ source: "/(.*)", headers: securityHeaders }];
   },
