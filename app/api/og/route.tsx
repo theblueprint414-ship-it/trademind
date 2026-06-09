@@ -1,8 +1,6 @@
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
-export const runtime = "edge";
-
 function verdictColor(score: number) {
   if (score >= 70) return "#00E87A";
   if (score >= 45) return "#FFB020";
