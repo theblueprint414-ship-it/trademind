@@ -93,6 +93,8 @@ export default function DashboardPage() {
   const [cbStatus, setCbStatus] = useState<{ isActive: boolean; tradeCount: number; effectiveLimit: number; dailyLimit: number; blocked: boolean; remaining: number; verdict: string; scoreAdaptive: boolean; checkinDone: boolean } | null>(null);
   const [cbOverrides, setCbOverrides] = useState<Array<{ id: string; source: string; createdAt: string }>>([]);
   const [showDemoBanner, setShowDemoBanner] = useState(false);
+  const [recapDone, setRecapDone] = useState(false);
+  const [routineDismissed, setRoutineDismissed] = useState(false);
 
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -258,6 +260,12 @@ export default function DashboardPage() {
       const brokerConnected = !!broker?.broker;
       if (brokerConnected && !todayCheckinDone) setShowGate(true);
       setGateChecked(true);
+
+      // Today's recap
+      fetch(`/api/recap?date=${todayStr}`)
+        .then((r) => r.ok ? r.json() : null)
+        .then((d) => { if (d?.recap) setRecapDone(true); })
+        .catch(() => {});
 
       // Last week review
       fetch("/api/weekly-review?offset=1")
@@ -546,6 +554,54 @@ export default function DashboardPage() {
             </span>
           </div>
         )}
+
+        {/* TODAY'S ROUTINE — daily habit tracker */}
+        {!routineDismissed && (() => {
+          const checkinDone = todayScore !== null;
+          const tradesDone = (todaySession?.tradeCount ?? 0) > 0;
+          const allDone = checkinDone && tradesDone && recapDone;
+          const nextHref = !checkinDone ? "/checkin" : !tradesDone ? "/journal" : "/recap";
+          const nextLabel = !checkinDone ? "Start Check-in →" : !tradesDone ? "Log a Trade →" : "Daily Recap →";
+          const steps = [
+            { label: "Morning Check-in", done: checkinDone, detail: checkinDone ? (todayScore !== null ? `Score ${todayScore}` : "Done") : "60 sec" },
+            { label: "Trades Logged", done: tradesDone, detail: tradesDone ? `${todaySession!.tradeCount} trade${todaySession!.tradeCount !== 1 ? "s" : ""}` : "Log trades" },
+            { label: "Daily Recap", done: recapDone, detail: recapDone ? "Done" : "End of day" },
+          ];
+          return (
+            <div style={{ marginBottom: 16, padding: "14px 16px", borderRadius: 14, background: allDone ? "rgba(0,232,122,0.04)" : "var(--surface)", border: `1px solid ${allDone ? "rgba(0,232,122,0.2)" : "var(--border)"}` }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: allDone ? "var(--green)" : "var(--text-muted)" }}>
+                  {allDone ? "✓ TODAY COMPLETE" : "TODAY'S ROUTINE"}
+                </span>
+                <button onClick={() => setRoutineDismissed(true)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", opacity: 0.6 }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginBottom: allDone ? 0 : 12 }}>
+                {steps.map((s, i) => (
+                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: s.done ? "rgba(0,232,122,0.12)" : "var(--surface2)", border: `1.5px solid ${s.done ? "var(--green)" : "var(--border)"}` }}>
+                      {s.done
+                        ? <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 6.5l3 3 5-5" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        : <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--border)" }} />}
+                    </div>
+                    <div style={{ textAlign: "center" }}>
+                      <div style={{ fontSize: 10, fontWeight: 700, color: s.done ? "var(--text)" : "var(--text-muted)", lineHeight: 1.2 }}>{s.label}</div>
+                      <div style={{ fontSize: 9, color: s.done ? "var(--green)" : "var(--text-muted)", marginTop: 2 }}>{s.detail}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {!allDone && (
+                <Link href={nextHref} style={{ textDecoration: "none" }}>
+                  <button style={{ width: "100%", padding: "9px 0", borderRadius: 9, border: "none", background: "var(--blue)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", letterSpacing: "0.01em" }}>
+                    {nextLabel}
+                  </button>
+                </Link>
+              )}
+            </div>
+          );
+        })()}
 
         {/* PERFORMANCE BANNER — P&L first, always visible when there's data */}
         {(weeklyStats || todaySession) && (

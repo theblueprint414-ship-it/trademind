@@ -585,6 +585,9 @@ export default function JournalPage() {
   const [csvError, setCsvError] = useState<string | null>(null);
   const [chartUploading, setChartUploading] = useState(false);
   const [chartUploadError, setChartUploadError] = useState<string | null>(null);
+  const [pretradeRitualDone, setPretradeRitualDone] = useState(false);
+  const [lossPrompt, setLossPrompt] = useState<{ id: string; pnl: number } | null>(null);
+  const [lossReflect, setLossReflect] = useState("");
 
   function handleLogClick() {
     if (selectedDate === today) {
@@ -623,6 +626,10 @@ export default function JournalPage() {
         autoSync();
       }
     }).catch(() => {});
+    fetch(`/api/pretrade?date=${today}`)
+      .then((r) => r.json())
+      .then((d) => { if (d.rituals?.length > 0) setPretradeRitualDone(true); })
+      .catch(() => {});
   }, [today]);
 
   useEffect(() => {
@@ -724,6 +731,10 @@ export default function JournalPage() {
         setShowForm(false);
         setForm(EMPTY_FORM);
         showToast("Trade saved", "success");
+        if (isPro && parsedPnl !== null && !Number.isNaN(parsedPnl) && parsedPnl < 0 && !form.reflection) {
+          setLossPrompt({ id: data.entry.id, pnl: parsedPnl });
+          setLossReflect("");
+        }
       } else {
         showToast(data.error ?? "Failed to save trade — try again", "error");
       }
@@ -731,6 +742,21 @@ export default function JournalPage() {
       showToast("Network error — trade not saved", "error");
     }
     setSaving(false);
+  }
+
+  async function handleSaveLossReflect() {
+    if (!lossPrompt || !lossReflect.trim()) { setLossPrompt(null); return; }
+    try {
+      await fetch(`/api/journal?id=${lossPrompt.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reflection: lossReflect.trim() }),
+      });
+      setEntries((prev) => prev.map((e) => e.id === lossPrompt.id ? { ...e, reflection: lossReflect.trim() } : e));
+      setAllEntries((prev) => prev.map((e) => e.id === lossPrompt.id ? { ...e, reflection: lossReflect.trim() } : e));
+    } catch {}
+    setLossPrompt(null);
+    setLossReflect("");
   }
 
   async function handleEdit(entry: TradeEntry) {
@@ -1423,6 +1449,15 @@ export default function JournalPage() {
         )}
 
 
+        {/* Pre-trade ritual nudge */}
+        {showForm && !pretradeRitualDone && selectedDate === today && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.2)", marginBottom: 12 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><circle cx="7" cy="7" r="6" stroke="#60A5FA" strokeWidth="1.3"/><path d="M7 4v3M7 10v.5" stroke="#60A5FA" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            <span style={{ fontSize: 12, color: "var(--text-dim)", flex: 1 }}>No pre-trade ritual logged today — takes 30 seconds.</span>
+            <Link href="/pretrade" style={{ fontSize: 12, fontWeight: 700, color: "#60A5FA", textDecoration: "none", whiteSpace: "nowrap" }}>Do ritual →</Link>
+          </div>
+        )}
+
         {/* Trade log form */}
         {showForm && (
           <TradeForm
@@ -1438,6 +1473,33 @@ export default function JournalPage() {
             setChartUploadError={setChartUploadError}
             handleChartUpload={handleChartUpload}
           />
+        )}
+
+        {/* Post-loss reflection prompt */}
+        {lossPrompt && (
+          <div style={{ padding: "16px 18px", borderRadius: 12, background: "rgba(255,59,92,0.05)", border: "1px solid rgba(255,59,92,0.2)", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="var(--red)" strokeWidth="1.3"/><path d="M7 4v3M7 10v.5" stroke="var(--red)" strokeWidth="1.4" strokeLinecap="round"/></svg>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text)" }}>Take 30 seconds — what caused this loss?</span>
+            </div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 10 }}>Writing it down locks in the lesson and prevents revenge trading.</div>
+            <textarea
+              value={lossReflect}
+              onChange={(e) => setLossReflect(e.target.value)}
+              placeholder="e.g. Chased the move, entry was late, ignored my stop..."
+              rows={2}
+              autoFocus
+              style={{ width: "100%", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, padding: "10px 12px", fontSize: 13, color: "var(--text)", resize: "none", boxSizing: "border-box", outline: "none", fontFamily: "inherit", lineHeight: 1.5 }}
+            />
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <button onClick={handleSaveLossReflect} style={{ flex: 1, padding: "9px 0", borderRadius: 8, border: "none", background: "var(--blue)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>
+                Save reflection
+              </button>
+              <button onClick={() => setLossPrompt(null)} style={{ padding: "9px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text-muted)", fontSize: 13, cursor: "pointer" }}>
+                Skip
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Search + filter bar */}
