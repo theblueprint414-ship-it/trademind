@@ -95,6 +95,7 @@ export default function DashboardPage() {
   const [showDemoBanner, setShowDemoBanner] = useState(false);
   const [recapDone, setRecapDone] = useState(false);
   const [routineDismissed, setRoutineDismissed] = useState(false);
+  const [dailyLossLimit, setDailyLossLimit] = useState<number | null>(null);
 
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -136,6 +137,7 @@ export default function DashboardPage() {
           if (d.id) setUserId(d.id);
           if (typeof d.publicProfile === "boolean") setPublicProfile(d.publicProfile);
           if (d.tradeLimit) localStorage.setItem("trademind_trade_limit", String(d.tradeLimit));
+          if (d.dailyLossLimit) setDailyLossLimit(d.dailyLossLimit);
           if (d.challenge?.enabled) setChallengeConfig({ firm: d.challenge.firm ?? null, accountSize: d.challenge.accountSize ?? 0, dailyLimit: d.challenge.dailyLimit ?? 5, maxDrawdown: d.challenge.maxDrawdown ?? 10, profitTarget: d.challenge.profitTarget ?? null, tradingDaysTarget: d.challenge.tradingDaysTarget ?? null, startDate: d.challenge.startDate ?? null, endDate: d.challenge.endDate ?? null });
           if (pro) {
             fetch("/api/analytics")
@@ -551,6 +553,20 @@ export default function DashboardPage() {
             <span style={{ fontSize: 13, color: "var(--text-dim)", flex: 1 }}>
               <strong style={{ color: "var(--red)" }}>{broker.broker}</strong> broker sync failed — your credentials may have expired.{" "}
               <Link href="/settings?tab=broker" style={{ color: "var(--blue)", fontWeight: 700, textDecoration: "none" }}>Reconnect in Settings →</Link>
+            </span>
+          </div>
+        )}
+
+        {/* Daily loss limit warning */}
+        {dailyLossLimit && todaySession && todaySession.totalPnl < 0 && Math.abs(todaySession.totalPnl) >= dailyLossLimit * 0.8 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 10, background: Math.abs(todaySession.totalPnl) >= dailyLossLimit ? "rgba(255,59,92,0.1)" : "rgba(255,176,32,0.08)", border: `1px solid ${Math.abs(todaySession.totalPnl) >= dailyLossLimit ? "rgba(255,59,92,0.4)" : "rgba(255,176,32,0.35)"}`, marginBottom: 16 }}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}><circle cx="8" cy="8" r="6.5" stroke={Math.abs(todaySession.totalPnl) >= dailyLossLimit ? "var(--red)" : "var(--amber)"} strokeWidth="1.3"/><path d="M8 4.5v4M8 10.5v.5" stroke={Math.abs(todaySession.totalPnl) >= dailyLossLimit ? "var(--red)" : "var(--amber)"} strokeWidth="1.4" strokeLinecap="round"/></svg>
+            <span style={{ fontSize: 13, flex: 1, color: "var(--text)" }}>
+              {Math.abs(todaySession.totalPnl) >= dailyLossLimit ? (
+                <><strong style={{ color: "var(--red)" }}>Daily loss limit reached</strong> — you&apos;ve hit your ${dailyLossLimit} limit. Consider stopping for today.</>
+              ) : (
+                <><strong style={{ color: "var(--amber)" }}>Approaching daily limit</strong> — ${Math.abs(todaySession.totalPnl).toFixed(0)} lost of your ${dailyLossLimit} limit ({Math.round((Math.abs(todaySession.totalPnl) / dailyLossLimit) * 100)}%).</>
+              )}
             </span>
           </div>
         )}

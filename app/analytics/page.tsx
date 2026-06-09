@@ -1769,6 +1769,27 @@ function AnalyticsPageInner() {
           <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
         </Link>
         <span className="font-bebas" style={{ fontSize: 20, color: "var(--text-muted)", letterSpacing: "0.05em" }}>ANALYTICS</span>
+        <button type="button" onClick={async () => {
+          const r = await fetch("/api/journal?date=all&limit=2000");
+          const d = await r.json();
+          if (!d.entries?.length) return;
+          const cols = ["date","symbol","side","pnl","setup","entryPrice","exitPrice","commission","rMultiple","grade","emotionBefore","emotionAfter","tags","mistake","notes","reflection"];
+          const header = cols.join(",");
+          const rows = d.entries.map((e: Record<string, unknown>) => cols.map((c) => {
+            const v = e[c];
+            if (v == null) return "";
+            const s = String(v);
+            return s.includes(",") || s.includes('"') || s.includes("\n") ? `"${s.replace(/"/g, '""')}"` : s;
+          }).join(","));
+          const csv = [header, ...rows].join("\n");
+          const blob = new Blob([csv], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a"); a.href = url; a.download = `trademind-trades-${new Date().toISOString().split("T")[0]}.csv`; a.click();
+          URL.revokeObjectURL(url);
+        }} style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 12px", fontSize: 11, color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1.5v7M4 6.5l2.5 2.5 2.5-2.5M2 10.5h9" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          CSV
+        </button>
         <button type="button" onClick={() => window.print()} style={{ background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 12px", fontSize: 11, color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
           <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M3 4V2h7v2M2 4h9a1 1 0 011 1v4H9v2H4V9H1V5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
           PDF

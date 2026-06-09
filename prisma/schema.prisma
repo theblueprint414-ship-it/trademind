@@ -19,6 +19,7 @@ model User {
   tradeLimit     Int       @default(5)
   emailReminders Boolean   @default(true)
   traderType     String?
+  dailyLossLimit Float?    // personal daily max loss ($)
   streakFreezeUsedAt String?  // ISO date of last freeze use (YYYY-MM)
   publicProfile  Boolean   @default(false)
   lsSubscriptionId String?
@@ -182,6 +183,7 @@ model TradeEntry {
   brokerConnectionId String?  // which BrokerConnection this came from
   mae                Float?   // Maximum Adverse Excursion ($)
   mfe                Float?   // Maximum Favorable Excursion ($)
+  grade              String?  // A / B / C / D — auto-computed quality score
   createdAt          DateTime @default(now())
 
   brokerConnection BrokerConnection? @relation(fields: [brokerConnectionId], references: [id], onDelete: SetNull)

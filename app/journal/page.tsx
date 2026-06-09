@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { showToast } from "@/components/Toast";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
@@ -278,6 +278,41 @@ const EMPTY_FORM: FormState = {
   mae: "", mfe: "",
 };
 
+
+function TradingViewChart({ symbol }: { symbol: string }) {
+  const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!open || !containerRef.current) return;
+    const c = containerRef.current;
+    c.innerHTML = "";
+    const inner = document.createElement("div");
+    inner.className = "tradingview-widget-container__widget";
+    c.appendChild(inner);
+    const script = document.createElement("script");
+    script.type = "text/javascript";
+    script.async = true;
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js";
+    script.textContent = JSON.stringify({ symbol, width: "100%", height: 200, locale: "en", dateRange: "1M", colorTheme: "dark", isTransparent: true, autosize: true });
+    c.appendChild(script);
+    return () => { c.innerHTML = ""; };
+  }, [open, symbol]);
+  return (
+    <div style={{ marginTop: 8 }}>
+      {!open ? (
+        <button onClick={() => setOpen(true)} style={{ background: "none", border: "1px solid var(--border)", borderRadius: 8, padding: "5px 12px", fontSize: 11, color: "var(--text-muted)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="1,9 4,5 7,7 11,2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          Live chart
+        </button>
+      ) : (
+        <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)" }}>
+          <div ref={containerRef} style={{ minHeight: 200, background: "var(--surface2)" }} />
+          <button onClick={() => setOpen(false)} style={{ display: "block", width: "100%", padding: "5px", fontSize: 11, background: "var(--surface2)", border: "none", borderTop: "1px solid var(--border)", color: "var(--text-muted)", cursor: "pointer" }}>Close chart</button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function TradeForm({
   f, setF, onSave, onCancel, label, saving, isPro, chartUploading, chartUploadError, setChartUploadError, handleChartUpload,
@@ -1832,6 +1867,11 @@ export default function JournalPage() {
                             {formatPnl(entry.pnl)}
                           </span>
                         )}
+                        {(entry as { grade?: string }).grade && (() => {
+                          const g = (entry as { grade?: string }).grade!;
+                          const gc = g === "A" ? "#00E87A" : g === "B" ? "#4F8EF7" : g === "C" ? "#FFB020" : "#FF3B5C";
+                          return <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: "0.06em", padding: "2px 7px", borderRadius: 6, background: `${gc}18`, border: `1px solid ${gc}55`, color: gc, flexShrink: 0 }}>{g}</span>;
+                        })()}
                         <button
                           onClick={() => handleEdit(entry)}
                           style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 14, padding: "0 4px", marginLeft: entry.pnl === null ? "auto" : 0 }}
@@ -1944,6 +1984,8 @@ export default function JournalPage() {
                           </span>
                         </div>
                       )}
+
+                      {entry.symbol && <TradingViewChart symbol={entry.symbol} />}
 
                       {entry.chartUrl && (
                         <div style={{ marginTop: 10 }}>

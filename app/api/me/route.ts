@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
   try {
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { plan: true, email: true, name: true, tradeLimit: true, emailReminders: true, traderType: true, publicProfile: true, challengeEnabled: true, challengeFirm: true, challengeAccountSize: true, challengeDailyLimit: true, challengeMaxDrawdown: true, challengeStartDate: true, challengeEndDate: true, challengeProfitTarget: true, challengeTradingDaysTarget: true },
+      select: { plan: true, email: true, name: true, tradeLimit: true, emailReminders: true, traderType: true, publicProfile: true, dailyLossLimit: true, challengeEnabled: true, challengeFirm: true, challengeAccountSize: true, challengeDailyLimit: true, challengeMaxDrawdown: true, challengeStartDate: true, challengeEndDate: true, challengeProfitTarget: true, challengeTradingDaysTarget: true },
     });
     return Response.json({
       id: session.user.id,
@@ -25,6 +25,7 @@ export async function GET(req: NextRequest) {
       emailReminders: user?.emailReminders ?? true,
       traderType: user?.traderType ?? null,
       publicProfile: user?.publicProfile ?? false,
+      dailyLossLimit: user?.dailyLossLimit ?? null,
       challenge: user?.challengeEnabled ? {
         enabled: true,
         firm: user.challengeFirm ?? null,
@@ -71,6 +72,16 @@ export async function PATCH(request: NextRequest) {
 
   if (typeof body.publicProfile === "boolean") {
     data.publicProfile = body.publicProfile;
+  }
+
+  if (body.dailyLossLimit !== undefined) {
+    if (body.dailyLossLimit === null) {
+      data.dailyLossLimit = null;
+    } else if (typeof body.dailyLossLimit === "number" && isFinite(body.dailyLossLimit) && body.dailyLossLimit > 0) {
+      data.dailyLossLimit = body.dailyLossLimit;
+    } else {
+      return Response.json({ error: "Invalid dailyLossLimit" }, { status: 400 });
+    }
   }
 
   if (Object.keys(data).length === 0) {

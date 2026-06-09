@@ -10,6 +10,25 @@ const MAX_TAGS = 5;
 const MAX_TAG_LEN = 30;
 const FREE_DAILY_LIMIT = 3;
 
+function computeGrade(opts: {
+  setup?: string | null;
+  reflection?: string | null;
+  playbookScore?: number | null;
+  riskAmount?: number | null;
+  stopLoss?: number | null;
+  pnl?: number | null;
+}): string {
+  let pts = 0;
+  if (opts.setup) pts++;
+  if (opts.reflection) pts++;
+  if (opts.playbookScore === 2) pts++;
+  if (opts.riskAmount || opts.stopLoss) pts++;
+  if (pts >= 4) return "A";
+  if (pts === 3) return "B";
+  if (pts === 2) return "C";
+  return "D";
+}
+
 export async function GET(request: NextRequest) {
   const rl = await rateLimit(request, "normal");
   if (!rl.ok) return rl.response!;
@@ -137,6 +156,7 @@ export async function POST(request: NextRequest) {
         plannedEntry: typeof plannedEntry === "number" && isFinite(plannedEntry) ? plannedEntry : null,
         mae: typeof mae === "number" && isFinite(mae) ? mae : null,
         mfe: typeof mfe === "number" && isFinite(mfe) ? mfe : null,
+        grade: computeGrade({ setup, reflection, riskAmount: parsedRiskAmount, stopLoss: typeof stopLoss === "number" ? stopLoss : null, pnl: parsedPnlNum }),
       },
     });
     return Response.json({ ok: true, entry });
@@ -230,6 +250,15 @@ export async function PATCH(request: NextRequest) {
     updateData.riskAmount = ra;
     const currentPnl = pnl !== undefined ? (typeof pnl === "number" ? pnl : null) : existing.pnl;
     updateData.rMultiple = ra && ra > 0 && currentPnl !== null ? Math.round((currentPnl / ra) * 100) / 100 : null;
+  }
+
+  // Recompute grade from merged state
+  {
+    const mergedSetup = setup !== undefined ? (setup ? String(setup) : null) : existing.setup;
+    const mergedReflection = reflection !== undefined ? (reflection ? String(reflection) : null) : existing.reflection;
+    const mergedRisk = updateData.riskAmount !== undefined ? (updateData.riskAmount as number | null) : existing.riskAmount;
+    const mergedStop = updateData.stopLoss !== undefined ? (updateData.stopLoss as number | null) : existing.stopLoss;
+    updateData.grade = computeGrade({ setup: mergedSetup, reflection: mergedReflection, riskAmount: mergedRisk, stopLoss: mergedStop });
   }
 
   try {

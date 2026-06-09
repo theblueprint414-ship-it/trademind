@@ -48,6 +48,7 @@ export async function GET(req: NextRequest) {
       id: true,
       email: true,
       name: true,
+      plan: true,
       checkins: {
         where: { date: { gte: prevMondayStr, lte: todayStr } },
         select: { score: true, date: true },
@@ -58,6 +59,17 @@ export async function GET(req: NextRequest) {
 
   // Bulk-load streak data for all users in one query instead of N+1
   const allUserIds = users.map((u) => u.id);
+
+  // Bulk-load this week's trade entries
+  const allTradeEntries = await db.tradeEntry.findMany({
+    where: { userId: { in: allUserIds }, date: { gte: mondayStr, lte: todayStr } },
+    select: { userId: true, date: true, pnl: true, symbol: true },
+  });
+  const tradesByUser = new Map<string, typeof allTradeEntries>();
+  for (const t of allTradeEntries) {
+    if (!tradesByUser.has(t.userId)) tradesByUser.set(t.userId, []);
+    tradesByUser.get(t.userId)!.push(t);
+  }
   const streakRows = await db.checkin.findMany({
     where: { userId: { in: allUserIds }, date: { gte: (() => { const d = new Date(); d.setDate(d.getDate() - 60); return d.toISOString().split("T")[0]; })() } },
     select: { userId: true, date: true },
@@ -103,6 +115,16 @@ export async function GET(req: NextRequest) {
       if (diff === i) streak++; else break;
     }
 
+    // ── Trade stats for the week ────────────────────────────────────────────
+    const weekTrades = tradesByUser.get(user.id) ?? [];
+    const tradesWithPnl = weekTrades.filter((t) => t.pnl !== null);
+    const weekPnl = tradesWithPnl.reduce((s, t) => s + (t.pnl ?? 0), 0);
+    const weekWins = tradesWithPnl.filter((t) => (t.pnl ?? 0) > 0).length;
+    const weekWinRate = tradesWithPnl.length > 0 ? Math.round((weekWins / tradesWithPnl.length) * 100) : null;
+    const bestTrade = tradesWithPnl.length > 0 ? tradesWithPnl.reduce((b, t) => (t.pnl ?? 0) > (b.pnl ?? 0) ? t : b) : null;
+    const worstTrade = tradesWithPnl.length > 0 ? tradesWithPnl.reduce((w, t) => (t.pnl ?? 0) < (w.pnl ?? 0) ? t : w) : null;
+    const fmt$ = (n: number) => (n >= 0 ? "+" : "−") + "$" + Math.abs(Math.round(n)).toLocaleString();
+
     const firstName = user.name?.split(" ")[0] ?? "";
     const token = makeUnsubscribeToken(user.email);
     const unsubUrl = `https://trademindedge.com/unsubscribe?email=${encodeURIComponent(user.email)}&token=${token}`;
@@ -122,7 +144,7 @@ export async function GET(req: NextRequest) {
       await resend.emails.send({
         from: "TradeMind <noreply@trademindedge.com>",
         to: user.email,
-        subject: `Your week in review — avg score ${avg}/100`,
+        subject: weekTrades.length > 0 ? `Your week: ${fmt$(weekPnl)} · ${avg}/100 mental score` : `Your week in review — avg score ${avg}/100`,
         html: `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -193,6 +215,39 @@ export async function GET(req: NextRequest) {
       <div style="font-size:14px;font-weight:700;color:#FFB020;margin-bottom:2px;">${streak}-day streak</div>
       <div style="font-size:12px;color:#7A8BA8;line-height:1.5;">Consistency is the edge most traders can't build. You're building it.</div>
     </div>
+  </div>` : ""}
+
+  ${weekTrades.length > 0 ? `
+  <!-- Weekly P&L block -->
+  <div style="background:#0D1420;border:1px solid #1E2D45;border-radius:14px;padding:20px;margin-bottom:20px;">
+    <div style="font-size:10px;color:#3D4F6A;letter-spacing:0.08em;margin-bottom:16px;">THIS WEEK&apos;S TRADING</div>
+    <div style="display:flex;gap:10px;margin-bottom:${bestTrade || worstTrade ? "16px" : "0"};">
+      <div style="flex:1;background:#0A1018;border:1px solid ${weekPnl >= 0 ? "#00E87A30" : "#FF3B5C30"};border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:${weekPnl >= 0 ? "#00E87A" : "#FF3B5C"};line-height:1;">${fmt$(weekPnl)}</div>
+        <div style="font-size:9px;color:#3D4F6A;letter-spacing:0.08em;margin-top:4px;">WEEK P&L</div>
+      </div>
+      <div style="flex:1;background:#0A1018;border:1px solid #1E2D45;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#E8F0FF;line-height:1;">${weekTrades.length}</div>
+        <div style="font-size:9px;color:#3D4F6A;letter-spacing:0.08em;margin-top:4px;">TRADES</div>
+      </div>
+      ${weekWinRate !== null ? `<div style="flex:1;background:#0A1018;border:1px solid #1E2D45;border-radius:10px;padding:14px;text-align:center;">
+        <div style="font-size:26px;font-weight:800;color:#E8F0FF;line-height:1;">${weekWinRate}%</div>
+        <div style="font-size:9px;color:#3D4F6A;letter-spacing:0.08em;margin-top:4px;">WIN RATE</div>
+      </div>` : ""}
+    </div>
+    ${bestTrade && worstTrade && bestTrade !== worstTrade ? `<div style="display:flex;gap:10px;">
+      <div style="flex:1;text-align:center;">
+        <div style="font-size:10px;color:#00E87A;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">BEST TRADE</div>
+        <div style="font-size:18px;font-weight:800;color:#00E87A;">${fmt$(bestTrade.pnl ?? 0)}</div>
+        ${bestTrade.symbol ? `<div style="font-size:10px;color:#3D4F6A;">${bestTrade.symbol}</div>` : ""}
+      </div>
+      <div style="width:1px;background:#1E2D45;"></div>
+      <div style="flex:1;text-align:center;">
+        <div style="font-size:10px;color:#FF3B5C;font-weight:700;letter-spacing:0.06em;margin-bottom:4px;">WORST TRADE</div>
+        <div style="font-size:18px;font-weight:800;color:#FF3B5C;">${fmt$(worstTrade.pnl ?? 0)}</div>
+        ${worstTrade.symbol ? `<div style="font-size:10px;color:#3D4F6A;">${worstTrade.symbol}</div>` : ""}
+      </div>
+    </div>` : ""}
   </div>` : ""}
 
   <div style="text-align:center;margin-bottom:32px;">

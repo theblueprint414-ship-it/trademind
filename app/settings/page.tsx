@@ -113,6 +113,8 @@ export default function SettingsPage() {
   const [reminderTime, setReminderTime] = useState("8:00 AM");
   const [reminderSaved, setReminderSaved] = useState(false);
   const [emailReminders, setEmailReminders] = useState(true);
+  const [dailyLossLimit, setDailyLossLimit] = useState<string>("");
+  const [dailyLossLimitSaved, setDailyLossLimitSaved] = useState(false);
 
   useEffect(() => {
     const savedTime = localStorage.getItem("trademind_reminder_time");
@@ -148,6 +150,7 @@ export default function SettingsPage() {
         setSavedLimit(limit);
         localStorage.setItem("trademind_trade_limit", String(limit));
         setEmailReminders(d.emailReminders !== false);
+        if (d.dailyLossLimit) setDailyLossLimit(String(d.dailyLossLimit));
         if (d.id) setUserId(d.id);
         if (typeof d.publicProfile === "boolean") setPublicProfile(d.publicProfile);
         // Load streak freeze availability for Pro users
@@ -333,6 +336,19 @@ export default function SettingsPage() {
       if (d.extensionToken) setCb((prev) => prev ? { ...prev, extensionToken: d.extensionToken } : prev);
     } catch {}
     setCbRegenerating(false);
+  }
+
+  async function saveDailyLossLimit() {
+    const val = dailyLossLimit === "" ? null : parseFloat(dailyLossLimit);
+    if (val !== null && (isNaN(val) || val <= 0)) return;
+    await fetch("/api/me", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dailyLossLimit: val }),
+    }).catch(() => {});
+    setDailyLossLimitSaved(true);
+    showToast(val ? `Daily loss limit set to $${val}` : "Daily loss limit cleared", "success");
+    setTimeout(() => setDailyLossLimitSaved(false), 2000);
   }
 
   async function saveTradeLimit() {
@@ -549,6 +565,37 @@ export default function SettingsPage() {
             ) : "Save limit"}
           </button>
           {savedLimit !== tradeLimit && <p style={{ fontSize: 12, color: "var(--amber)", marginTop: 8, textAlign: "center" }}>Unsaved changes</p>}
+        </section>
+
+        {/* Daily Loss Limit */}
+        <section className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid var(--red)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--red)", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v5M8 10.5v1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/><circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Daily Loss Limit</h2>
+          </div>
+          <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>
+            Set the max dollar loss you allow yourself per day. TradeMind will alert you in the journal and dashboard when you hit 80% — before you blow past it.
+          </p>
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <div style={{ position: "relative", flex: 1 }}>
+              <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: 14, fontWeight: 700 }}>$</span>
+              <input
+                type="number"
+                min="1"
+                step="any"
+                placeholder="e.g. 500"
+                value={dailyLossLimit}
+                onChange={(e) => setDailyLossLimit(e.target.value)}
+                style={{ width: "100%", padding: "10px 12px 10px 28px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text)", fontSize: 14, outline: "none", boxSizing: "border-box" }}
+              />
+            </div>
+            <button onClick={saveDailyLossLimit} className="btn-primary" style={{ padding: "10px 20px", flexShrink: 0 }}>
+              {dailyLossLimitSaved ? "Saved ✓" : "Save"}
+            </button>
+          </div>
+          {dailyLossLimit && <p style={{ fontSize: 12, color: "var(--text-dim)", marginTop: 8 }}>You&apos;ll get a warning when daily loss reaches <strong style={{ color: "var(--amber)" }}>${(parseFloat(dailyLossLimit) * 0.8 || 0).toFixed(0)}</strong> (80% of your limit).</p>}
         </section>
 
         {/* Prop Firm Challenge Mode */}
