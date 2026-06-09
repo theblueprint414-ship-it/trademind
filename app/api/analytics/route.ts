@@ -295,6 +295,45 @@ export async function GET(request: NextRequest) {
     avgEfficiency: s.effArr.length > 0 ? Math.round(s.effArr.reduce((a, b) => a + b, 0) / s.effArr.length * 100) : null,
   })).sort((a, b) => b.totalPnl - a.totalPnl);
 
+  // ── Tag performance ───────────────────────────────────────────────────────
+  const tagMap: Record<string, { pnl: number; trades: number; wins: number }> = {};
+  for (const t of tradeEntries) {
+    if (!t.tags) continue;
+    let tagList: string[] = [];
+    try { tagList = JSON.parse(t.tags) as string[]; } catch { continue; }
+    for (const tag of tagList) {
+      if (!tagMap[tag]) tagMap[tag] = { pnl: 0, trades: 0, wins: 0 };
+      tagMap[tag].trades++;
+      if (t.pnl !== null) { tagMap[tag].pnl += t.pnl; if (t.pnl > 0) tagMap[tag].wins++; }
+    }
+  }
+  const tagStats = Object.entries(tagMap)
+    .map(([tag, s]) => ({
+      tag, trades: s.trades,
+      winRate: s.trades > 0 ? Math.round((s.wins / s.trades) * 100) : null,
+      avgPnl: s.trades > 0 ? Math.round((s.pnl / s.trades) * 100) / 100 : null,
+      totalPnl: Math.round(s.pnl * 100) / 100,
+    }))
+    .sort((a, b) => b.totalPnl - a.totalPnl);
+
+  // ── Mistake performance ───────────────────────────────────────────────────
+  const mistakeMap: Record<string, { pnl: number; trades: number; wins: number }> = {};
+  for (const t of tradeEntries) {
+    const m = t.mistake?.trim();
+    if (!m) continue;
+    if (!mistakeMap[m]) mistakeMap[m] = { pnl: 0, trades: 0, wins: 0 };
+    mistakeMap[m].trades++;
+    if (t.pnl !== null) { mistakeMap[m].pnl += t.pnl; if (t.pnl > 0) mistakeMap[m].wins++; }
+  }
+  const mistakeStats = Object.entries(mistakeMap)
+    .map(([mistake, s]) => ({
+      mistake, trades: s.trades,
+      winRate: s.trades > 0 ? Math.round((s.wins / s.trades) * 100) : null,
+      avgPnl: s.trades > 0 ? Math.round((s.pnl / s.trades) * 100) / 100 : null,
+      totalPnl: Math.round(s.pnl * 100) / 100,
+    }))
+    .sort((a, b) => a.totalPnl - b.totalPnl); // worst first
+
   // ── Equity curve ──────────────────────────────────────────────────────────
   const dailyPnlMap: Record<string, number> = {};
   for (const t of tradeEntries) {
@@ -452,7 +491,7 @@ export async function GET(request: NextRequest) {
     profitableDayStreak,
     // ── Charts & tables ──
     timeOfDay, dayOfWeek, symbols, setups, monthlyStats,
-    equityCurve, durationStats,
+    equityCurve, durationStats, tagStats, mistakeStats,
     // ── Risk metrics ──
     profitFactor, expectancy, avgWin,
     avgLoss: avgLossTrade,

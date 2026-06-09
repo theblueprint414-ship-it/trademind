@@ -536,6 +536,17 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Broker error alert */}
+        {broker?.status === "error" && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 10, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.25)", marginBottom: 16 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><circle cx="7" cy="7" r="6" stroke="var(--red)" strokeWidth="1.3"/><path d="M7 4v3.5M7 10v.5" stroke="var(--red)" strokeWidth="1.4" strokeLinecap="round"/></svg>
+            <span style={{ fontSize: 13, color: "var(--text-dim)", flex: 1 }}>
+              <strong style={{ color: "var(--red)" }}>{broker.broker}</strong> broker sync failed — your credentials may have expired.{" "}
+              <Link href="/settings?tab=broker" style={{ color: "var(--blue)", fontWeight: 700, textDecoration: "none" }}>Reconnect in Settings →</Link>
+            </span>
+          </div>
+        )}
+
         {/* PERFORMANCE BANNER — P&L first, always visible when there's data */}
         {(weeklyStats || todaySession) && (
           <div className="dash-section s1" style={{ marginBottom: 16, padding: "16px 18px", borderRadius: 14, background: "var(--surface)", border: "1px solid var(--border)" }}>

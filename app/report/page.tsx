@@ -146,7 +146,74 @@ export default function ReportPage() {
               ))}
             </div>
 
-            {/* Calendar */}
+            {/* P&L Calendar */}
+            {(() => {
+              const pnlByDate: Record<string, number> = {};
+              for (const t of trades) {
+                if (t.pnl !== null) pnlByDate[t.date] = (pnlByDate[t.date] ?? 0) + t.pnl;
+              }
+              const pnlValues = Object.values(pnlByDate);
+              const maxAbsPnl = Math.max(...pnlValues.map(Math.abs), 1);
+              const bestDay = pnlValues.length > 0 ? Math.max(...pnlValues) : null;
+              const worstDay = pnlValues.length > 0 ? Math.min(...pnlValues) : null;
+              const greenDays = pnlValues.filter((p) => p > 0).length;
+              const redDays = pnlValues.filter((p) => p < 0).length;
+              return (
+                <div className="report-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 24, marginBottom: 24 }}>
+                  <div style={{ fontSize: 11, color: "#3D4F6A", letterSpacing: "0.08em", marginBottom: 4 }}>P&L CALENDAR</div>
+                  {pnlValues.length > 0 && (
+                    <div style={{ display: "flex", gap: 20, marginBottom: 16, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 11, color: "#00E87A" }}>{greenDays} green day{greenDays !== 1 ? "s" : ""}</span>
+                      <span style={{ fontSize: 11, color: "#FF3B5C" }}>{redDays} red day{redDays !== 1 ? "s" : ""}</span>
+                      {bestDay !== null && <span style={{ fontSize: 11, color: "#3D4F6A" }}>Best: <span style={{ color: "#00E87A", fontWeight: 700 }}>+${Math.round(bestDay).toLocaleString()}</span></span>}
+                      {worstDay !== null && <span style={{ fontSize: 11, color: "#3D4F6A" }}>Worst: <span style={{ color: "#FF3B5C", fontWeight: 700 }}>${Math.round(worstDay).toLocaleString()}</span></span>}
+                    </div>
+                  )}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 8 }}>
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
+                      <div key={d} style={{ fontSize: 9, color: "#3D4F6A", textAlign: "center", letterSpacing: "0.06em" }}>{d}</div>
+                    ))}
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+                    {Array.from({ length: firstDow }).map((_, i) => <div key={`empty-${i}`} />)}
+                    {Array.from({ length: daysInMonth }, (_, i) => {
+                      const day = i + 1;
+                      const dateStr = `${month}-${String(day).padStart(2, "0")}`;
+                      const pnl = pnlByDate[dateStr];
+                      const checkin = byDate[dateStr];
+                      const hasTrade = pnl !== undefined;
+                      const isGreen = hasTrade && pnl > 0;
+                      const isRed = hasTrade && pnl < 0;
+                      const intensity = hasTrade ? Math.min(0.9, 0.25 + (Math.abs(pnl) / maxAbsPnl) * 0.65) : 0;
+                      const bg = isGreen ? `rgba(0,232,122,${intensity})` : isRed ? `rgba(255,59,92,${intensity})` : "transparent";
+                      const borderColor = checkin ? verdictColor(checkin.score) : "var(--border)";
+                      return (
+                        <div key={day}
+                          title={hasTrade ? `${pnl >= 0 ? "+" : ""}$${Math.round(pnl)}${checkin ? ` · ${checkin.verdict}` : ""}` : checkin ? checkin.verdict : undefined}
+                          style={{ aspectRatio: "1", borderRadius: 4, background: bg, border: `1.5px solid ${checkin ? borderColor + "60" : "var(--border)"}`, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 1 }}>
+                          <span style={{ fontSize: 9, color: hasTrade ? (isGreen ? "#00E87A" : "#FF3B5C") : "#3D4F6A", fontWeight: 700 }}>{day}</span>
+                          {hasTrade && <span style={{ fontSize: 7, color: isGreen ? "#00E87A" : "#FF3B5C", fontWeight: 700, lineHeight: 1 }}>{pnl >= 0 ? "+" : ""}${Math.abs(Math.round(pnl)) >= 1000 ? `${Math.round(pnl / 100) / 10}k` : Math.round(pnl)}</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: "flex", gap: 16, marginTop: 14, justifyContent: "center", flexWrap: "wrap" }}>
+                    {[["rgba(0,232,122,0.6)", "Profit day"], ["rgba(255,59,92,0.6)", "Loss day"], ["transparent", "No trades"]].map(([c, l]) => (
+                      <div key={l} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <div style={{ width: 10, height: 10, borderRadius: 2, background: c, border: "1px solid var(--border)" }} />
+                        <span style={{ fontSize: 10, color: "#3D4F6A" }}>{l}</span>
+                      </div>
+                    ))}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ width: 10, height: 10, borderRadius: 2, background: "transparent", border: "1.5px solid #00E87A60" }} />
+                      <span style={{ fontSize: 10, color: "#3D4F6A" }}>GO check-in border</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Check-in Calendar */}
             <div className="report-card" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 24, marginBottom: 24 }}>
               <div style={{ fontSize: 11, color: "#3D4F6A", letterSpacing: "0.08em", marginBottom: 16 }}>CHECK-IN CALENDAR</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 8 }}>

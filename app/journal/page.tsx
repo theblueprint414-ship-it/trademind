@@ -278,6 +278,270 @@ const EMPTY_FORM: FormState = {
   mae: "", mfe: "",
 };
 
+
+function TradeForm({
+  f, setF, onSave, onCancel, label, saving, isPro, chartUploading, chartUploadError, setChartUploadError, handleChartUpload,
+}: {
+  f: FormState;
+  setF: (v: FormState) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  label: string;
+  saving: boolean;
+  isPro: boolean | null;
+  chartUploading: boolean;
+  chartUploadError: string | null;
+  setChartUploadError: (v: string | null) => void;
+  handleChartUpload: (file: File, setter: (url: string | null) => void) => Promise<void>;
+}) {
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(94,106,210,0.2)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>{label}</div>
+        <button onClick={onCancel} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12 }}>
+          <div>
+            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>SYMBOL</label>
+            <input
+              type="text" placeholder="AAPL, BTC, ES..." value={f.symbol}
+              onChange={(e) => setF({ ...f, symbol: e.target.value.toUpperCase() })}
+              style={{ fontFamily: "var(--font-geist-mono)", fontSize: 15, textTransform: "uppercase" }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>SIDE</label>
+            <div style={{ display: "flex", gap: 8 }}>
+              {(["long", "short"] as const).map((s) => (
+                <button key={s} type="button" onClick={() => setF({ ...f, side: s })}
+                  style={{ padding: "10px 16px", borderRadius: 8, border: `1.5px solid ${f.side === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--border)"}`, background: f.side === s ? (s === "long" ? "rgba(0,232,122,0.1)" : "rgba(255,59,92,0.1)") : "var(--surface2)", color: f.side === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 700, textTransform: "uppercase" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                    <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">{s === "long" ? <path d="M4.5 1L8.5 8H.5z"/> : <path d="M4.5 8L.5 1H8.5z"/>}</svg>
+                    {s === "long" ? "Long" : "Short"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>P&L ($)</label>
+          <input
+            type="number" placeholder="+250 or -120" value={f.pnl}
+            onChange={(e) => setF({ ...f, pnl: e.target.value })}
+            step="0.01"
+            style={{ fontFamily: "var(--font-geist-mono)", fontSize: 15, color: parseFloat(f.pnl) > 0 ? "var(--green)" : parseFloat(f.pnl) < 0 ? "var(--red)" : undefined }}
+          />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>SETUP / THESIS</label>
+          <textarea
+            placeholder="Why did you enter this trade?" value={f.setup}
+            onChange={(e) => setF({ ...f, setup: e.target.value })}
+            rows={2} style={{ resize: "vertical", fontSize: 14 }}
+          />
+        </div>
+
+        {isPro === false && (
+          <Link href="/settings" style={{ textDecoration: "none" }}>
+            <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(139,92,246,0.05)", border: "1px dashed rgba(139,92,246,0.25)", fontSize: 12, color: "var(--text-muted)" }}>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg> <strong style={{ color: "var(--blue)" }}>Upgrade to TradeMind</strong> for unlimited journal history, 90-day analytics, and emotion tracking</span>
+            </div>
+          </Link>
+        )}
+
+        {isPro && (
+          <div>
+            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
+              EMOTION BEFORE {f.emotionBefore ? `— ${EMOTION_LABELS[f.emotionBefore - 1]}` : ""}
+            </label>
+            <EmotionPicker value={f.emotionBefore} onChange={(v) => setF({ ...f, emotionBefore: v })} />
+          </div>
+        )}
+
+        {isPro && (
+          <div>
+            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
+              EMOTION AFTER {f.emotionAfter ? `— ${EMOTION_LABELS[f.emotionAfter - 1]}` : ""}
+            </label>
+            <EmotionPicker value={f.emotionAfter} onChange={(v) => setF({ ...f, emotionAfter: v })} />
+          </div>
+        )}
+
+        {/* ICT/SMC Setup Tags — always visible */}
+        <div>
+          <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
+            ICT / SMC SETUP
+          </label>
+          <IctSetupPicker selected={f.ictSetups} onChange={(ictSetups) => setF({ ...f, ictSetups })} />
+        </div>
+
+        {isPro && (
+          <div>
+            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>BEHAVIORAL TAGS (max 3)</label>
+            <TagPicker selected={f.tags} onChange={(tags) => setF({ ...f, tags })} />
+          </div>
+        )}
+
+        <div>
+          <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>WHAT WENT WRONG? (optional)</label>
+          <input type="text" placeholder="Entered too early, chased, ignored stop loss..." value={f.mistake} onChange={(e) => setF({ ...f, mistake: e.target.value })} style={{ fontSize: 14 }} />
+        </div>
+
+        <div>
+          <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>NOTES (optional)</label>
+          <textarea placeholder="Anything else..." value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} rows={2} style={{ resize: "vertical", fontSize: 14 }} />
+        </div>
+
+        {isPro && (
+          <div>
+            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>REFLECTION (optional)</label>
+            <textarea
+              placeholder="What did you learn from this trade? What will you do differently?"
+              value={f.reflection}
+              onChange={(e) => setF({ ...f, reflection: e.target.value })}
+              rows={2} style={{ resize: "vertical", fontSize: 14 }}
+            />
+          </div>
+        )}
+
+        {isPro && (
+          <div>
+            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
+              CHART SCREENSHOT (optional)
+              {!isPro && <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: 10, marginLeft: 6 }}>5/month · unlimited on TradeMind</span>}
+            </label>
+            {f.chartUrl ? (
+              <div style={{ position: "relative" }}>
+                <img src={f.chartUrl} alt="Chart" style={{ width: "100%", borderRadius: 8, border: "1px solid var(--border)", display: "block" }} />
+                <button
+                  onClick={() => setF({ ...f, chartUrl: null })}
+                  style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", border: "none", color: "white", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer" }}
+                >Remove</button>
+              </div>
+            ) : (
+              <label style={{ display: "block", border: "1px dashed var(--border)", borderRadius: 8, padding: "16px", textAlign: "center", cursor: chartUploading ? "not-allowed" : "pointer", color: "var(--text-muted)", fontSize: 13 }}>
+                {chartUploading ? "Uploading..." : "Click to upload PNG, JPG, or WebP (max 10 MB)"}
+                <input type="file" accept="image/*" style={{ display: "none" }} disabled={chartUploading}
+                  onChange={(e) => { const file = e.target.files?.[0]; if (file) handleChartUpload(file, (url) => setF({ ...f, chartUrl: url })); e.target.value = ""; }}
+                />
+              </label>
+            )}
+            {chartUploadError && (
+              <div style={{ fontSize: 12, color: "var(--red)", marginTop: 6, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+                <span>{chartUploadError}</span>
+                <button
+                  type="button"
+                  onClick={() => setChartUploadError(null)}
+                  style={{ fontSize: 11, color: "var(--blue)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", flexShrink: 0 }}
+                >
+                  Try again
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {isPro && (
+          <div style={{ borderTop: "1px solid var(--border)", paddingTop: 18 }}>
+            <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 14 }}>RISK & EXECUTION</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+              {/* Stop Loss / Take Profit */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>STOP LOSS ($)</label>
+                  <input type="number" placeholder="e.g. 198.50" value={f.stopLoss} onChange={(e) => setF({ ...f, stopLoss: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>TAKE PROFIT ($)</label>
+                  <input type="number" placeholder="e.g. 205.00" value={f.takeProfit} onChange={(e) => setF({ ...f, takeProfit: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                </div>
+              </div>
+
+              {/* Live R:R display */}
+              {(() => {
+                const entry = parseFloat(f.entryPrice);
+                const sl = parseFloat(f.stopLoss);
+                const tp = parseFloat(f.takeProfit);
+                if (f.entryPrice && f.stopLoss && f.takeProfit && !isNaN(entry) && !isNaN(sl) && !isNaN(tp) && Math.abs(entry - sl) > 0) {
+                  const rr = Math.abs(tp - entry) / Math.abs(entry - sl);
+                  return (
+                    <div style={{ padding: "8px 14px", borderRadius: 8, background: "rgba(94,106,210,0.07)", border: "1px solid rgba(94,106,210,0.2)", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ color: "var(--text-muted)" }}>Risk/Reward</span>
+                      <span className="font-bebas" style={{ fontSize: 16, color: rr >= 2 ? "var(--green)" : rr >= 1 ? "var(--amber)" : "var(--red)", letterSpacing: "0.04em" }}>1 : {rr.toFixed(2)}</span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
+              {/* Entry Price / Planned Entry */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>ENTRY PRICE</label>
+                  <input type="number" placeholder="Actual entry" value={f.entryPrice} onChange={(e) => setF({ ...f, entryPrice: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>PLANNED ENTRY</label>
+                  <input type="number" placeholder="Target entry" value={f.plannedEntry} onChange={(e) => setF({ ...f, plannedEntry: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                </div>
+              </div>
+
+              {/* Risk Amount / Commission */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>RISK AMOUNT ($)</label>
+                  <input type="number" placeholder="$ risked" value={f.riskAmount} onChange={(e) => setF({ ...f, riskAmount: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>COMMISSION ($)</label>
+                  <input type="number" placeholder="Broker fees" value={f.commission} onChange={(e) => setF({ ...f, commission: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                </div>
+              </div>
+
+              {/* MAE / MFE */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 4 }}>MAE ($)</label>
+                  <div style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 6 }}>Max move against you</div>
+                  <input type="number" placeholder="e.g. 120" value={f.mae} onChange={(e) => setF({ ...f, mae: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                </div>
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 4 }}>MFE ($)</label>
+                  <div style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 6 }}>Max move in your favor</div>
+                  <input type="number" placeholder="e.g. 350" value={f.mfe} onChange={(e) => setF({ ...f, mfe: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                </div>
+              </div>
+
+              {/* Asset Type */}
+              <div>
+                <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>ASSET TYPE</label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {(["stocks", "futures", "forex", "crypto", "options"] as const).map((type) => (
+                    <button key={type} type="button" onClick={() => setF({ ...f, assetType: f.assetType === type ? "" : type })}
+                      style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${f.assetType === type ? "var(--blue)" : "var(--border)"}`, background: f.assetType === type ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: f.assetType === type ? "var(--blue)" : "var(--text-muted)", textTransform: "capitalize", transition: "all 0.15s" }}>
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <button className="btn-primary" onClick={onSave} disabled={saving} style={{ padding: 14, fontSize: 15 }}>
+          {saving ? "Saving..." : "Save Trade →"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function JournalPage() {
   const today = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(today);
@@ -315,6 +579,8 @@ export default function JournalPage() {
   const [filterPeriod, setFilterPeriod] = useState<"today" | "7d" | "30d" | "all">("today");
   const [showFilters, setShowFilters] = useState(false);
   const [filterSetup, setFilterSetup] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<"date" | "pnl" | "symbol" | "duration">("date");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const [csvResult, setCsvResult] = useState<{ imported: number; skipped: number; format: string } | null>(null);
   const [csvError, setCsvError] = useState<string | null>(null);
   const [chartUploading, setChartUploading] = useState(false);
@@ -638,7 +904,19 @@ export default function JournalPage() {
     return pool;
   }, [entries, allEntries, filterPeriod, searchQuery, filterSide, filterResult, filterSetup]);
 
-  const displayEntries = isFiltered ? filteredEntries : entries;
+  const displayEntries = useMemo(() => {
+    const base = isFiltered ? filteredEntries : entries;
+    if (sortBy === "date") {
+      return sortDir === "desc" ? base : [...base].reverse();
+    }
+    return [...base].sort((a, b) => {
+      let av: number, bv: number;
+      if (sortBy === "pnl") { av = a.pnl ?? -Infinity; bv = b.pnl ?? -Infinity; }
+      else if (sortBy === "symbol") { return sortDir === "asc" ? (a.symbol ?? "").localeCompare(b.symbol ?? "") : (b.symbol ?? "").localeCompare(a.symbol ?? ""); }
+      else { av = a.duration ?? -Infinity; bv = b.duration ?? -Infinity; }
+      return sortDir === "desc" ? bv - av : av - bv;
+    });
+  }, [filteredEntries, entries, isFiltered, sortBy, sortDir]);
 
   function exportCSV() {
     const rows = displayEntries.map((e) => [
@@ -686,263 +964,6 @@ export default function JournalPage() {
 
   const isFree = isPro === false;
   const todayEntryCount = isFree && selectedDate === today ? entries.length : 0;
-
-  function TradeForm({
-    f, setF, onSave, onCancel, label,
-  }: {
-    f: FormState;
-    setF: (v: FormState) => void;
-    onSave: () => void;
-    onCancel: () => void;
-    label: string;
-  }) {
-    return (
-      <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(94,106,210,0.2)" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-          <div className="font-bebas" style={{ fontSize: 22, letterSpacing: "0.04em" }}>{label}</div>
-          <button onClick={onCancel} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center", justifyContent: "center" }}><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/></svg></button>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12 }}>
-            <div>
-              <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>SYMBOL</label>
-              <input
-                type="text" placeholder="AAPL, BTC, ES..." value={f.symbol}
-                onChange={(e) => setF({ ...f, symbol: e.target.value.toUpperCase() })}
-                style={{ fontFamily: "var(--font-geist-mono)", fontSize: 15, textTransform: "uppercase" }}
-              />
-            </div>
-            <div>
-              <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>SIDE</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                {(["long", "short"] as const).map((s) => (
-                  <button key={s} type="button" onClick={() => setF({ ...f, side: s })}
-                    style={{ padding: "10px 16px", borderRadius: 8, border: `1.5px solid ${f.side === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--border)"}`, background: f.side === s ? (s === "long" ? "rgba(0,232,122,0.1)" : "rgba(255,59,92,0.1)") : "var(--surface2)", color: f.side === s ? (s === "long" ? "var(--green)" : "var(--red)") : "var(--text-muted)", cursor: "pointer", fontSize: 13, fontWeight: 700, textTransform: "uppercase" }}>
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                      <svg width="9" height="9" viewBox="0 0 9 9" fill="currentColor">{s === "long" ? <path d="M4.5 1L8.5 8H.5z"/> : <path d="M4.5 8L.5 1H8.5z"/>}</svg>
-                      {s === "long" ? "Long" : "Short"}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>P&L ($)</label>
-            <input
-              type="number" placeholder="+250 or -120" value={f.pnl}
-              onChange={(e) => setF({ ...f, pnl: e.target.value })}
-              step="0.01"
-              style={{ fontFamily: "var(--font-geist-mono)", fontSize: 15, color: parseFloat(f.pnl) > 0 ? "var(--green)" : parseFloat(f.pnl) < 0 ? "var(--red)" : undefined }}
-            />
-          </div>
-
-          <div>
-            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>SETUP / THESIS</label>
-            <textarea
-              placeholder="Why did you enter this trade?" value={f.setup}
-              onChange={(e) => setF({ ...f, setup: e.target.value })}
-              rows={2} style={{ resize: "vertical", fontSize: 14 }}
-            />
-          </div>
-
-          {isFree && (
-            <Link href="/settings" style={{ textDecoration: "none" }}>
-              <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(139,92,246,0.05)", border: "1px dashed rgba(139,92,246,0.25)", fontSize: 12, color: "var(--text-muted)" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}><svg width="13" height="13" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="2"/><path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg> <strong style={{ color: "var(--blue)" }}>Upgrade to TradeMind</strong> for unlimited journal history, 90-day analytics, and emotion tracking</span>
-              </div>
-            </Link>
-          )}
-
-          {isPro && (
-            <div>
-              <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
-                EMOTION BEFORE {f.emotionBefore ? `— ${EMOTION_LABELS[f.emotionBefore - 1]}` : ""}
-              </label>
-              <EmotionPicker value={f.emotionBefore} onChange={(v) => setF({ ...f, emotionBefore: v })} />
-            </div>
-          )}
-
-          {isPro && (
-            <div>
-              <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
-                EMOTION AFTER {f.emotionAfter ? `— ${EMOTION_LABELS[f.emotionAfter - 1]}` : ""}
-              </label>
-              <EmotionPicker value={f.emotionAfter} onChange={(v) => setF({ ...f, emotionAfter: v })} />
-            </div>
-          )}
-
-          {/* ICT/SMC Setup Tags — always visible */}
-          <div>
-            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
-              ICT / SMC SETUP
-            </label>
-            <IctSetupPicker selected={f.ictSetups} onChange={(ictSetups) => setF({ ...f, ictSetups })} />
-          </div>
-
-          {isPro && (
-            <div>
-              <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>BEHAVIORAL TAGS (max 3)</label>
-              <TagPicker selected={f.tags} onChange={(tags) => setF({ ...f, tags })} />
-            </div>
-          )}
-
-          <div>
-            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>WHAT WENT WRONG? (optional)</label>
-            <input type="text" placeholder="Entered too early, chased, ignored stop loss..." value={f.mistake} onChange={(e) => setF({ ...f, mistake: e.target.value })} style={{ fontSize: 14 }} />
-          </div>
-
-          <div>
-            <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>NOTES (optional)</label>
-            <textarea placeholder="Anything else..." value={f.notes} onChange={(e) => setF({ ...f, notes: e.target.value })} rows={2} style={{ resize: "vertical", fontSize: 14 }} />
-          </div>
-
-          {isPro && (
-            <div>
-              <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>REFLECTION (optional)</label>
-              <textarea
-                placeholder="What did you learn from this trade? What will you do differently?"
-                value={f.reflection}
-                onChange={(e) => setF({ ...f, reflection: e.target.value })}
-                rows={2} style={{ resize: "vertical", fontSize: 14 }}
-              />
-            </div>
-          )}
-
-          {isPro && (
-            <div>
-              <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
-                CHART SCREENSHOT (optional)
-                {!isPro && <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: 10, marginLeft: 6 }}>5/month · unlimited on TradeMind</span>}
-              </label>
-              {f.chartUrl ? (
-                <div style={{ position: "relative" }}>
-                  <img src={f.chartUrl} alt="Chart" style={{ width: "100%", borderRadius: 8, border: "1px solid var(--border)", display: "block" }} />
-                  <button
-                    onClick={() => setF({ ...f, chartUrl: null })}
-                    style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", border: "none", color: "white", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer" }}
-                  >Remove</button>
-                </div>
-              ) : (
-                <label style={{ display: "block", border: "1px dashed var(--border)", borderRadius: 8, padding: "16px", textAlign: "center", cursor: chartUploading ? "not-allowed" : "pointer", color: "var(--text-muted)", fontSize: 13 }}>
-                  {chartUploading ? "Uploading..." : "Click to upload PNG, JPG, or WebP (max 10 MB)"}
-                  <input type="file" accept="image/*" style={{ display: "none" }} disabled={chartUploading}
-                    onChange={(e) => { const file = e.target.files?.[0]; if (file) handleChartUpload(file, (url) => setF({ ...f, chartUrl: url })); e.target.value = ""; }}
-                  />
-                </label>
-              )}
-              {chartUploadError && (
-                <div style={{ fontSize: 12, color: "var(--red)", marginTop: 6, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                  <span>{chartUploadError}</span>
-                  <button
-                    type="button"
-                    onClick={() => setChartUploadError(null)}
-                    style={{ fontSize: 11, color: "var(--blue)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", flexShrink: 0 }}
-                  >
-                    Try again
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {isPro && (
-            <div style={{ borderTop: "1px solid var(--border)", paddingTop: 18 }}>
-              <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 14 }}>RISK & EXECUTION</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-
-                {/* Stop Loss / Take Profit */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div>
-                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>STOP LOSS ($)</label>
-                    <input type="number" placeholder="e.g. 198.50" value={f.stopLoss} onChange={(e) => setF({ ...f, stopLoss: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>TAKE PROFIT ($)</label>
-                    <input type="number" placeholder="e.g. 205.00" value={f.takeProfit} onChange={(e) => setF({ ...f, takeProfit: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
-                  </div>
-                </div>
-
-                {/* Live R:R display */}
-                {(() => {
-                  const entry = parseFloat(f.entryPrice);
-                  const sl = parseFloat(f.stopLoss);
-                  const tp = parseFloat(f.takeProfit);
-                  if (f.entryPrice && f.stopLoss && f.takeProfit && !isNaN(entry) && !isNaN(sl) && !isNaN(tp) && Math.abs(entry - sl) > 0) {
-                    const rr = Math.abs(tp - entry) / Math.abs(entry - sl);
-                    return (
-                      <div style={{ padding: "8px 14px", borderRadius: 8, background: "rgba(94,106,210,0.07)", border: "1px solid rgba(94,106,210,0.2)", fontSize: 13, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                        <span style={{ color: "var(--text-muted)" }}>Risk/Reward</span>
-                        <span className="font-bebas" style={{ fontSize: 16, color: rr >= 2 ? "var(--green)" : rr >= 1 ? "var(--amber)" : "var(--red)", letterSpacing: "0.04em" }}>1 : {rr.toFixed(2)}</span>
-                      </div>
-                    );
-                  }
-                  return null;
-                })()}
-
-                {/* Entry Price / Planned Entry */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div>
-                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>ENTRY PRICE</label>
-                    <input type="number" placeholder="Actual entry" value={f.entryPrice} onChange={(e) => setF({ ...f, entryPrice: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>PLANNED ENTRY</label>
-                    <input type="number" placeholder="Target entry" value={f.plannedEntry} onChange={(e) => setF({ ...f, plannedEntry: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
-                  </div>
-                </div>
-
-                {/* Risk Amount / Commission */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div>
-                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>RISK AMOUNT ($)</label>
-                    <input type="number" placeholder="$ risked" value={f.riskAmount} onChange={(e) => setF({ ...f, riskAmount: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>COMMISSION ($)</label>
-                    <input type="number" placeholder="Broker fees" value={f.commission} onChange={(e) => setF({ ...f, commission: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
-                  </div>
-                </div>
-
-                {/* MAE / MFE */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <div>
-                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 4 }}>MAE ($)</label>
-                    <div style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 6 }}>Max move against you</div>
-                    <input type="number" placeholder="e.g. 120" value={f.mae} onChange={(e) => setF({ ...f, mae: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
-                  </div>
-                  <div>
-                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 4 }}>MFE ($)</label>
-                    <div style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 6 }}>Max move in your favor</div>
-                    <input type="number" placeholder="e.g. 350" value={f.mfe} onChange={(e) => setF({ ...f, mfe: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
-                  </div>
-                </div>
-
-                {/* Asset Type */}
-                <div>
-                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>ASSET TYPE</label>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {(["stocks", "futures", "forex", "crypto", "options"] as const).map((type) => (
-                      <button key={type} type="button" onClick={() => setF({ ...f, assetType: f.assetType === type ? "" : type })}
-                        style={{ padding: "6px 14px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${f.assetType === type ? "var(--blue)" : "var(--border)"}`, background: f.assetType === type ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: f.assetType === type ? "var(--blue)" : "var(--text-muted)", textTransform: "capitalize", transition: "all 0.15s" }}>
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <button className="btn-primary" onClick={onSave} disabled={saving} style={{ padding: 14, fontSize: 15 }}>
-            {saving ? "Saving..." : "Save Trade →"}
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
@@ -1410,6 +1431,12 @@ export default function JournalPage() {
             onSave={handleSave}
             onCancel={() => { setShowForm(false); setForm(EMPTY_FORM); }}
             label="Log a Trade"
+            saving={saving}
+            isPro={isPro}
+            chartUploading={chartUploading}
+            chartUploadError={chartUploadError}
+            setChartUploadError={setChartUploadError}
+            handleChartUpload={handleChartUpload}
           />
         )}
 
@@ -1518,6 +1545,23 @@ export default function JournalPage() {
                         {label}
                       </button>
                     ))}
+                  </div>
+                </div>
+
+                {/* Sort */}
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 8 }}>SORT BY</div>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {([["date", "Date"], ["pnl", "P&L"], ["symbol", "Symbol"], ["duration", "Duration"]] as const).map(([val, label]) => {
+                      const active = sortBy === val;
+                      return (
+                        <button key={val} type="button"
+                          onClick={() => { if (sortBy === val) setSortDir((d) => d === "desc" ? "asc" : "desc"); else { setSortBy(val); setSortDir("desc"); } }}
+                          style={{ padding: "6px 12px", borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: "pointer", border: `1.5px solid ${active ? "var(--blue)" : "var(--border)"}`, background: active ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: active ? "var(--blue)" : "var(--text-muted)", transition: "all 0.15s", display: "flex", alignItems: "center", gap: 4 }}>
+                          {label}{active && <span style={{ fontSize: 9 }}>{sortDir === "desc" ? "↓" : "↑"}</span>}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
@@ -1635,6 +1679,12 @@ export default function JournalPage() {
                       onSave={() => handleSaveEdit(entry.id)}
                       onCancel={() => setEditingId(null)}
                       label="Edit Trade"
+                      saving={saving}
+                      isPro={isPro}
+                      chartUploading={chartUploading}
+                      chartUploadError={chartUploadError}
+                      setChartUploadError={setChartUploadError}
+                      handleChartUpload={handleChartUpload}
                     />
                   ) : (
                     <>

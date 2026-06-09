@@ -90,6 +90,8 @@ type AnalyticsData = {
   filtered?: boolean;
   filterStartDate?: string | null;
   filterEndDate?: string | null;
+  tagStats?: { tag: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number }[];
+  mistakeStats?: { mistake: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number }[];
 };
 
 function verdictColor(verdict: string | null) {
@@ -1267,6 +1269,72 @@ function DurationStatsCard({ data }: { data: NonNullable<AnalyticsData["duration
   );
 }
 
+function TagStatsCard({ data }: { data: NonNullable<AnalyticsData["tagStats"]> }) {
+  if (data.length === 0) return null;
+  const maxAbs = Math.max(...data.map((d) => Math.abs(d.totalPnl)), 1);
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>P&L BY TAG</h3>
+      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+        {data.slice(0, 10).map((t) => {
+          const isPos = t.totalPnl >= 0;
+          const barPct = (Math.abs(t.totalPnl) / maxAbs) * 100;
+          return (
+            <div key={t.tag} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "center" }}>
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                  <span style={{ fontSize: 13, fontWeight: 600 }}>{t.tag}</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{t.trades} trade{t.trades !== 1 ? "s" : ""}{t.winRate !== null ? ` · ${t.winRate}% WR` : ""}</span>
+                </div>
+                <div style={{ height: 6, background: "var(--surface2)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${barPct}%`, height: "100%", background: isPos ? "var(--green)" : "var(--red)", borderRadius: 3, transition: "width 0.3s" }} />
+                </div>
+              </div>
+              <div style={{ fontFamily: "var(--font-geist-mono)", fontSize: 13, fontWeight: 700, color: isPos ? "var(--green)" : "var(--red)", textAlign: "right", minWidth: 72 }}>
+                {isPos ? "+" : ""}${Math.abs(t.totalPnl).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MistakeStatsCard({ data }: { data: NonNullable<AnalyticsData["mistakeStats"]> }) {
+  if (data.length === 0) return null;
+  const maxAbs = Math.max(...data.map((d) => Math.abs(d.totalPnl)), 1);
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 4 }}>MOST COSTLY MISTAKES</h3>
+      <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 16 }}>How much each recurring mistake cost you</p>
+      <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+        {data.slice(0, 8).map((m) => {
+          const isPos = m.totalPnl >= 0;
+          const barPct = (Math.abs(m.totalPnl) / maxAbs) * 100;
+          const label = m.mistake.length > 40 ? m.mistake.slice(0, 40) + "…" : m.mistake;
+          return (
+            <div key={m.mistake} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "center" }}>
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{m.trades}×{m.winRate !== null ? ` · ${m.winRate}% WR` : ""}</span>
+                </div>
+                <div style={{ height: 6, background: "var(--surface2)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ width: `${barPct}%`, height: "100%", background: isPos ? "var(--green)" : "var(--red)", borderRadius: 3, transition: "width 0.3s" }} />
+                </div>
+              </div>
+              <div style={{ fontFamily: "var(--font-geist-mono)", fontSize: 13, fontWeight: 700, color: isPos ? "var(--green)" : "var(--red)", textAlign: "right", minWidth: 72 }}>
+                {isPos ? "+" : "−"}${Math.abs(m.totalPnl).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function AdvancedMetricsCard({ data }: { data: AnalyticsData }) {
   const metrics: { label: string; value: string; sub?: string; color: string }[] = [];
 
@@ -1768,6 +1836,8 @@ function AnalyticsPageInner() {
         {data.durationStats && data.durationStats.length > 0 && <DurationStatsCard data={data.durationStats} />}
         {data.symbols && data.symbols.length > 0 && <SymbolPerformanceTable data={data.symbols} />}
         {data.setups && data.setups.length > 0 && <SetupPerformanceTable data={data.setups} />}
+        {data.tagStats && data.tagStats.length > 0 && <TagStatsCard data={data.tagStats} />}
+        {data.mistakeStats && data.mistakeStats.length > 0 && <MistakeStatsCard data={data.mistakeStats} />}
         {data.monthlyStats && data.monthlyStats.length >= 2 && <MonthlyBreakdownTable data={data.monthlyStats} />}
 
         {/* Psychology & mind section divider */}
