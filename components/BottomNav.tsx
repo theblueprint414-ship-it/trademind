@@ -43,6 +43,13 @@ const GridIcon = () => (
 
 const MORE_ITEMS = [
   {
+    href: "/backtest",
+    label: "Backtest",
+    emoji: "🔬",
+    description: "What-if simulator on your trade history",
+    color: "var(--blue)",
+  },
+  {
     href: "/coach",
     label: "AI Coach",
     emoji: "🧠",
