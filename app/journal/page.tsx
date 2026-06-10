@@ -294,6 +294,7 @@ type FormState = {
   lotSize: string;
   pips: string;
   swap: string;
+  extraScreenshots: string[];
 };
 
 const EMPTY_FORM: FormState = {
@@ -303,6 +304,7 @@ const EMPTY_FORM: FormState = {
   stopLoss: "", takeProfit: "", riskAmount: "", commission: "", assetType: "", plannedEntry: "", entryPrice: "",
   mae: "", mfe: "", optionType: "", strikePrice: "", expiryDate: "", multiplier: "", tradingAccountId: "",
   confidence: null, marketCondition: "", timeframe: "", sessionType: "", lotSize: "", pips: "", swap: "",
+  extraScreenshots: [],
 };
 
 
@@ -468,6 +470,208 @@ function CandleChart({ tradeId }: { tradeId: string }) {
   );
 }
 
+type PartialClose = {
+  id: string;
+  price: number;
+  qty: number;
+  pnl: number | null;
+  reason: string | null;
+  closedAt: string;
+  notes: string | null;
+};
+
+function PartialClosesPanel({ tradeId, isPro }: { tradeId: string; isPro: boolean }) {
+  const [open, setOpen] = React.useState(false);
+  const [partials, setPartials] = React.useState<PartialClose[]>([]);
+  const [loading, setLoading] = React.useState(false);
+  const [showForm, setShowForm] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+  const [deletingId, setDeletingId] = React.useState<string | null>(null);
+  const [form, setForm] = React.useState({ price: "", qty: "", pnl: "", reason: "", closedAt: new Date().toISOString().slice(0, 16), notes: "" });
+
+  async function load() {
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/partials?tradeId=${tradeId}`);
+      const data = await res.json();
+      if (data.partials) setPartials(data.partials);
+    } catch {}
+    setLoading(false);
+  }
+
+  function toggle() {
+    if (!open) load();
+    setOpen((v) => !v);
+  }
+
+  async function handleAdd() {
+    if (!form.price || !form.qty || !form.closedAt) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/partials", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tradeEntryId: tradeId,
+          price: parseFloat(form.price),
+          qty: parseFloat(form.qty),
+          pnl: form.pnl ? parseFloat(form.pnl) : undefined,
+          reason: form.reason || undefined,
+          closedAt: form.closedAt,
+          notes: form.notes || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setPartials((prev) => [...prev, data.partial]);
+        setForm({ price: "", qty: "", pnl: "", reason: "", closedAt: new Date().toISOString().slice(0, 16), notes: "" });
+        setShowForm(false);
+      }
+    } catch {}
+    setSaving(false);
+  }
+
+  async function handleDelete(id: string) {
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/partials?id=${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.ok) setPartials((prev) => prev.filter((p) => p.id !== id));
+    } catch {}
+    setDeletingId(null);
+  }
+
+  const REASONS: { value: string; label: string }[] = [
+    { value: "profit_taking", label: "Profit taking" },
+    { value: "risk_reduction", label: "Risk reduction" },
+    { value: "trailing_stop", label: "Trailing stop" },
+    { value: "manual", label: "Manual" },
+  ];
+
+  return (
+    <div style={{ marginTop: 10, borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+      <button type="button" onClick={toggle}
+        style={{ background: "none", border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: 12, padding: 0 }}>
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6h8M6 2l4 4-4 4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" style={{ transform: open ? "rotate(90deg)" : "none", transformOrigin: "center", transition: "transform 0.2s" }}/></svg>
+        Partial Closes {partials.length > 0 && !open ? `(${partials.length})` : ""}
+        {!isPro && <span style={{ fontSize: 10, color: "var(--amber)", marginLeft: 4 }}>Pro</span>}
+      </button>
+
+      {open && (
+        <div style={{ marginTop: 10 }}>
+          {!isPro ? (
+            <div style={{ fontSize: 12, color: "var(--text-muted)", padding: "8px 12px", borderRadius: 8, background: "var(--surface2)", border: "1px solid var(--border)" }}>
+              Partial close tracking is a Pro feature. <a href="/settings" style={{ color: "var(--blue)", textDecoration: "none" }}>Upgrade →</a>
+            </div>
+          ) : loading ? (
+            <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Loading...</div>
+          ) : (
+            <>
+              {partials.length > 0 && (
+                <div style={{ marginBottom: 10, overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+                    <thead>
+                      <tr style={{ color: "var(--text-muted)", textAlign: "left", borderBottom: "1px solid var(--border)" }}>
+                        <th style={{ padding: "4px 8px 6px 0", fontWeight: 600, whiteSpace: "nowrap" }}>Time</th>
+                        <th style={{ padding: "4px 8px 6px", fontWeight: 600 }}>Price</th>
+                        <th style={{ padding: "4px 8px 6px", fontWeight: 600 }}>Qty</th>
+                        <th style={{ padding: "4px 8px 6px", fontWeight: 600 }}>P&amp;L</th>
+                        <th style={{ padding: "4px 8px 6px", fontWeight: 600 }}>Reason</th>
+                        <th style={{ padding: "4px 0 6px 8px", fontWeight: 600 }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {partials.map((p) => (
+                        <tr key={p.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                          <td style={{ padding: "5px 8px 5px 0", color: "var(--text-muted)", fontFamily: "var(--font-geist-mono)", fontSize: 11, whiteSpace: "nowrap" }}>
+                            {new Date(p.closedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </td>
+                          <td style={{ padding: "5px 8px", fontFamily: "var(--font-geist-mono)" }}>{p.price}</td>
+                          <td style={{ padding: "5px 8px", fontFamily: "var(--font-geist-mono)" }}>{p.qty}</td>
+                          <td style={{ padding: "5px 8px", fontFamily: "var(--font-geist-mono)", color: p.pnl === null ? "var(--text-muted)" : p.pnl >= 0 ? "var(--green)" : "var(--red)" }}>
+                            {p.pnl !== null ? `${p.pnl >= 0 ? "+" : ""}$${p.pnl.toFixed(2)}` : "—"}
+                          </td>
+                          <td style={{ padding: "5px 8px", color: "var(--text-muted)", textTransform: "capitalize", fontSize: 11 }}>
+                            {p.reason ? p.reason.replace("_", " ") : "—"}
+                          </td>
+                          <td style={{ padding: "5px 0 5px 8px" }}>
+                            <button type="button" onClick={() => handleDelete(p.id)} disabled={deletingId === p.id}
+                              style={{ background: "none", border: "none", color: "var(--red)", cursor: "pointer", fontSize: 11, padding: 0 }}>
+                              {deletingId === p.id ? "..." : "×"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {!showForm ? (
+                <button type="button" onClick={() => setShowForm(true)}
+                  style={{ fontSize: 12, color: "var(--blue)", background: "none", border: "1px dashed var(--border)", borderRadius: 8, padding: "6px 14px", cursor: "pointer", width: "100%" }}>
+                  + Add partial close
+                </button>
+              ) : (
+                <div style={{ background: "var(--surface2)", borderRadius: 10, padding: 14, display: "flex", flexDirection: "column", gap: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <div>
+                      <label style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", display: "block", marginBottom: 4 }}>PRICE *</label>
+                      <input type="number" step="any" placeholder="e.g. 1.2345" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })}
+                        style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: 13, boxSizing: "border-box" }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", display: "block", marginBottom: 4 }}>QTY *</label>
+                      <input type="number" step="any" placeholder="e.g. 0.5" value={form.qty} onChange={(e) => setForm({ ...form, qty: e.target.value })}
+                        style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: 13, boxSizing: "border-box" }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", display: "block", marginBottom: 4 }}>P&amp;L</label>
+                      <input type="number" step="any" placeholder="e.g. 45.00" value={form.pnl} onChange={(e) => setForm({ ...form, pnl: e.target.value })}
+                        style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: 13, boxSizing: "border-box" }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", display: "block", marginBottom: 4 }}>CLOSED AT *</label>
+                      <input type="datetime-local" title="Close time" value={form.closedAt} onChange={(e) => setForm({ ...form, closedAt: e.target.value })}
+                        style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: 13, boxSizing: "border-box" }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", display: "block", marginBottom: 6 }}>REASON</label>
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                      {REASONS.map((r) => (
+                        <button type="button" key={r.value} onClick={() => setForm({ ...form, reason: form.reason === r.value ? "" : r.value })}
+                          style={{ fontSize: 11, padding: "4px 10px", borderRadius: 20, border: `1px solid ${form.reason === r.value ? "var(--blue)" : "var(--border)"}`, background: form.reason === r.value ? "rgba(94,106,210,0.12)" : "var(--surface)", color: form.reason === r.value ? "var(--blue)" : "var(--text-muted)", cursor: "pointer" }}>
+                          {r.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.07em", display: "block", marginBottom: 4 }}>NOTES</label>
+                    <input type="text" placeholder="Optional notes..." value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })}
+                      style={{ width: "100%", padding: "7px 10px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface)", color: "var(--text)", fontSize: 13, boxSizing: "border-box" }} />
+                  </div>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button type="button" onClick={handleAdd} disabled={saving || !form.price || !form.qty}
+                      style={{ flex: 1, padding: "8px 0", borderRadius: 8, border: "none", background: "var(--blue)", color: "#fff", fontSize: 13, fontWeight: 700, cursor: saving ? "not-allowed" : "pointer", opacity: saving || !form.price || !form.qty ? 0.5 : 1 }}>
+                      {saving ? "Saving..." : "Save partial"}
+                    </button>
+                    <button type="button" onClick={() => setShowForm(false)}
+                      style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid var(--border)", background: "none", color: "var(--text-muted)", fontSize: 13, cursor: "pointer" }}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TradeForm({
   f, setF, onSave, onCancel, label, saving, isPro, chartUploading, chartUploadError, setChartUploadError, handleChartUpload, tradingAccounts,
 }: {
@@ -602,33 +806,58 @@ function TradeForm({
         {isPro && (
           <div>
             <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>
-              CHART SCREENSHOT (optional)
-              {!isPro && <span style={{ color: "var(--text-muted)", fontWeight: 400, fontSize: 10, marginLeft: 6 }}>5/month · unlimited on TradeMind</span>}
+              SCREENSHOTS (up to 5)
             </label>
-            {f.chartUrl ? (
-              <div style={{ position: "relative" }}>
-                <img src={f.chartUrl} alt="Chart" style={{ width: "100%", borderRadius: 8, border: "1px solid var(--border)", display: "block" }} />
-                <button
-                  onClick={() => setF({ ...f, chartUrl: null })}
-                  style={{ position: "absolute", top: 8, right: 8, background: "rgba(0,0,0,0.7)", border: "none", color: "white", borderRadius: 6, padding: "4px 10px", fontSize: 12, cursor: "pointer" }}
-                >Remove</button>
+
+            {/* All screenshots: primary + extras */}
+            {(f.chartUrl || f.extraScreenshots.length > 0) && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8, marginBottom: 10 }}>
+                {f.chartUrl && (
+                  <div style={{ position: "relative" }}>
+                    <a href={f.chartUrl} target="_blank" rel="noopener noreferrer">
+                      <img src={f.chartUrl} alt="Main" style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", borderRadius: 6, border: "1px solid var(--border)", display: "block" }} />
+                    </a>
+                    <div style={{ position: "absolute", top: 4, left: 4, background: "rgba(0,0,0,0.6)", borderRadius: 4, padding: "1px 5px", fontSize: 9, fontWeight: 700, color: "white" }}>MAIN</div>
+                    <button type="button" onClick={() => setF({ ...f, chartUrl: null })}
+                      style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.6)", border: "none", color: "white", borderRadius: 4, width: 20, height: 20, fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                  </div>
+                )}
+                {f.extraScreenshots.map((url, i) => (
+                  <div key={i} style={{ position: "relative" }}>
+                    <a href={url} target="_blank" rel="noopener noreferrer">
+                      <img src={url} alt={`Screenshot ${i + 2}`} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", borderRadius: 6, border: "1px solid var(--border)", display: "block" }} />
+                    </a>
+                    <button type="button" onClick={() => setF({ ...f, extraScreenshots: f.extraScreenshots.filter((_, idx) => idx !== i) })}
+                      style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.6)", border: "none", color: "white", borderRadius: 4, width: 20, height: 20, fontSize: 11, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
+                  </div>
+                ))}
               </div>
-            ) : (
-              <label style={{ display: "block", border: "1px dashed var(--border)", borderRadius: 8, padding: "16px", textAlign: "center", cursor: chartUploading ? "not-allowed" : "pointer", color: "var(--text-muted)", fontSize: 13 }}>
-                {chartUploading ? "Uploading..." : "Click to upload PNG, JPG, or WebP (max 10 MB)"}
+            )}
+
+            {/* Upload slot — shown if < 5 total */}
+            {((!f.chartUrl ? 0 : 1) + f.extraScreenshots.length) < 5 && (
+              <label style={{ display: "block", border: "1px dashed var(--border)", borderRadius: 8, padding: "14px", textAlign: "center", cursor: chartUploading ? "not-allowed" : "pointer", color: "var(--text-muted)", fontSize: 12 }}>
+                {chartUploading ? "Uploading..." : `+ Add screenshot (${((!f.chartUrl ? 0 : 1) + f.extraScreenshots.length)}/5)`}
                 <input type="file" accept="image/*" style={{ display: "none" }} disabled={chartUploading}
-                  onChange={(e) => { const file = e.target.files?.[0]; if (file) handleChartUpload(file, (url) => setF({ ...f, chartUrl: url })); e.target.value = ""; }}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (!f.chartUrl) {
+                      handleChartUpload(file, (url) => setF({ ...f, chartUrl: url }));
+                    } else {
+                      handleChartUpload(file, (url) => { if (url) setF({ ...f, extraScreenshots: [...f.extraScreenshots, url] }); });
+                    }
+                    e.target.value = "";
+                  }}
                 />
               </label>
             )}
+
             {chartUploadError && (
               <div style={{ fontSize: 12, color: "var(--red)", marginTop: 6, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                 <span>{chartUploadError}</span>
-                <button
-                  type="button"
-                  onClick={() => setChartUploadError(null)}
-                  style={{ fontSize: 11, color: "var(--blue)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", flexShrink: 0 }}
-                >
+                <button type="button" onClick={() => setChartUploadError(null)}
+                  style={{ fontSize: 11, color: "var(--blue)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", flexShrink: 0 }}>
                   Try again
                 </button>
               </div>
@@ -1060,6 +1289,7 @@ export default function JournalPage() {
           lotSize: form.lotSize ? parseFloat(form.lotSize) : null,
           pips: form.pips ? parseFloat(form.pips) : null,
           swap: form.swap ? parseFloat(form.swap) : null,
+          screenshotUrls: form.extraScreenshots.length > 0 ? JSON.stringify(form.extraScreenshots) : null,
         }),
       });
       const data = await res.json();
@@ -1133,6 +1363,7 @@ export default function JournalPage() {
       lotSize: entry.lotSize !== null && entry.lotSize !== undefined ? String(entry.lotSize) : "",
       pips: entry.pips !== null && entry.pips !== undefined ? String(entry.pips) : "",
       swap: entry.swap !== null && entry.swap !== undefined ? String(entry.swap) : "",
+      extraScreenshots: (() => { try { return JSON.parse(entry.screenshotUrls ?? "[]") as string[]; } catch { return []; } })(),
     });
   }
 
@@ -1177,6 +1408,7 @@ export default function JournalPage() {
           lotSize: editForm.lotSize ? parseFloat(editForm.lotSize) : null,
           pips: editForm.pips ? parseFloat(editForm.pips) : null,
           swap: editForm.swap ? parseFloat(editForm.swap) : null,
+          screenshotUrls: editForm.extraScreenshots.length > 0 ? JSON.stringify(editForm.extraScreenshots) : null,
         }),
       });
       const data = await res.json();
@@ -2405,20 +2637,33 @@ export default function JournalPage() {
                         </div>
                       )}
 
+                      <PartialClosesPanel tradeId={entry.id} isPro={isPro} />
+
                       {entry.symbol && <TradingViewChart symbol={entry.symbol} />}
                       {entry.symbol && entry.entryPrice && <CandleChart tradeId={entry.id} />}
 
-                      {entry.chartUrl && (
-                        <div style={{ marginTop: 10 }}>
-                          <a href={entry.chartUrl} target="_blank" rel="noopener noreferrer">
-                            <img
-                              src={entry.chartUrl}
-                              alt="Trade chart"
-                              style={{ width: "100%", borderRadius: 8, border: "1px solid var(--border)", display: "block", maxHeight: 300, objectFit: "contain", background: "var(--surface2)" }}
-                            />
-                          </a>
-                        </div>
-                      )}
+                      {(() => {
+                        const extraUrls: string[] = (() => { try { return JSON.parse(entry.screenshotUrls ?? "[]") as string[]; } catch { return []; } })();
+                        const allShots = [...(entry.chartUrl ? [entry.chartUrl] : []), ...extraUrls];
+                        if (allShots.length === 0) return null;
+                        return (
+                          <div style={{ marginTop: 10 }}>
+                            {allShots.length === 1 ? (
+                              <a href={allShots[0]} target="_blank" rel="noopener noreferrer">
+                                <img src={allShots[0]} alt="Trade chart" style={{ width: "100%", borderRadius: 8, border: "1px solid var(--border)", display: "block", maxHeight: 300, objectFit: "contain", background: "var(--surface2)" }} />
+                              </a>
+                            ) : (
+                              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))", gap: 6 }}>
+                                {allShots.map((url, i) => (
+                                  <a key={i} href={url} target="_blank" rel="noopener noreferrer">
+                                    <img src={url} alt={`Screenshot ${i + 1}`} style={{ width: "100%", aspectRatio: "16/9", objectFit: "cover", borderRadius: 6, border: "1px solid var(--border)", display: "block" }} />
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>
                         {new Date(entry.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}

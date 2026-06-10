@@ -169,6 +169,7 @@ function RuleBuilder({ rules, onChange }: { rules: Rule[]; onChange: (r: Rule[])
   const [conditions, setConditions] = useState<string[]>([]);
   const [sides, setSides] = useState<string[]>([]);
   const [timeframes, setTimeframes] = useState<string[]>([]);
+  const [setupFilter, setSetupFilter] = useState<string[]>([]);
 
   function toggle<T extends string>(arr: T[], val: T): T[] {
     return arr.includes(val) ? arr.filter((x) => x !== val) : [...arr, val];
@@ -417,6 +418,36 @@ function RuleBuilder({ rules, onChange }: { rules: Rule[]; onChange: (r: Rule[])
           onClick={() => { if (timeframes.length > 0 && !ruleTypes.includes("timeframes")) add({ type: "timeframes", values: timeframes }); }}
           style={{ padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: timeframes.length === 0 || ruleTypes.includes("timeframes") ? "not-allowed" : "pointer", border: "1.5px solid var(--blue)", background: ruleTypes.includes("timeframes") ? "var(--surface2)" : "rgba(94,106,210,0.12)", color: ruleTypes.includes("timeframes") ? "var(--text-muted)" : "var(--blue)", opacity: timeframes.length === 0 || ruleTypes.includes("timeframes") ? 0.5 : 1 }}>
           {ruleTypes.includes("timeframes") ? "Added" : timeframes.length === 0 ? "Select timeframes first" : `Add (${timeframes.length} selected)`}
+        </button>
+      </div>
+
+      {/* ICT / SMC setup filter */}
+      <div style={{ padding: 14, borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 700 }}>ICT / SMC setup filter</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Only include trades tagged with these setups</div>
+          </div>
+          {ruleTypes.includes("setups") && (
+            <button type="button" onClick={() => { onChange(rules.filter((r) => r.type !== "setups")); setSetupFilter([]); }}
+              style={{ fontSize: 11, color: "var(--red)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>Remove</button>
+          )}
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
+          {["FVG", "OB", "BOS", "CHOCH", "Liquidity grab", "MSS", "Imbalance", "PDH/PDL", "Breaker", "Mitigation"].map((s) => {
+            const active = setupFilter.includes(s);
+            return (
+              <button key={s} type="button" onClick={() => setSetupFilter((prev) => toggle(prev, s))}
+                style={{ padding: "4px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${active ? "#60A5FA" : "var(--border)"}`, background: active ? "rgba(96,165,250,0.1)" : "transparent", color: active ? "#60A5FA" : "var(--text-muted)", transition: "all 0.15s" }}>
+                {s}
+              </button>
+            );
+          })}
+        </div>
+        <button type="button" disabled={setupFilter.length === 0 || ruleTypes.includes("setups")}
+          onClick={() => { if (setupFilter.length > 0 && !ruleTypes.includes("setups")) add({ type: "setups", values: setupFilter }); }}
+          style={{ padding: "6px 14px", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: setupFilter.length === 0 || ruleTypes.includes("setups") ? "not-allowed" : "pointer", border: "1.5px solid var(--blue)", background: ruleTypes.includes("setups") ? "var(--surface2)" : "rgba(94,106,210,0.12)", color: ruleTypes.includes("setups") ? "var(--text-muted)" : "var(--blue)", opacity: setupFilter.length === 0 || ruleTypes.includes("setups") ? 0.5 : 1 }}>
+          {ruleTypes.includes("setups") ? "Added" : setupFilter.length === 0 ? "Select setups first" : `Add (${setupFilter.length} selected)`}
         </button>
       </div>
 
