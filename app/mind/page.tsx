@@ -166,7 +166,25 @@ export default function MindPage() {
           </div>
         )}
 
-        {data && (
+        {data && data.totalDays === 0 && (
+          <div style={{ textAlign: "center", padding: "60px 24px" }}>
+            <div style={{ fontSize: 48, marginBottom: 16 }}>🧠</div>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "var(--text)", marginBottom: 8 }}>No patterns yet</div>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6, marginBottom: 24 }}>
+              Complete at least one morning check-in and log a trade to start seeing how your lifestyle affects your performance.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <Link href="/checkin">
+                <button className="btn-primary" style={{ width: "100%", padding: "12px 24px" }}>Do your first check-in →</button>
+              </Link>
+              <Link href="/journal">
+                <button style={{ width: "100%", padding: "12px 24px", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text)", fontSize: 14, fontWeight: 600, cursor: "pointer" }}>Log a trade →</button>
+              </Link>
+            </div>
+          </div>
+        )}
+
+        {data && data.totalDays > 0 && (
           <>
             {/* Stats bar */}
             <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
