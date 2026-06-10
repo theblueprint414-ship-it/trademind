@@ -54,6 +54,7 @@ model User {
   pushSubscriptions PushSubscription[]
   midSessionCheckins MidSessionCheckin[]
   preTradeRituals   PreTradeRitual[]
+  partialCloses     PartialClose[]
 }
 
 model Account {
@@ -192,15 +193,46 @@ model TradeEntry {
   multiplier   Float?   // contract multiplier (100 for standard options, 50 for ES, etc.)
   // ── Account grouping ───────────────────────────────────────────────────────
   tradingAccountId String?
+  // ── Trade context ──────────────────────────────────────────────────────────
+  confidence       Int?     // 1–10 pre-trade conviction
+  marketCondition  String?  // "trending" | "ranging" | "breakout" | "reversal"
+  timeframe        String?  // "1m" | "5m" | "15m" | "1h" | "4h" | "1D"
+  sessionType      String?  // "asian" | "london" | "new_york" | "overlap_london_ny"
+  // ── Forex / futures extras ─────────────────────────────────────────────────
+  lotSize          Float?   // lot size (forex)
+  pips             Float?   // gain/loss in pips
+  swap             Float?   // overnight swap cost
+  // ── Multiple screenshots ───────────────────────────────────────────────────
+  screenshotUrls   String?  // JSON array of {url, label, timeframe}
   createdAt          DateTime @default(now())
 
   brokerConnection BrokerConnection? @relation(fields: [brokerConnectionId], references: [id], onDelete: SetNull)
   tradingAccount   TradingAccount?   @relation(fields: [tradingAccountId], references: [id], onDelete: SetNull)
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  partialCloses    PartialClose[]
 
   @@index([userId])
   @@index([userId, date])
   @@index([userId, tradingAccountId])
+}
+
+model PartialClose {
+  id           String   @id @default(cuid())
+  tradeEntryId String
+  userId       String
+  price        Float
+  qty          Float
+  pnl          Float?
+  reason       String?  // "profit_taking" | "risk_reduction" | "trailing_stop" | "manual"
+  closedAt     String   // ISO datetime
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  tradeEntry TradeEntry @relation(fields: [tradeEntryId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tradeEntryId])
+  @@index([userId])
 }
 
 model TradingAccount {

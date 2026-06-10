@@ -87,6 +87,10 @@ type AnalyticsData = {
   maxDrawdown: number;
   sharpeRatio?: number | null;
   sortinoRatio?: number | null;
+  calmarRatio?: number | null;
+  sessionPerformance?: { session: string; label: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number; avgR: number | null }[];
+  confidencePerformance?: { level: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number }[];
+  marketConditionPerformance?: { condition: string; trades: number; winRate: number | null; avgPnl: number | null; totalPnl: number }[];
   filtered?: boolean;
   filterStartDate?: string | null;
   filterEndDate?: string | null;
@@ -1362,6 +1366,78 @@ function MistakeStatsCard({ data }: { data: NonNullable<AnalyticsData["mistakeSt
   );
 }
 
+function SessionPerformanceCard({ sessions, confidence, marketCondition }: {
+  sessions: NonNullable<AnalyticsData["sessionPerformance"]>;
+  confidence?: AnalyticsData["confidencePerformance"];
+  marketCondition?: AnalyticsData["marketConditionPerformance"];
+}) {
+  const hasSessions = sessions.length > 0;
+  const hasConf = (confidence ?? []).some((c) => c.trades > 0);
+  const hasCond = (marketCondition ?? []).some((c) => c.trades > 0);
+  if (!hasSessions && !hasConf && !hasCond) return null;
+
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+      <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>SESSION &amp; CONTEXT PERFORMANCE</h3>
+
+      {hasSessions && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.07em", marginBottom: 10 }}>BY SESSION</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+            {sessions.map((s) => (
+              <div key={s.session} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 10, background: "var(--surface2)" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, flex: 1 }}>{s.label}</span>
+                <span style={{ fontSize: 12, color: "var(--text-muted)", minWidth: 60, textAlign: "right" }}>{s.trades} trades</span>
+                {s.winRate !== null && (
+                  <span style={{ fontSize: 12, fontWeight: 700, color: s.winRate >= 55 ? "var(--green)" : s.winRate >= 45 ? "var(--amber)" : "var(--red)", minWidth: 48, textAlign: "right" }}>{s.winRate}%</span>
+                )}
+                <span style={{ fontFamily: "var(--font-geist-mono)", fontSize: 13, fontWeight: 700, color: s.totalPnl >= 0 ? "var(--green)" : "var(--red)", minWidth: 80, textAlign: "right" }}>
+                  {s.totalPnl >= 0 ? "+" : ""}${s.totalPnl.toFixed(0)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {hasConf && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.07em", marginBottom: 10 }}>BY CONVICTION LEVEL</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 20 }}>
+            {(confidence ?? []).filter((c) => c.trades > 0).map((c) => (
+              <div key={c.level} style={{ padding: "12px 10px", borderRadius: 10, background: "var(--surface2)", textAlign: "center" }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: c.level === "high" ? "var(--green)" : c.level === "medium" ? "var(--amber)" : "var(--red)", letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>{c.level}</div>
+                <div className="font-bebas" style={{ fontSize: 20, color: c.totalPnl >= 0 ? "var(--green)" : "var(--red)", lineHeight: 1, marginBottom: 2 }}>{c.totalPnl >= 0 ? "+" : ""}${c.totalPnl.toFixed(0)}</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{c.trades} trades {c.winRate !== null ? `· ${c.winRate}% WR` : ""}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {hasCond && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.07em", marginBottom: 10 }}>BY MARKET CONDITION</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {(marketCondition ?? []).filter((c) => c.trades > 0).map((c) => (
+              <div key={c.condition} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 10, background: "var(--surface2)" }}>
+                <span style={{ fontSize: 13, fontWeight: 700, flex: 1, textTransform: "capitalize" }}>{c.condition}</span>
+                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{c.trades}t</span>
+                {c.winRate !== null && (
+                  <span style={{ fontSize: 12, fontWeight: 700, color: c.winRate >= 55 ? "var(--green)" : c.winRate >= 45 ? "var(--amber)" : "var(--red)" }}>{c.winRate}%</span>
+                )}
+                <span style={{ fontFamily: "var(--font-geist-mono)", fontSize: 13, fontWeight: 700, color: c.totalPnl >= 0 ? "var(--green)" : "var(--red)" }}>
+                  {c.totalPnl >= 0 ? "+" : ""}${c.totalPnl.toFixed(0)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 function AdvancedMetricsCard({ data }: { data: AnalyticsData }) {
   const metrics: { label: string; value: string; sub?: string; color: string }[] = [];
 
@@ -1406,6 +1482,14 @@ function AdvancedMetricsCard({ data }: { data: AnalyticsData }) {
       label: "SORTINO RATIO", value: data.sortinoRatio.toFixed(2),
       sub: "annualized",
       color: data.sortinoRatio >= 2 ? "var(--green)" : data.sortinoRatio >= 0 ? "var(--amber)" : "var(--red)",
+    });
+  }
+
+  if (data.calmarRatio !== undefined && data.calmarRatio !== null) {
+    metrics.push({
+      label: "CALMAR RATIO", value: data.calmarRatio.toFixed(2),
+      sub: "return / max drawdown",
+      color: data.calmarRatio >= 1 ? "var(--green)" : data.calmarRatio >= 0 ? "var(--amber)" : "var(--red)",
     });
   }
 
@@ -1892,6 +1976,9 @@ function AnalyticsPageInner() {
         {data.avgHoldByHour && data.avgHoldByHour.length > 0 && <TimeInPositionCard data={data.avgHoldByHour} />}
         {data.symbols && data.symbols.length > 0 && <SymbolPerformanceTable data={data.symbols} />}
         {data.setups && data.setups.length > 0 && <SetupPerformanceTable data={data.setups} />}
+        {((data.sessionPerformance ?? []).length > 0 || (data.confidencePerformance ?? []).some((c) => c.trades > 0) || (data.marketConditionPerformance ?? []).length > 0) && (
+          <SessionPerformanceCard sessions={data.sessionPerformance ?? []} confidence={data.confidencePerformance} marketCondition={data.marketConditionPerformance} />
+        )}
         {data.tagStats && data.tagStats.length > 0 && <TagStatsCard data={data.tagStats} />}
         {data.mistakeStats && data.mistakeStats.length > 0 && <MistakeStatsCard data={data.mistakeStats} />}
         {data.monthlyStats && data.monthlyStats.length >= 2 && <MonthlyBreakdownTable data={data.monthlyStats} />}

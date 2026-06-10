@@ -90,7 +90,8 @@ export async function POST(request: NextRequest) {
 
   const { date, symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, checkinScore, tags, ictSetups, reflection, chartUrl,
     stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry, mae, mfe,
-    optionType, strikePrice, expiryDate, multiplier, tradingAccountId } = body;
+    optionType, strikePrice, expiryDate, multiplier, tradingAccountId,
+    confidence, marketCondition, timeframe, sessionType, lotSize, pips, swap, screenshotUrls } = body;
 
   if (!date || typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return Response.json({ error: "Invalid date" }, { status: 400 });
@@ -162,6 +163,14 @@ export async function POST(request: NextRequest) {
         expiryDate: typeof expiryDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(expiryDate) ? expiryDate : null,
         multiplier: typeof multiplier === "number" && isFinite(multiplier) && multiplier > 0 ? multiplier : null,
         tradingAccountId: typeof tradingAccountId === "string" && tradingAccountId ? tradingAccountId : null,
+        confidence: typeof confidence === "number" && confidence >= 1 && confidence <= 10 ? Math.round(confidence) : null,
+        marketCondition: typeof marketCondition === "string" && ["trending","ranging","breakout","reversal"].includes(marketCondition) ? marketCondition : null,
+        timeframe: typeof timeframe === "string" && timeframe.trim() ? timeframe.trim().slice(0, 10) : null,
+        sessionType: typeof sessionType === "string" && ["asian","london","new_york","overlap_london_ny"].includes(sessionType) ? sessionType : null,
+        lotSize: typeof lotSize === "number" && isFinite(lotSize) && lotSize > 0 ? lotSize : null,
+        pips: typeof pips === "number" && isFinite(pips) ? pips : null,
+        swap: typeof swap === "number" && isFinite(swap) ? swap : null,
+        screenshotUrls: Array.isArray(screenshotUrls) && screenshotUrls.length > 0 ? JSON.stringify(screenshotUrls.slice(0, 5)) : (typeof screenshotUrls === "string" ? screenshotUrls : null),
         grade: computeGrade({ setup, reflection, riskAmount: parsedRiskAmount, stopLoss: typeof stopLoss === "number" ? stopLoss : null, pnl: parsedPnlNum }),
       },
     });
@@ -193,7 +202,9 @@ export async function PATCH(request: NextRequest) {
 
   const { symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, tags, ictSetups: ictSetupsPatch, reflection, chartUrl,
     stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry, mae, mfe,
-    optionType: optionTypePatch, strikePrice: strikePricePatch, expiryDate: expiryDatePatch, multiplier: multiplierPatch, tradingAccountId: tradingAccountIdPatch } = body;
+    optionType: optionTypePatch, strikePrice: strikePricePatch, expiryDate: expiryDatePatch, multiplier: multiplierPatch, tradingAccountId: tradingAccountIdPatch,
+    confidence: confidencePatch, marketCondition: marketConditionPatch, timeframe: timeframePatch, sessionType: sessionTypePatch,
+    lotSize: lotSizePatch, pips: pipsPatch, swap: swapPatch, screenshotUrls: screenshotUrlsPatch } = body;
   const ASSET_TYPES_PATCH = ["futures", "forex", "crypto", "stocks", "options"];
 
   if (side !== undefined && side !== null && !["long", "short"].includes(side)) {
@@ -257,6 +268,14 @@ export async function PATCH(request: NextRequest) {
   if (expiryDatePatch !== undefined) updateData.expiryDate = typeof expiryDatePatch === "string" && /^\d{4}-\d{2}-\d{2}$/.test(expiryDatePatch) ? expiryDatePatch : null;
   if (multiplierPatch !== undefined) updateData.multiplier = typeof multiplierPatch === "number" && isFinite(multiplierPatch) && multiplierPatch > 0 ? multiplierPatch : null;
   if (tradingAccountIdPatch !== undefined) updateData.tradingAccountId = typeof tradingAccountIdPatch === "string" && tradingAccountIdPatch ? tradingAccountIdPatch : null;
+  if (confidencePatch !== undefined) updateData.confidence = typeof confidencePatch === "number" && confidencePatch >= 1 && confidencePatch <= 10 ? Math.round(confidencePatch) : null;
+  if (marketConditionPatch !== undefined) updateData.marketCondition = typeof marketConditionPatch === "string" && ["trending","ranging","breakout","reversal"].includes(marketConditionPatch) ? marketConditionPatch : null;
+  if (timeframePatch !== undefined) updateData.timeframe = typeof timeframePatch === "string" && timeframePatch.trim() ? timeframePatch.trim().slice(0, 10) : null;
+  if (sessionTypePatch !== undefined) updateData.sessionType = typeof sessionTypePatch === "string" && ["asian","london","new_york","overlap_london_ny"].includes(sessionTypePatch) ? sessionTypePatch : null;
+  if (lotSizePatch !== undefined) updateData.lotSize = typeof lotSizePatch === "number" && isFinite(lotSizePatch) && lotSizePatch > 0 ? lotSizePatch : null;
+  if (pipsPatch !== undefined) updateData.pips = typeof pipsPatch === "number" && isFinite(pipsPatch) ? pipsPatch : null;
+  if (swapPatch !== undefined) updateData.swap = typeof swapPatch === "number" && isFinite(swapPatch) ? swapPatch : null;
+  if (screenshotUrlsPatch !== undefined) updateData.screenshotUrls = Array.isArray(screenshotUrlsPatch) && screenshotUrlsPatch.length > 0 ? JSON.stringify(screenshotUrlsPatch.slice(0, 5)) : (screenshotUrlsPatch === null ? null : (typeof screenshotUrlsPatch === "string" ? screenshotUrlsPatch : undefined));
   if (riskAmount !== undefined) {
     const ra = typeof riskAmount === "number" && isFinite(riskAmount) ? riskAmount : null;
     updateData.riskAmount = ra;

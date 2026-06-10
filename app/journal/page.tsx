@@ -40,6 +40,14 @@ type TradeEntry = {
   expiryDate: string | null;
   multiplier: number | null;
   tradingAccountId: string | null;
+  confidence: number | null;
+  marketCondition: string | null;
+  timeframe: string | null;
+  sessionType: string | null;
+  lotSize: number | null;
+  pips: number | null;
+  swap: number | null;
+  screenshotUrls: string | null;
 };
 
 const EMOTION_LABELS = ["Terrible", "Bad", "Neutral", "Good", "Great"];
@@ -279,6 +287,13 @@ type FormState = {
   expiryDate: string;
   multiplier: string;
   tradingAccountId: string;
+  confidence: number | null;
+  marketCondition: string;
+  timeframe: string;
+  sessionType: string;
+  lotSize: string;
+  pips: string;
+  swap: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -287,6 +302,7 @@ const EMPTY_FORM: FormState = {
   mistake: "", notes: "", tags: [], ictSetups: [], reflection: "", chartUrl: null,
   stopLoss: "", takeProfit: "", riskAmount: "", commission: "", assetType: "", plannedEntry: "", entryPrice: "",
   mae: "", mfe: "", optionType: "", strikePrice: "", expiryDate: "", multiplier: "", tradingAccountId: "",
+  confidence: null, marketCondition: "", timeframe: "", sessionType: "", lotSize: "", pips: "", swap: "",
 };
 
 
@@ -739,6 +755,90 @@ function TradeForm({
                 </div>
               )}
 
+              {/* Session / Context */}
+              <div style={{ borderTop: "1px solid var(--border)", paddingTop: 14 }}>
+                <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 12 }}>TRADE CONTEXT</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+                  {/* Confidence slider */}
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 6 }}>
+                      CONVICTION LEVEL {f.confidence !== null ? `— ${f.confidence}/10` : ""}
+                    </label>
+                    <input type="range" min={1} max={10} value={f.confidence ?? 5}
+                      onChange={(e) => setF({ ...f, confidence: parseInt(e.target.value) })}
+                      style={{ width: "100%", accentColor: "var(--blue)" }}
+                    />
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>
+                      <span>Low</span><span>Medium</span><span>High</span>
+                    </div>
+                    {f.confidence !== null && (
+                      <button type="button" onClick={() => setF({ ...f, confidence: null })} style={{ fontSize: 10, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: "2px 0", marginTop: 2 }}>Clear</button>
+                    )}
+                  </div>
+
+                  {/* Market condition */}
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>MARKET CONDITION</label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {(["trending", "ranging", "breakout", "reversal"] as const).map((c) => (
+                        <button key={c} type="button" onClick={() => setF({ ...f, marketCondition: f.marketCondition === c ? "" : c })}
+                          style={{ padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${f.marketCondition === c ? "var(--blue)" : "var(--border)"}`, background: f.marketCondition === c ? "rgba(94,106,210,0.12)" : "var(--surface2)", color: f.marketCondition === c ? "var(--blue)" : "var(--text-muted)", textTransform: "capitalize", transition: "all 0.15s" }}>
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Session */}
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>SESSION</label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {(["asian", "london", "new_york", "overlap_london_ny"] as const).map((s) => {
+                        const lbl: Record<string, string> = { asian: "Asian", london: "London", new_york: "New York", overlap_london_ny: "Overlap" };
+                        return (
+                          <button key={s} type="button" onClick={() => setF({ ...f, sessionType: f.sessionType === s ? "" : s })}
+                            style={{ padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${f.sessionType === s ? "#8B5CF6" : "var(--border)"}`, background: f.sessionType === s ? "rgba(139,92,246,0.12)" : "var(--surface2)", color: f.sessionType === s ? "#8B5CF6" : "var(--text-muted)", transition: "all 0.15s" }}>
+                            {lbl[s]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Timeframe */}
+                  <div>
+                    <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>TIMEFRAME</label>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {["1m", "5m", "15m", "1h", "4h", "1D"].map((tf) => (
+                        <button key={tf} type="button" onClick={() => setF({ ...f, timeframe: f.timeframe === tf ? "" : tf })}
+                          style={{ padding: "5px 12px", borderRadius: 20, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${f.timeframe === tf ? "var(--amber)" : "var(--border)"}`, background: f.timeframe === tf ? "rgba(245,158,11,0.1)" : "var(--surface2)", color: f.timeframe === tf ? "var(--amber)" : "var(--text-muted)", transition: "all 0.15s" }}>
+                          {tf}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Forex/futures extras */}
+                  {(f.assetType === "forex" || f.assetType === "futures") && (
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+                      <div>
+                        <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>LOT SIZE</label>
+                        <input type="number" placeholder="0.1" value={f.lotSize} onChange={(e) => setF({ ...f, lotSize: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>PIPS</label>
+                        <input type="number" placeholder="+25" value={f.pips} onChange={(e) => setF({ ...f, pips: e.target.value })} step="0.1" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                      </div>
+                      <div>
+                        <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>SWAP ($)</label>
+                        <input type="number" placeholder="-1.20" value={f.swap} onChange={(e) => setF({ ...f, swap: e.target.value })} step="0.01" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Trading Account selector */}
               {tradingAccounts.length > 0 && (
                 <div>
@@ -953,6 +1053,13 @@ export default function JournalPage() {
           expiryDate: form.expiryDate || null,
           multiplier: form.multiplier ? parseFloat(form.multiplier) : null,
           tradingAccountId: form.tradingAccountId || null,
+          confidence: form.confidence,
+          marketCondition: form.marketCondition || null,
+          timeframe: form.timeframe || null,
+          sessionType: form.sessionType || null,
+          lotSize: form.lotSize ? parseFloat(form.lotSize) : null,
+          pips: form.pips ? parseFloat(form.pips) : null,
+          swap: form.swap ? parseFloat(form.swap) : null,
         }),
       });
       const data = await res.json();
@@ -1019,6 +1126,13 @@ export default function JournalPage() {
       expiryDate: entry.expiryDate ?? "",
       multiplier: entry.multiplier !== null && entry.multiplier !== undefined ? String(entry.multiplier) : "",
       tradingAccountId: entry.tradingAccountId ?? "",
+      confidence: entry.confidence ?? null,
+      marketCondition: entry.marketCondition ?? "",
+      timeframe: entry.timeframe ?? "",
+      sessionType: entry.sessionType ?? "",
+      lotSize: entry.lotSize !== null && entry.lotSize !== undefined ? String(entry.lotSize) : "",
+      pips: entry.pips !== null && entry.pips !== undefined ? String(entry.pips) : "",
+      swap: entry.swap !== null && entry.swap !== undefined ? String(entry.swap) : "",
     });
   }
 
@@ -1056,6 +1170,13 @@ export default function JournalPage() {
           expiryDate: editForm.expiryDate || null,
           multiplier: editForm.multiplier ? parseFloat(editForm.multiplier) : null,
           tradingAccountId: editForm.tradingAccountId || null,
+          confidence: editForm.confidence,
+          marketCondition: editForm.marketCondition || null,
+          timeframe: editForm.timeframe || null,
+          sessionType: editForm.sessionType || null,
+          lotSize: editForm.lotSize ? parseFloat(editForm.lotSize) : null,
+          pips: editForm.pips ? parseFloat(editForm.pips) : null,
+          swap: editForm.swap ? parseFloat(editForm.swap) : null,
         }),
       });
       const data = await res.json();
@@ -2237,11 +2358,52 @@ export default function JournalPage() {
                         return acc ? (
                           <div style={{ marginTop: 6 }}>
                             <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "rgba(94,106,210,0.08)", color: "var(--blue)", border: "1px solid rgba(94,106,210,0.2)" }}>
-                              📁 {acc.name}
+                              {acc.name}
                             </span>
                           </div>
                         ) : null;
                       })()}
+
+                      {/* Context badges: confidence / session / market condition / timeframe / forex extras */}
+                      {(entry.confidence !== null || entry.sessionType || entry.marketCondition || entry.timeframe || entry.lotSize !== null || entry.pips !== null) && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                          {entry.confidence !== null && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "rgba(94,106,210,0.08)", color: "var(--blue)", border: "1px solid rgba(94,106,210,0.2)" }}>
+                              {entry.confidence}/10 conviction
+                            </span>
+                          )}
+                          {entry.sessionType && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "rgba(139,92,246,0.08)", color: "#8B5CF6", border: "1px solid rgba(139,92,246,0.2)", textTransform: "capitalize" }}>
+                              {entry.sessionType.replace("_", " ")}
+                            </span>
+                          )}
+                          {entry.marketCondition && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "rgba(245,158,11,0.08)", color: "var(--amber)", border: "1px solid rgba(245,158,11,0.2)", textTransform: "capitalize" }}>
+                              {entry.marketCondition}
+                            </span>
+                          )}
+                          {entry.timeframe && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "var(--surface2)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>
+                              {entry.timeframe}
+                            </span>
+                          )}
+                          {entry.lotSize !== null && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "var(--surface2)", color: "var(--text-muted)", border: "1px solid var(--border)", fontFamily: "var(--font-geist-mono)" }}>
+                              {entry.lotSize} lots
+                            </span>
+                          )}
+                          {entry.pips !== null && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: entry.pips >= 0 ? "rgba(0,232,122,0.08)" : "rgba(255,59,92,0.08)", color: entry.pips >= 0 ? "var(--green)" : "var(--red)", border: `1px solid ${entry.pips >= 0 ? "rgba(0,232,122,0.2)" : "rgba(255,59,92,0.2)"}`, fontFamily: "var(--font-geist-mono)" }}>
+                              {entry.pips >= 0 ? "+" : ""}{entry.pips} pips
+                            </span>
+                          )}
+                          {entry.swap !== null && entry.swap !== 0 && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "var(--surface2)", color: "var(--text-muted)", border: "1px solid var(--border)", fontFamily: "var(--font-geist-mono)" }}>
+                              swap {entry.swap > 0 ? "+" : ""}${entry.swap.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
+                      )}
 
                       {entry.symbol && <TradingViewChart symbol={entry.symbol} />}
                       {entry.symbol && entry.entryPrice && <CandleChart tradeId={entry.id} />}

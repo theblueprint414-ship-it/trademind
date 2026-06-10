@@ -456,6 +456,69 @@ export async function GET(request: NextRequest) {
     };
   }).filter((b) => b.trades > 0);
 
+  // ── Session performance (asian / london / new_york / overlap) ────────────
+  const SESSION_LABELS: Record<string, string> = { asian: "Asian", london: "London", new_york: "New York", overlap_london_ny: "Overlap (Lon/NY)" };
+  const sessionMap: Record<string, { pnl: number; trades: number; wins: number; rSum: number; rCount: number }> = {};
+  for (const t of tradeEntries) {
+    const s = (t as { sessionType?: string | null }).sessionType;
+    if (!s) continue;
+    if (!sessionMap[s]) sessionMap[s] = { pnl: 0, trades: 0, wins: 0, rSum: 0, rCount: 0 };
+    sessionMap[s].trades++;
+    if (t.pnl !== null) { sessionMap[s].pnl += t.pnl; if (t.pnl > 0) sessionMap[s].wins++; }
+    if (t.rMultiple !== null) { sessionMap[s].rSum += t.rMultiple; sessionMap[s].rCount++; }
+  }
+  const sessionPerformance = Object.entries(sessionMap).map(([session, s]) => ({
+    session,
+    label: SESSION_LABELS[session] ?? session,
+    trades: s.trades,
+    winRate: s.trades > 0 ? Math.round((s.wins / s.trades) * 100) : null,
+    avgPnl: s.trades > 0 ? Math.round((s.pnl / s.trades) * 100) / 100 : null,
+    totalPnl: Math.round(s.pnl * 100) / 100,
+    avgR: s.rCount > 0 ? Math.round((s.rSum / s.rCount) * 100) / 100 : null,
+  })).sort((a, b) => b.totalPnl - a.totalPnl);
+
+  // ── Confidence level performance (1–10 buckets low/med/high) ────────────
+  const confMap: Record<string, { pnl: number; trades: number; wins: number }> = { low: { pnl: 0, trades: 0, wins: 0 }, medium: { pnl: 0, trades: 0, wins: 0 }, high: { pnl: 0, trades: 0, wins: 0 } };
+  for (const t of tradeEntries) {
+    const c = (t as { confidence?: number | null }).confidence;
+    if (c === null || c === undefined) continue;
+    const bucket = c <= 3 ? "low" : c <= 6 ? "medium" : "high";
+    confMap[bucket].trades++;
+    if (t.pnl !== null) { confMap[bucket].pnl += t.pnl; if (t.pnl > 0) confMap[bucket].wins++; }
+  }
+  const confidencePerformance = Object.entries(confMap).map(([level, s]) => ({
+    level, trades: s.trades,
+    winRate: s.trades > 0 ? Math.round((s.wins / s.trades) * 100) : null,
+    avgPnl: s.trades > 0 ? Math.round((s.pnl / s.trades) * 100) / 100 : null,
+    totalPnl: Math.round(s.pnl * 100) / 100,
+  }));
+
+  // ── Market condition performance ─────────────────────────────────────────
+  const condMap: Record<string, { pnl: number; trades: number; wins: number }> = {};
+  for (const t of tradeEntries) {
+    const mc = (t as { marketCondition?: string | null }).marketCondition;
+    if (!mc) continue;
+    if (!condMap[mc]) condMap[mc] = { pnl: 0, trades: 0, wins: 0 };
+    condMap[mc].trades++;
+    if (t.pnl !== null) { condMap[mc].pnl += t.pnl; if (t.pnl > 0) condMap[mc].wins++; }
+  }
+  const marketConditionPerformance = Object.entries(condMap).map(([condition, s]) => ({
+    condition, trades: s.trades,
+    winRate: s.trades > 0 ? Math.round((s.wins / s.trades) * 100) : null,
+    avgPnl: s.trades > 0 ? Math.round((s.pnl / s.trades) * 100) / 100 : null,
+    totalPnl: Math.round(s.pnl * 100) / 100,
+  })).sort((a, b) => b.totalPnl - a.totalPnl);
+
+  // ── Calmar ratio (annualized return / max drawdown) ───────────────────────
+  let calmarRatio: number | null = null;
+  if (maxDrawdown > 0 && equityDates.length >= 5) {
+    const firstDate = new Date(equityDates[0]);
+    const lastDate = new Date(equityDates[equityDates.length - 1]);
+    const tradingDays = Math.max(1, (lastDate.getTime() - firstDate.getTime()) / 86400000);
+    const annualizedReturn = (totalNetPnl / tradingDays) * 252;
+    calmarRatio = Math.round((annualizedReturn / maxDrawdown) * 100) / 100;
+  }
+
   // ── Avg hold duration by hour of day ────────────────────────────────────
   const holdByHour: Record<number, { totalSec: number; count: number }> = {};
   for (const t of tradeEntries) {
@@ -517,7 +580,9 @@ export async function GET(request: NextRequest) {
     avgLoss: avgLossTrade,
     avgRMultiple,
     maxDrawdown: Math.round(maxDrawdown * 100) / 100,
-    sharpeRatio, sortinoRatio,
+    sharpeRatio, sortinoRatio, calmarRatio,
+    // ── Session / context breakdowns ──
+    sessionPerformance, confidencePerformance, marketConditionPerformance,
     // ── Meta ──
     filtered: !!(startDate || endDate),
     filterStartDate: startDate,
