@@ -1614,6 +1614,7 @@ export default function JournalPage() {
 
   const isFree = isPro === false;
   const todayEntryCount = isFree && selectedDate === today ? entries.length : 0;
+  const isFirstTime = !loading && allEntries.length === 0;
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
@@ -1738,7 +1739,7 @@ export default function JournalPage() {
         )}
 
         {/* Date strip */}
-        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 24, scrollbarWidth: "none" }}>
+        {!isFirstTime && <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 24, scrollbarWidth: "none" }}>
           {recentDates.map((d) => {
             const isToday = d === today;
             const isSelected = d === selectedDate;
@@ -1760,10 +1761,10 @@ export default function JournalPage() {
               </button>
             );
           })}
-        </div>
+        </div>}
 
-        {/* Broker sync bar */}
-        {broker ? (
+        {/* Broker sync bar — hidden for first-time users */}
+        {!isFirstTime && (broker ? (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)", marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--text-muted)" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: broker.status === "active" ? "var(--green)" : "var(--amber)", flexShrink: 0 }} />
@@ -1802,9 +1803,9 @@ export default function JournalPage() {
               <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Tradovate, MT4, NinjaTrader</div>
             </button>
           </div>
-        )}
+        ))}
 
-        {isFree && <FreeBanner todayCount={todayEntryCount} />}
+        {!isFirstTime && isFree && <FreeBanner todayCount={todayEntryCount} />}
 
         {/* Day summary */}
         {hasPnl && (

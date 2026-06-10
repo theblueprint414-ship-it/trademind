@@ -480,22 +480,19 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Check-in Gate */}
+      {/* Check-in reminder banner — inline, not blocking */}
       {gateChecked && showGate && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(7,11,20,0.96)", backdropFilter: "blur(12px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
-          <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
-            <div style={{ marginBottom: 24, display: "flex", justifyContent: "center", color: "#8B5CF6" }}>
-              <svg width="64" height="64" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="22" r="12" stroke="currentColor" strokeWidth="2.5"/><path d="M10 56c0-10 9.85-18 22-18s22 8 22 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/><path d="M46 16l3.5-3M51 22.5h4M46 29l3.5 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-            </div>
-            <div className="font-bebas" style={{ fontSize: 48, lineHeight: 1, marginBottom: 12, background: "linear-gradient(135deg, var(--red), var(--amber))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>BEFORE YOU TRADE</div>
-            <p style={{ fontSize: 16, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 32 }}>Complete your daily mental check-in before you start trading today.</p>
-            <div className="card" style={{ padding: 20, marginBottom: 24, border: "1px solid rgba(255,176,32,0.2)", background: "rgba(255,176,32,0.05)" }}>
-              <div style={{ fontSize: 13, color: "var(--amber)", fontWeight: 700, marginBottom: 8, letterSpacing: "0.06em" }}>WHY THIS MATTERS</div>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6 }}>Most emotional losses happen when traders skip their mental prep. 5 questions. 60 seconds.</p>
-            </div>
-            <Link href="/checkin"><button className="btn-primary" style={{ width: "100%", fontSize: 16, padding: "18px", borderRadius: 12, marginBottom: 12 }}>Start Check-in →</button></Link>
-            <button onClick={() => setShowGate(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 13, cursor: "pointer", padding: "8px" }}>Skip for today (not recommended)</button>
-          </div>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 200, background: "linear-gradient(90deg, rgba(255,176,32,0.12), rgba(255,176,32,0.06))", borderBottom: "1px solid rgba(255,176,32,0.3)", padding: "10px 20px", display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--amber)", boxShadow: "0 0 6px var(--amber)", flexShrink: 0, animation: "cta-pulse 2s ease-in-out infinite" }} />
+          <span style={{ fontSize: 13, color: "var(--text)", flex: 1, fontWeight: 600 }}>
+            Check in before you trade — 60 seconds to score your mental state
+          </span>
+          <Link href="/checkin">
+            <button style={{ background: "var(--amber)", border: "none", color: "#000", fontSize: 12, fontWeight: 800, cursor: "pointer", padding: "6px 14px", borderRadius: 8, whiteSpace: "nowrap" }}>Check-in →</button>
+          </Link>
+          <button onClick={() => setShowGate(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </button>
         </div>
       )}
 
@@ -624,17 +621,21 @@ export default function DashboardPage() {
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
                 </button>
               </div>
-              <div style={{ display: "flex", gap: 8, marginBottom: allDone ? 0 : 12 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", marginBottom: allDone ? 0 : 12, position: "relative" }}>
                 {steps.map((s, i) => (
-                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
-                    <div style={{ width: 28, height: 28, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: s.done ? "rgba(0,232,122,0.12)" : "var(--surface2)", border: `1.5px solid ${s.done ? "var(--green)" : "var(--border)"}` }}>
+                  <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, position: "relative" }}>
+                    {/* connector line */}
+                    {i < steps.length - 1 && (
+                      <div style={{ position: "absolute", top: 16, left: "50%", right: "-50%", height: 2, background: steps[i + 1].done ? "rgba(0,232,122,0.4)" : "var(--border)", zIndex: 0 }} />
+                    )}
+                    <div style={{ width: 32, height: 32, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, position: "relative", zIndex: 1, background: s.done ? "rgba(0,232,122,0.15)" : "var(--surface2)", border: `2px solid ${s.done ? "var(--green)" : "var(--border)"}`, transition: "all 0.3s ease" }}>
                       {s.done
-                        ? <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2.5 6.5l3 3 5-5" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                        : <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--border)" }} />}
+                        ? <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7l3 3 5.5-5.5" stroke="var(--green)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        : <span style={{ fontSize: 12, fontWeight: 800, color: "var(--text-muted)", fontFamily: "var(--font-geist-mono)" }}>{i + 1}</span>}
                     </div>
                     <div style={{ textAlign: "center" }}>
                       <div style={{ fontSize: 10, fontWeight: 700, color: s.done ? "var(--text)" : "var(--text-muted)", lineHeight: 1.2 }}>{s.label}</div>
-                      <div style={{ fontSize: 9, color: s.done ? "var(--green)" : "var(--text-muted)", marginTop: 2 }}>{s.detail}</div>
+                      <div style={{ fontSize: 9, color: s.done ? "var(--green)" : "var(--text-muted)", marginTop: 2, fontWeight: s.done ? 600 : 400 }}>{s.detail}</div>
                     </div>
                   </div>
                 ))}
