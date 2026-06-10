@@ -96,6 +96,8 @@ export default function DashboardPage() {
   const [recapDone, setRecapDone] = useState(false);
   const [routineDismissed, setRoutineDismissed] = useState(false);
   const [dailyLossLimit, setDailyLossLimit] = useState<number | null>(null);
+  const [marketQuotes, setMarketQuotes] = useState<{ symbol: string; price: number; change?: number; changePct?: number }[]>([]);
+  const [marketSource, setMarketSource] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -214,6 +216,15 @@ export default function DashboardPage() {
         if (sessionRes.ok) {
           const sd = await sessionRes.json();
           if (sd.tradeCount > 0) setTodaySession({ totalPnl: sd.totalPnl, tradeCount: sd.tradeCount, tradeLimit: sd.tradeLimit, winRate: sd.winRate });
+        }
+      } catch {}
+
+      // Market tape — live quotes for user's traded symbols
+      try {
+        const qtRes = await fetch("/api/market-tape");
+        if (qtRes.ok) {
+          const qtData = await qtRes.json() as { quotes: { symbol: string; price: number; change?: number; changePct?: number }[]; source: string };
+          if (qtData.quotes?.length > 0) { setMarketQuotes(qtData.quotes); setMarketSource(qtData.source); }
         }
       } catch {}
 
@@ -554,6 +565,26 @@ export default function DashboardPage() {
               <strong style={{ color: "var(--red)" }}>{broker.broker}</strong> broker sync failed — your credentials may have expired.{" "}
               <Link href="/settings?tab=broker" style={{ color: "var(--blue)", fontWeight: 700, textDecoration: "none" }}>Reconnect in Settings →</Link>
             </span>
+          </div>
+        )}
+
+        {/* Market tape */}
+        {marketQuotes.length > 0 && (
+          <div style={{ display: "flex", gap: 0, overflowX: "auto", borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface2)", marginBottom: 16, padding: "0 4px" }}>
+            {marketQuotes.map((q, i) => (
+              <div key={q.symbol} style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRight: i < marketQuotes.length - 1 ? "1px solid var(--border)" : "none", flexShrink: 0 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", letterSpacing: "0.03em" }}>{q.symbol}</span>
+                <span style={{ fontFamily: "var(--font-geist-mono)", fontSize: 13, fontWeight: 700, color: "var(--text)" }}>${q.price.toFixed(q.price < 10 ? 4 : 2)}</span>
+                {q.changePct !== undefined && (
+                  <span style={{ fontSize: 11, fontWeight: 700, color: q.changePct >= 0 ? "var(--green)" : "var(--red)", fontFamily: "var(--font-geist-mono)" }}>
+                    {q.changePct >= 0 ? "+" : ""}{q.changePct.toFixed(2)}%
+                  </span>
+                )}
+              </div>
+            ))}
+            <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", padding: "0 12px", flexShrink: 0 }}>
+              <span style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase" }}>{marketSource === "alpaca" ? "Alpaca" : "Yahoo"} · Live</span>
+            </div>
           </div>
         )}
 

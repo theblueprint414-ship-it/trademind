@@ -115,6 +115,10 @@ export default function SettingsPage() {
   const [emailReminders, setEmailReminders] = useState(true);
   const [dailyLossLimit, setDailyLossLimit] = useState<string>("");
   const [dailyLossLimitSaved, setDailyLossLimitSaved] = useState(false);
+  const [tradingAccounts, setTradingAccounts] = useState<{ id: string; name: string; startingBalance: number | null; currency: string; isDefault: boolean; _count?: { tradeEntries: number } }[]>([]);
+  const [newAccName, setNewAccName] = useState("");
+  const [newAccBalance, setNewAccBalance] = useState("");
+  const [addingAccount, setAddingAccount] = useState(false);
 
   useEffect(() => {
     const savedTime = localStorage.getItem("trademind_reminder_time");
@@ -139,6 +143,8 @@ export default function SettingsPage() {
         el?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 600);
     }
+
+    fetch("/api/accounts").then((r) => r.json()).then((d) => { if (d.accounts) setTradingAccounts(d.accounts); }).catch(() => {});
 
     // Load plan + trade limit from DB
     fetch("/api/me")
@@ -565,6 +571,77 @@ export default function SettingsPage() {
             ) : "Save limit"}
           </button>
           {savedLimit !== tradeLimit && <p style={{ fontSize: 12, color: "var(--amber)", marginTop: 8, textAlign: "center" }}>Unsaved changes</p>}
+        </section>
+
+        {/* Trading Accounts */}
+        <section className="card" style={{ padding: 28, marginBottom: 20, borderLeft: "3px solid var(--blue)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+            <div style={{ width: 34, height: 34, borderRadius: 10, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--blue)", flexShrink: 0 }}>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/><path d="M5 4V3a1 1 0 011-1h4a1 1 0 011 1v1" stroke="currentColor" strokeWidth="1.3"/><path d="M2 8h12" stroke="currentColor" strokeWidth="1.3"/></svg>
+            </div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>Trading Accounts</h2>
+          </div>
+          <p style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 16, lineHeight: 1.6 }}>
+            Create separate accounts (e.g. FTMO, Personal, Paper) to track P&L independently across multiple accounts.
+          </p>
+
+          {tradingAccounts.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+              {tradingAccounts.map((acc) => (
+                <div key={acc.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface2)" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{acc.name}</div>
+                    <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>
+                      {acc.startingBalance ? `$${acc.startingBalance.toLocaleString()} starting · ` : ""}{acc._count?.tradeEntries ?? 0} trades
+                      {acc.isDefault && <span style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 10, background: "rgba(94,106,210,0.1)", color: "var(--blue)", fontSize: 10, fontWeight: 700 }}>DEFAULT</span>}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!confirm(`Delete "${acc.name}"?`)) return;
+                      await fetch(`/api/accounts?id=${acc.id}`, { method: "DELETE" });
+                      setTradingAccounts((prev) => prev.filter((a) => a.id !== acc.id));
+                    }}
+                    style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", alignItems: "center" }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 140 }}>
+              <label style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, display: "block", marginBottom: 6 }}>ACCOUNT NAME</label>
+              <input type="text" placeholder="e.g. FTMO Account 1" value={newAccName} onChange={(e) => setNewAccName(e.target.value)} style={{ width: "100%" }} />
+            </div>
+            <div style={{ width: 130 }}>
+              <label style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, display: "block", marginBottom: 6 }}>STARTING BALANCE ($)</label>
+              <input type="number" placeholder="50000" value={newAccBalance} onChange={(e) => setNewAccBalance(e.target.value)} step="1000" style={{ width: "100%", fontFamily: "var(--font-geist-mono)" }} />
+            </div>
+            <button
+              type="button"
+              disabled={!newAccName.trim() || addingAccount}
+              className="btn-primary"
+              style={{ padding: "10px 18px", flexShrink: 0 }}
+              onClick={async () => {
+                if (!newAccName.trim()) return;
+                setAddingAccount(true);
+                const res = await fetch("/api/accounts", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ name: newAccName.trim(), startingBalance: newAccBalance ? parseFloat(newAccBalance) : null }),
+                });
+                const data = await res.json();
+                if (data.ok) { setTradingAccounts((prev) => [...prev, data.account]); setNewAccName(""); setNewAccBalance(""); }
+                setAddingAccount(false);
+              }}
+            >
+              {addingAccount ? "Adding..." : "Add Account"}
+            </button>
+          </div>
         </section>
 
         {/* Daily Loss Limit */}

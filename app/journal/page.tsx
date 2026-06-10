@@ -34,6 +34,12 @@ type TradeEntry = {
   exitPrice: number | null;
   mae: number | null;
   mfe: number | null;
+  grade: string | null;
+  optionType: string | null;
+  strikePrice: number | null;
+  expiryDate: string | null;
+  multiplier: number | null;
+  tradingAccountId: string | null;
 };
 
 const EMOTION_LABELS = ["Terrible", "Bad", "Neutral", "Good", "Great"];
@@ -268,6 +274,11 @@ type FormState = {
   entryPrice: string;
   mae: string;
   mfe: string;
+  optionType: string;
+  strikePrice: string;
+  expiryDate: string;
+  multiplier: string;
+  tradingAccountId: string;
 };
 
 const EMPTY_FORM: FormState = {
@@ -275,7 +286,7 @@ const EMPTY_FORM: FormState = {
   emotionBefore: null, emotionAfter: null,
   mistake: "", notes: "", tags: [], ictSetups: [], reflection: "", chartUrl: null,
   stopLoss: "", takeProfit: "", riskAmount: "", commission: "", assetType: "", plannedEntry: "", entryPrice: "",
-  mae: "", mfe: "",
+  mae: "", mfe: "", optionType: "", strikePrice: "", expiryDate: "", multiplier: "", tradingAccountId: "",
 };
 
 
@@ -331,8 +342,118 @@ function TradingViewChart({ symbol }: { symbol: string }) {
   );
 }
 
+function CandleChart({ tradeId }: { tradeId: string }) {
+  const [open, setOpen] = React.useState(false);
+  const [timeframe, setTimeframe] = React.useState("5Min");
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const chartRef = React.useRef<unknown>(null);
+
+  React.useEffect(() => {
+    if (!open) return;
+    let destroyed = false;
+    setLoading(true);
+    setError(null);
+
+    fetch(`/api/candles?tradeId=${tradeId}&timeframe=${timeframe}`)
+      .then((r) => r.json())
+      .then(async (data: { bars?: { time: number; open: number; high: number; low: number; close: number }[]; entryTime?: number | null; exitTime?: number | null; entryPrice?: number | null; exitPrice?: number | null; side?: string | null; error?: string }) => {
+        if (destroyed) return;
+        if (data.error) { setError(data.error); setLoading(false); return; }
+        if (!data.bars || data.bars.length === 0) { setError("No candle data available for this symbol/date"); setLoading(false); return; }
+
+        if (!containerRef.current) { setLoading(false); return; }
+
+        const { createChart, createSeriesMarkers, CrosshairMode, LineStyle, CandlestickSeries, LineSeries } = await import("lightweight-charts");
+        if (destroyed || !containerRef.current) return;
+
+        if (chartRef.current) { (chartRef.current as { remove: () => void }).remove(); chartRef.current = null; }
+
+        const chart = createChart(containerRef.current, {
+          width: containerRef.current.clientWidth,
+          height: 260,
+          layout: { background: { color: "transparent" }, textColor: "#9ca3af" },
+          grid: { vertLines: { color: "rgba(255,255,255,0.04)" }, horzLines: { color: "rgba(255,255,255,0.04)" } },
+          crosshair: { mode: CrosshairMode.Normal },
+          rightPriceScale: { borderColor: "rgba(255,255,255,0.08)" },
+          timeScale: { borderColor: "rgba(255,255,255,0.08)", timeVisible: true, secondsVisible: false },
+        });
+        chartRef.current = chart;
+
+        // lightweight-charts v5: time must be UTCTimestamp (number of seconds)
+        type Bar = { time: number; open: number; high: number; low: number; close: number };
+        const toTime = (n: number) => n as unknown as import("lightweight-charts").Time;
+        const typedBars = data.bars.map((b: Bar) => ({ ...b, time: toTime(b.time) }));
+
+        const candleSeries = chart.addSeries(CandlestickSeries, {
+          upColor: "#00e87a", downColor: "#ff3b5c",
+          borderUpColor: "#00e87a", borderDownColor: "#ff3b5c",
+          wickUpColor: "#00e87a", wickDownColor: "#ff3b5c",
+        });
+        candleSeries.setData(typedBars);
+
+        // Markers
+        const markers: { time: import("lightweight-charts").Time; position: "belowBar" | "aboveBar"; color: string; shape: "arrowUp" | "arrowDown"; text: string }[] = [];
+        if (data.entryTime && data.entryPrice) {
+          markers.push({ time: toTime(data.entryTime), position: data.side === "short" ? "aboveBar" : "belowBar", color: "#5e6ad2", shape: data.side === "short" ? "arrowDown" : "arrowUp", text: `Entry $${data.entryPrice}` });
+        }
+        if (data.exitTime && data.exitPrice) {
+          markers.push({ time: toTime(data.exitTime), position: data.side === "short" ? "belowBar" : "aboveBar", color: "#f59e0b", shape: data.side === "short" ? "arrowUp" : "arrowDown", text: `Exit $${data.exitPrice}` });
+        }
+        if (markers.length > 0) {
+          const sorted = markers.sort((a, b) => (a.time as unknown as number) - (b.time as unknown as number));
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          createSeriesMarkers(candleSeries as any, sorted);
+        }
+
+        // Price lines
+        if (data.entryPrice) {
+          const entryLine = chart.addSeries(LineSeries, { color: "rgba(94,106,210,0.6)", lineWidth: 1, lineStyle: LineStyle.Dashed, lastValueVisible: false, priceLineVisible: false });
+          entryLine.setData(typedBars.map((b) => ({ time: b.time, value: data.entryPrice! })));
+        }
+        if (data.exitPrice) {
+          const exitLine = chart.addSeries(LineSeries, { color: "rgba(245,158,11,0.6)", lineWidth: 1, lineStyle: LineStyle.Dashed, lastValueVisible: false, priceLineVisible: false });
+          exitLine.setData(typedBars.map((b) => ({ time: b.time, value: data.exitPrice! })));
+        }
+
+        chart.timeScale().fitContent();
+        setLoading(false);
+      })
+      .catch(() => { if (!destroyed) { setError("Failed to load chart data"); setLoading(false); } });
+
+    return () => {
+      destroyed = true;
+      if (chartRef.current) { (chartRef.current as { remove: () => void }).remove(); chartRef.current = null; }
+    };
+  }, [open, timeframe, tradeId]);
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      {!open ? (
+        <button onClick={() => setOpen(true)} style={{ background: "none", border: "1px solid var(--border)", borderRadius: 8, padding: "5px 12px", fontSize: 11, color: "var(--text-muted)", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><rect x="0.5" y="2.5" width="3" height="7" rx="0.5" stroke="currentColor" strokeWidth="1.2"/><rect x="4.5" y="0.5" width="3" height="11" rx="0.5" stroke="currentColor" strokeWidth="1.2"/><rect x="8.5" y="4.5" width="3" height="5" rx="0.5" stroke="currentColor" strokeWidth="1.2"/></svg>
+          Candle chart (Alpaca)
+        </button>
+      ) : (
+        <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid var(--border)", background: "var(--surface2)" }}>
+          <div style={{ display: "flex", gap: 6, padding: "8px 10px", borderBottom: "1px solid var(--border)" }}>
+            {["1Min", "5Min", "15Min"].map((tf) => (
+              <button key={tf} onClick={() => setTimeframe(tf)} style={{ padding: "3px 10px", borderRadius: 6, fontSize: 11, fontWeight: 700, border: `1px solid ${timeframe === tf ? "var(--blue)" : "var(--border)"}`, background: timeframe === tf ? "rgba(94,106,210,0.12)" : "transparent", color: timeframe === tf ? "var(--blue)" : "var(--text-muted)", cursor: "pointer" }}>{tf}</button>
+            ))}
+            <button onClick={() => setOpen(false)} style={{ marginLeft: "auto", padding: "3px 10px", borderRadius: 6, fontSize: 11, border: "1px solid var(--border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer" }}>Close</button>
+          </div>
+          {loading && <div style={{ height: 260, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: 13 }}>Loading...</div>}
+          {error && <div style={{ height: 100, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: 12, padding: "0 20px", textAlign: "center" }}>{error}</div>}
+          <div ref={containerRef} style={{ display: loading || error ? "none" : "block" }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TradeForm({
-  f, setF, onSave, onCancel, label, saving, isPro, chartUploading, chartUploadError, setChartUploadError, handleChartUpload,
+  f, setF, onSave, onCancel, label, saving, isPro, chartUploading, chartUploadError, setChartUploadError, handleChartUpload, tradingAccounts,
 }: {
   f: FormState;
   setF: (v: FormState) => void;
@@ -345,6 +466,7 @@ function TradeForm({
   chartUploadError: string | null;
   setChartUploadError: (v: string | null) => void;
   handleChartUpload: (file: File, setter: (url: string | null) => void) => Promise<void>;
+  tradingAccounts: { id: string; name: string }[];
 }) {
   return (
     <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(94,106,210,0.2)" }}>
@@ -582,6 +704,53 @@ function TradeForm({
                   ))}
                 </div>
               </div>
+
+              {/* Options-specific fields */}
+              {f.assetType === "options" && (
+                <div style={{ background: "rgba(94,106,210,0.06)", borderRadius: 10, padding: 14, border: "1px solid rgba(94,106,210,0.2)" }}>
+                  <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 12 }}>OPTIONS DETAILS</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>TYPE</label>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        {(["call", "put"] as const).map((t) => (
+                          <button key={t} type="button" onClick={() => setF({ ...f, optionType: f.optionType === t ? "" : t })}
+                            style={{ flex: 1, padding: "7px 0", borderRadius: 8, fontSize: 12, fontWeight: 700, cursor: "pointer", border: `1.5px solid ${f.optionType === t ? (t === "call" ? "var(--green)" : "var(--red)") : "var(--border)"}`, background: f.optionType === t ? (t === "call" ? "rgba(0,232,122,0.1)" : "rgba(255,59,92,0.1)") : "var(--surface2)", color: f.optionType === t ? (t === "call" ? "var(--green)" : "var(--red)") : "var(--text-muted)", textTransform: "uppercase", transition: "all 0.15s" }}>
+                            {t}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>MULTIPLIER</label>
+                      <input type="number" placeholder="100" value={f.multiplier} onChange={(e) => setF({ ...f, multiplier: e.target.value })} step="1" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                    </div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>STRIKE PRICE ($)</label>
+                      <input type="number" placeholder="e.g. 200" value={f.strikePrice} onChange={(e) => setF({ ...f, strikePrice: e.target.value })} step="0.5" style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>EXPIRY DATE</label>
+                      <input type="date" value={f.expiryDate} title="Option expiry date" onChange={(e) => setF({ ...f, expiryDate: e.target.value })} style={{ fontFamily: "var(--font-geist-mono)", fontSize: 14 }} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Trading Account selector */}
+              {tradingAccounts.length > 0 && (
+                <div>
+                  <label style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.07em", fontWeight: 700, display: "block", marginBottom: 8 }}>ACCOUNT</label>
+                  <select title="Select trading account" value={f.tradingAccountId} onChange={(e) => setF({ ...f, tradingAccountId: e.target.value })} style={{ width: "100%", padding: "9px 12px", borderRadius: 8, border: "1px solid var(--border)", background: "var(--surface2)", color: "var(--text)", fontSize: 14 }}>
+                    <option value="">No account selected</option>
+                    {tradingAccounts.map((acc) => (
+                      <option key={acc.id} value={acc.id}>{acc.name}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -602,6 +771,7 @@ export default function JournalPage() {
   const [loading, setLoading] = useState(true);
   const [isPro, setIsPro] = useState<boolean | null>(null);
   const [dailyLossLimit, setDailyLossLimit] = useState<number | null>(null);
+  const [tradingAccounts, setTradingAccounts] = useState<{ id: string; name: string }[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [todayScore, setTodayScore] = useState<number | null>(null);
@@ -675,6 +845,7 @@ export default function JournalPage() {
       if (r.status === 401) { window.location.href = "/login"; return null; }
       return r.json();
     }).then((d) => { if (d) { setIsPro(d.plan === "pro" || d.plan === "premium"); if (d.dailyLossLimit) setDailyLossLimit(d.dailyLossLimit); } }).catch(() => setIsPro(false));
+    fetch("/api/accounts").then((r) => r.json()).then((d) => { if (d.accounts) setTradingAccounts(d.accounts); }).catch(() => {});
     fetch("/api/broker").then((r) => r.json()).then((d) => {
       if (d.connected) {
         setBroker(d);
@@ -777,6 +948,11 @@ export default function JournalPage() {
           plannedEntry: form.plannedEntry ? parseFloat(form.plannedEntry) : null,
           mae: form.mae ? parseFloat(form.mae) : null,
           mfe: form.mfe ? parseFloat(form.mfe) : null,
+          optionType: form.optionType || null,
+          strikePrice: form.strikePrice ? parseFloat(form.strikePrice) : null,
+          expiryDate: form.expiryDate || null,
+          multiplier: form.multiplier ? parseFloat(form.multiplier) : null,
+          tradingAccountId: form.tradingAccountId || null,
         }),
       });
       const data = await res.json();
@@ -836,8 +1012,13 @@ export default function JournalPage() {
       assetType: entry.assetType ?? "",
       plannedEntry: entry.plannedEntry !== null ? String(entry.plannedEntry) : "",
       entryPrice: entry.entryPrice !== null ? String(entry.entryPrice) : "",
-      mae: (entry as { mae?: number | null }).mae !== null && (entry as { mae?: number | null }).mae !== undefined ? String((entry as { mae?: number | null }).mae) : "",
-      mfe: (entry as { mfe?: number | null }).mfe !== null && (entry as { mfe?: number | null }).mfe !== undefined ? String((entry as { mfe?: number | null }).mfe) : "",
+      mae: entry.mae !== null && entry.mae !== undefined ? String(entry.mae) : "",
+      mfe: entry.mfe !== null && entry.mfe !== undefined ? String(entry.mfe) : "",
+      optionType: entry.optionType ?? "",
+      strikePrice: entry.strikePrice !== null && entry.strikePrice !== undefined ? String(entry.strikePrice) : "",
+      expiryDate: entry.expiryDate ?? "",
+      multiplier: entry.multiplier !== null && entry.multiplier !== undefined ? String(entry.multiplier) : "",
+      tradingAccountId: entry.tradingAccountId ?? "",
     });
   }
 
@@ -870,6 +1051,11 @@ export default function JournalPage() {
           plannedEntry: editForm.plannedEntry ? parseFloat(editForm.plannedEntry) : null,
           mae: editForm.mae ? parseFloat(editForm.mae) : null,
           mfe: editForm.mfe ? parseFloat(editForm.mfe) : null,
+          optionType: editForm.optionType || null,
+          strikePrice: editForm.strikePrice ? parseFloat(editForm.strikePrice) : null,
+          expiryDate: editForm.expiryDate || null,
+          multiplier: editForm.multiplier ? parseFloat(editForm.multiplier) : null,
+          tradingAccountId: editForm.tradingAccountId || null,
         }),
       });
       const data = await res.json();
@@ -1595,6 +1781,7 @@ export default function JournalPage() {
             chartUploadError={chartUploadError}
             setChartUploadError={setChartUploadError}
             handleChartUpload={handleChartUpload}
+            tradingAccounts={tradingAccounts}
           />
         )}
 
@@ -1873,6 +2060,7 @@ export default function JournalPage() {
                       chartUploadError={chartUploadError}
                       setChartUploadError={setChartUploadError}
                       handleChartUpload={handleChartUpload}
+                      tradingAccounts={tradingAccounts}
                     />
                   ) : (
                     <>
@@ -2025,7 +2213,38 @@ export default function JournalPage() {
                         </div>
                       )}
 
+                      {/* Options badge */}
+                      {entry.assetType === "options" && (entry.optionType || entry.strikePrice || entry.expiryDate) && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+                          {entry.optionType && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: entry.optionType === "call" ? "rgba(0,232,122,0.1)" : "rgba(255,59,92,0.1)", color: entry.optionType === "call" ? "var(--green)" : "var(--red)", border: `1px solid ${entry.optionType === "call" ? "rgba(0,232,122,0.3)" : "rgba(255,59,92,0.3)"}`, textTransform: "uppercase" }}>{entry.optionType}</span>
+                          )}
+                          {entry.strikePrice && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "var(--surface2)", color: "var(--text-muted)", border: "1px solid var(--border)", fontFamily: "var(--font-geist-mono)" }}>Strike ${entry.strikePrice}</span>
+                          )}
+                          {entry.expiryDate && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "var(--surface2)", color: "var(--text-muted)", border: "1px solid var(--border)" }}>Exp {entry.expiryDate}</span>
+                          )}
+                          {entry.multiplier && entry.multiplier !== 1 && (
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "var(--surface2)", color: "var(--text-muted)", border: "1px solid var(--border)", fontFamily: "var(--font-geist-mono)" }}>×{entry.multiplier}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Account badge */}
+                      {entry.tradingAccountId && tradingAccounts.length > 0 && (() => {
+                        const acc = tradingAccounts.find((a) => a.id === entry.tradingAccountId);
+                        return acc ? (
+                          <div style={{ marginTop: 6 }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: "rgba(94,106,210,0.08)", color: "var(--blue)", border: "1px solid rgba(94,106,210,0.2)" }}>
+                              📁 {acc.name}
+                            </span>
+                          </div>
+                        ) : null;
+                      })()}
+
                       {entry.symbol && <TradingViewChart symbol={entry.symbol} />}
+                      {entry.symbol && entry.entryPrice && <CandleChart tradeId={entry.id} />}
 
                       {entry.chartUrl && (
                         <div style={{ marginTop: 10 }}>

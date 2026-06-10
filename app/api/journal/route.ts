@@ -89,7 +89,8 @@ export async function POST(request: NextRequest) {
   if (!body) return Response.json({ error: "Invalid body" }, { status: 400 });
 
   const { date, symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, checkinScore, tags, ictSetups, reflection, chartUrl,
-    stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry, mae, mfe } = body;
+    stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry, mae, mfe,
+    optionType, strikePrice, expiryDate, multiplier, tradingAccountId } = body;
 
   if (!date || typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return Response.json({ error: "Invalid date" }, { status: 400 });
@@ -156,6 +157,11 @@ export async function POST(request: NextRequest) {
         plannedEntry: typeof plannedEntry === "number" && isFinite(plannedEntry) ? plannedEntry : null,
         mae: typeof mae === "number" && isFinite(mae) ? mae : null,
         mfe: typeof mfe === "number" && isFinite(mfe) ? mfe : null,
+        optionType: typeof optionType === "string" && ["call", "put"].includes(optionType) ? optionType : null,
+        strikePrice: typeof strikePrice === "number" && isFinite(strikePrice) ? strikePrice : null,
+        expiryDate: typeof expiryDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(expiryDate) ? expiryDate : null,
+        multiplier: typeof multiplier === "number" && isFinite(multiplier) && multiplier > 0 ? multiplier : null,
+        tradingAccountId: typeof tradingAccountId === "string" && tradingAccountId ? tradingAccountId : null,
         grade: computeGrade({ setup, reflection, riskAmount: parsedRiskAmount, stopLoss: typeof stopLoss === "number" ? stopLoss : null, pnl: parsedPnlNum }),
       },
     });
@@ -186,7 +192,8 @@ export async function PATCH(request: NextRequest) {
   if (!body) return Response.json({ error: "Invalid body" }, { status: 400 });
 
   const { symbol, side, pnl, setup, emotionBefore, emotionAfter, mistake, notes, tags, ictSetups: ictSetupsPatch, reflection, chartUrl,
-    stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry, mae, mfe } = body;
+    stopLoss, takeProfit, riskAmount, commission, assetType, plannedEntry, mae, mfe,
+    optionType: optionTypePatch, strikePrice: strikePricePatch, expiryDate: expiryDatePatch, multiplier: multiplierPatch, tradingAccountId: tradingAccountIdPatch } = body;
   const ASSET_TYPES_PATCH = ["futures", "forex", "crypto", "stocks", "options"];
 
   if (side !== undefined && side !== null && !["long", "short"].includes(side)) {
@@ -245,6 +252,11 @@ export async function PATCH(request: NextRequest) {
   if (plannedEntry !== undefined) updateData.plannedEntry = typeof plannedEntry === "number" && isFinite(plannedEntry) ? plannedEntry : null;
   if (mae !== undefined) updateData.mae = typeof mae === "number" && isFinite(mae) ? mae : null;
   if (mfe !== undefined) updateData.mfe = typeof mfe === "number" && isFinite(mfe) ? mfe : null;
+  if (optionTypePatch !== undefined) updateData.optionType = typeof optionTypePatch === "string" && ["call", "put"].includes(optionTypePatch) ? optionTypePatch : null;
+  if (strikePricePatch !== undefined) updateData.strikePrice = typeof strikePricePatch === "number" && isFinite(strikePricePatch) ? strikePricePatch : null;
+  if (expiryDatePatch !== undefined) updateData.expiryDate = typeof expiryDatePatch === "string" && /^\d{4}-\d{2}-\d{2}$/.test(expiryDatePatch) ? expiryDatePatch : null;
+  if (multiplierPatch !== undefined) updateData.multiplier = typeof multiplierPatch === "number" && isFinite(multiplierPatch) && multiplierPatch > 0 ? multiplierPatch : null;
+  if (tradingAccountIdPatch !== undefined) updateData.tradingAccountId = typeof tradingAccountIdPatch === "string" && tradingAccountIdPatch ? tradingAccountIdPatch : null;
   if (riskAmount !== undefined) {
     const ra = typeof riskAmount === "number" && isFinite(riskAmount) ? riskAmount : null;
     updateData.riskAmount = ra;

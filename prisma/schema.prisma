@@ -40,6 +40,7 @@ model User {
   challengeAttempts     ChallengeAttempt[]
 
   accounts          Account[]
+  tradingAccounts   TradingAccount[]
   sessions          Session[]
   checkins          Checkin[]
   trades            Trade[]
@@ -184,13 +185,37 @@ model TradeEntry {
   mae                Float?   // Maximum Adverse Excursion ($)
   mfe                Float?   // Maximum Favorable Excursion ($)
   grade              String?  // A / B / C / D — auto-computed quality score
+  // ── Options fields ─────────────────────────────────────────────────────────
+  optionType   String?  // "call" | "put"
+  strikePrice  Float?
+  expiryDate   String?  // YYYY-MM-DD
+  multiplier   Float?   // contract multiplier (100 for standard options, 50 for ES, etc.)
+  // ── Account grouping ───────────────────────────────────────────────────────
+  tradingAccountId String?
   createdAt          DateTime @default(now())
 
   brokerConnection BrokerConnection? @relation(fields: [brokerConnectionId], references: [id], onDelete: SetNull)
+  tradingAccount   TradingAccount?   @relation(fields: [tradingAccountId], references: [id], onDelete: SetNull)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([userId, date])
+  @@index([userId, tradingAccountId])
+}
+
+model TradingAccount {
+  id              String   @id @default(cuid())
+  userId          String
+  name            String   // e.g. "FTMO Account 1", "Personal Prop"
+  startingBalance Float?
+  currency        String   @default("USD")
+  isDefault       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tradeEntries TradeEntry[]
+
+  @@index([userId])
 }
 
 model MidSessionCheckin {
