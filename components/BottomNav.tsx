@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import Sidebar from "@/components/Sidebar";
 
 const HomeIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -117,6 +118,8 @@ export default function BottomNav() {
 
   return (
     <>
+      <Sidebar />
+
       {/* More drawer backdrop */}
       {open && (
         <div

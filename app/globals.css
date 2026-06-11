@@ -846,3 +846,68 @@ input[type="range"]::-webkit-slider-thumb:hover {
     min-height: 48px;
   }
 }
+
+/* ─────────────────────────────────────────
+   SIDEBAR LAYOUT  (desktop ≥ 768px)
+   Replaces the old horizontal tab bar.
+───────────────────────────────────────── */
+.app-sidebar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  /* Kill the old horizontal tab bar */
+  .bottom-nav {
+    display: none !important;
+  }
+
+  /* Slide content right to make room for sidebar */
+  .has-bottom-nav {
+    padding-left: 220px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+
+  /* Sidebar shell */
+  .app-sidebar {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 220px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    z-index: 60;
+    overflow: hidden;
+  }
+
+  /* Sidebar scrollable area */
+  .app-sidebar > div[style*="overflow"] {
+    scrollbar-width: none;
+  }
+  .app-sidebar > div[style*="overflow"]::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide elements that only belong on mobile */
+  .desktop-hide { display: none !important; }
+
+  /* Hide logo in header when sidebar shows it */
+  .sidebar-hide { display: none !important; }
+
+  /* Nav item hover */
+  .sidebar-nav-item:hover {
+    background: rgba(255, 255, 255, 0.04) !important;
+    color: var(--text) !important;
+  }
+  .sidebar-nav-item:hover span {
+    color: var(--text) !important;
+  }
+
+  /* Expand content width — remove the narrow 520px cap on inner pages */
+  .has-bottom-nav > div[style*="max-width: 520"] {
+    max-width: 860px !important;
+  }
+}

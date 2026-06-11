@@ -98,6 +98,9 @@ export default function DashboardPage() {
   const [dailyLossLimit, setDailyLossLimit] = useState<number | null>(null);
   const [marketQuotes, setMarketQuotes] = useState<{ symbol: string; price: number; change?: number; changePct?: number }[]>([]);
   const [marketSource, setMarketSource] = useState<string | null>(null);
+  const [equityCurve, setEquityCurve] = useState<{ date: string; cum: number }[]>([]);
+  const [equityStats, setEquityStats] = useState<{ totalPnl: number; winRate: number | null; profitFactor: number | null; maxDrawdown: number; avgR: number | null; tradingDays: number } | null>(null);
+  const [equityRange, setEquityRange] = useState<"1M" | "3M" | "ALL">("3M");
 
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -225,6 +228,18 @@ export default function DashboardPage() {
         if (qtRes.ok) {
           const qtData = await qtRes.json() as { quotes: { symbol: string; price: number; change?: number; changePct?: number }[]; source: string };
           if (qtData.quotes?.length > 0) { setMarketQuotes(qtData.quotes); setMarketSource(qtData.source); }
+        }
+      } catch {}
+
+      // Equity curve
+      try {
+        const eRes = await fetch("/api/equity-curve?days=90");
+        if (eRes.ok) {
+          const ed = await eRes.json();
+          if (ed.ok && Array.isArray(ed.curve)) {
+            setEquityCurve(ed.curve);
+            setEquityStats(ed.stats);
+          }
         }
       } catch {}
 
@@ -499,26 +514,27 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="app-header" style={{ padding: "12px 24px" }}>
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <Link href="/" style={{ textDecoration: "none" }}>
-            <img src="/logo.svg" alt="TradeMind" height="24" style={{ display: "block" }} />
+          {/* Logo hidden on desktop — sidebar shows it */}
+          <Link href="/" style={{ textDecoration: "none" }} className="mobile-only-logo">
+            <img src="/logo.svg" alt="TradeMind" height="24" style={{ display: "block" }} className="sidebar-hide" />
           </Link>
-          <span style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2, letterSpacing: "0.04em" }}>
-            {getGreeting()} · {new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+          <span style={{ fontSize: 13, color: "var(--text)", fontWeight: 600 }}>
+            {getGreeting()}
+          </span>
+          <span style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1, letterSpacing: "0.02em" }}>
+            {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}
           </span>
         </div>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           {broker && (
             <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 10px", borderRadius: 8, background: "var(--surface2)", border: "1px solid var(--border)", fontSize: 11, color: "var(--text-muted)" }}>
-              <div style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--green)", boxShadow: "0 0 4px var(--green)" }} />
+              <div style={{ width: 5, height: 5, borderRadius: "50%", background: broker.status === "active" ? "var(--green)" : "var(--amber)", boxShadow: `0 0 4px ${broker.status === "active" ? "var(--green)" : "var(--amber)"}` }} />
               {broker.broker}
             </div>
           )}
           <Link href="/checkin">
-            <button className="btn-primary" style={{ padding: "8px 16px", fontSize: 13 }}>Check-in</button>
-          </Link>
-          <Link href="/settings">
-            <button className="btn-ghost" style={{ padding: "8px 10px", fontSize: 13 }} aria-label="Settings">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 10a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" strokeWidth="1.3"/><path d="M8 2v1.5M8 12.5V14M2 8h1.5M12.5 8H14M3.5 3.5l1 1M11.5 11.5l1 1M3.5 12.5l1-1M11.5 4.5l1-1" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/></svg>
+            <button className="btn-primary" style={{ padding: "8px 16px", fontSize: 13 }}>
+              {todayScore !== null ? `Score: ${todayScore}` : "Check-in"}
             </button>
           </Link>
         </div>
@@ -543,7 +559,73 @@ export default function DashboardPage() {
           <SkeletonCard rows={2} style={{ marginBottom: 16, padding: 24 }} />
         </div>
       ) : (
-      <div style={{ maxWidth: 900, margin: "0 auto", padding: "28px 20px", opacity: visible ? 1 : 0, transition: "opacity 0.4s ease" }}>
+      <div style={{ maxWidth: 960, margin: "0 auto", padding: "24px 24px", opacity: visible ? 1 : 0, transition: "opacity 0.4s ease" }}>
+
+        {/* ── EQUITY CURVE HERO ── */}
+        {equityCurve.length >= 2 && (() => {
+          const rangeMap: Record<string, number> = { "1M": 30, "3M": 90, "ALL": 9999 };
+          const days = rangeMap[equityRange];
+          const filtered = equityCurve.slice(-days);
+          const vals = filtered.map(p => p.cum);
+          const minV = Math.min(...vals);
+          const maxV = Math.max(...vals);
+          const range = maxV - minV || 1;
+          const W = 800; const H = 120;
+          const pts = filtered.map((p, i) => {
+            const x = (i / (filtered.length - 1)) * W;
+            const y = H - ((p.cum - minV) / range) * (H - 10) - 5;
+            return `${x},${y}`;
+          }).join(" ");
+          const lastCum = filtered[filtered.length - 1]?.cum ?? 0;
+          const firstCum = filtered[0]?.cum ?? 0;
+          const isUp = lastCum >= firstCum;
+          const color = isUp ? "var(--green)" : "var(--red)";
+          const fillColor = isUp ? "rgba(0,232,122,0.08)" : "rgba(255,59,92,0.08)";
+          const lastPt = `${W},${H - ((lastCum - minV) / range) * (H - 10) - 5}`;
+          const areaPath = `M0,${H} L${pts.split(" ").map((p) => p).join(" L")} L${W},${H} Z`;
+
+          return (
+            <div className="dash-section s1" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "20px 24px", marginBottom: 16 }}>
+              {/* Stats row */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 0, marginBottom: 20 }}>
+                {[
+                  { label: "NET P&L", value: equityStats ? `${equityStats.totalPnl >= 0 ? "+" : ""}$${Math.abs(equityStats.totalPnl).toLocaleString()}` : "—", color: equityStats ? (equityStats.totalPnl >= 0 ? "var(--green)" : "var(--red)") : "var(--text)" },
+                  { label: "WIN RATE", value: equityStats?.winRate != null ? `${equityStats.winRate}%` : "—", color: equityStats?.winRate != null ? (equityStats.winRate >= 50 ? "var(--green)" : "var(--red)") : "var(--text)" },
+                  { label: "PROFIT FACTOR", value: equityStats?.profitFactor != null ? `${equityStats.profitFactor}x` : "—", color: equityStats?.profitFactor != null ? (equityStats.profitFactor >= 1 ? "var(--green)" : "var(--red)") : "var(--text)" },
+                  { label: "AVG R", value: equityStats?.avgR != null ? `${equityStats.avgR > 0 ? "+" : ""}${equityStats.avgR}R` : "—", color: equityStats?.avgR != null ? (equityStats.avgR >= 0 ? "var(--green)" : "var(--red)") : "var(--text)" },
+                ].map((s, i) => (
+                  <div key={i} style={{ paddingRight: i < 3 ? 20 : 0, borderRight: i < 3 ? "1px solid var(--border)" : "none", paddingLeft: i > 0 ? 20 : 0 }}>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 6 }}>{s.label}</div>
+                    <div style={{ fontSize: 22, fontWeight: 800, color: s.color, letterSpacing: "-0.02em", fontFamily: "var(--font-geist-mono)" }}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Chart */}
+              <div style={{ position: "relative" }}>
+                <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{ width: "100%", height: 120, display: "block", overflow: "visible" }}>
+                  <defs>
+                    <linearGradient id="eq-fill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={isUp ? "#00E87A" : "#FF3B5C"} stopOpacity="0.18" />
+                      <stop offset="100%" stopColor={isUp ? "#00E87A" : "#FF3B5C"} stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path d={areaPath} fill="url(#eq-fill)" />
+                  <polyline points={pts} fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  {/* Last point dot */}
+                  <circle cx={lastPt.split(",")[0]} cy={lastPt.split(",")[1]} r="3.5" fill={color} />
+                </svg>
+
+                {/* Range selector */}
+                <div style={{ display: "flex", gap: 4, position: "absolute", top: 0, right: 0 }}>
+                  {(["1M", "3M", "ALL"] as const).map(r => (
+                    <button key={r} onClick={() => setEquityRange(r)} style={{ padding: "3px 8px", borderRadius: 6, border: "none", fontSize: 11, fontWeight: 700, cursor: "pointer", background: equityRange === r ? "var(--surface3)" : "transparent", color: equityRange === r ? "var(--text)" : "var(--text-muted)", transition: "all 0.15s" }}>{r}</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Network error banner */}
         {dataError && (
@@ -1407,8 +1489,8 @@ export default function DashboardPage() {
           </Link>
         )}
 
-        {/* QUICK LINKS */}
-        <div className="dash-section s4" style={{ marginBottom: 20 }}>
+        {/* QUICK LINKS — mobile only (desktop uses sidebar) */}
+        <div className="dash-section s4 desktop-hide" style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 12 }}>QUICK ACCESS</div>
           <div className="quick-grid">
             {([
