@@ -27,16 +27,21 @@ export async function GET(request: NextRequest) {
   if (startDate) checkinWhere.date = { ...(checkinWhere.date as object ?? {}), gte: startDate };
   if (endDate)   checkinWhere.date = { ...(checkinWhere.date as object ?? {}), lte: endDate };
 
-  const [checkins, tradeEntries, user, recaps, brokerConns] = await Promise.all([
+  const [checkins, tradeEntries, user, recaps] = await Promise.all([
     db.checkin.findMany({ where: checkinWhere, orderBy: { date: "desc" }, take: 90 }),
     db.tradeEntry.findMany({ where: tradeWhere, orderBy: { date: "desc" }, take: 1000 }),
     db.user.findUnique({ where: { id: userId }, select: { createdAt: true } }),
     db.dailyRecap.findMany({ where: { userId, ...(startDate || endDate ? { date: { ...(startDate ? { gte: startDate } : {}), ...(endDate ? { lte: endDate } : {}) } } : {}) }, orderBy: { date: "desc" }, take: 90, select: { date: true, mood: true, pnl: true, playbookScore: true, lesson: true, tradesCount: true } }),
-    db.brokerConnection.findMany({ where: { userId }, select: { startingBalance: true }, take: 5 }),
   ]);
 
-  // Starting balance = sum of all connected accounts' starting balances
-  const startingBalance = brokerConns.reduce((s, c) => s + (c.startingBalance ?? 0), 0) || null;
+  // Starting balance — query separately so a missing column doesn't crash the whole route
+  let startingBalance: number | null = null;
+  try {
+    const brokerConns = await db.brokerConnection.findMany({ where: { userId }, select: { startingBalance: true }, take: 5 });
+    startingBalance = brokerConns.reduce((s, c) => s + (c.startingBalance ?? 0), 0) || null;
+  } catch {
+    // column may not exist in older production DB schemas — degrade gracefully
+  }
 
   // ── Score trend ───────────────────────────────────────────────────────────
   const scoreTrend = [...checkins].reverse().map((c) => ({ date: c.date, score: c.score, verdict: c.verdict }));

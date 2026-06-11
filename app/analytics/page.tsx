@@ -1677,6 +1677,7 @@ function AnalyticsPageInner() {
       })
       .then((d) => {
         if (!d) return;
+        if (d.error || d.totalCheckins === undefined) { setNetworkError(true); return; }
         setIsPremium(true);
         setData(d);
         fetch("/api/benchmarks").then((r) => r.json()).then((b) => setBenchmarks(b)).catch(() => {});
