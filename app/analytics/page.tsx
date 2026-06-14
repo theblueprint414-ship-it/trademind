@@ -1661,6 +1661,7 @@ function AnalyticsPageInner() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [filterApplied, setFilterApplied] = useState(false);
+  const [activeTab, setActiveTab] = useState<"overview" | "performance" | "psychology">("overview");
   const searchParams = useSearchParams();
 
   const fetchAnalytics = React.useCallback((sd?: string, ed?: string) => {
@@ -1960,204 +1961,204 @@ function AnalyticsPageInner() {
           <CurrentStreakBadge data={data} />
         </div>
 
-        {/* Trading sections */}
-        {data.equityCurve && data.equityCurve.length >= 2 && <EquityCurveCard data={data.equityCurve} />}
-        {data.equityCurve && data.equityCurve.length >= 3 && <DrawdownChart equityCurve={data.equityCurve} />}
-        {data.profitFactor !== undefined && <ProfitMetricsRow data={data} />}
-        <AdvancedMetricsCard data={data} />
-        {/* P&L Calendar — trading section */}
-        {data.calendarDays && data.calendarDays.some((d) => d.pnl !== null) && (
-          <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>P&L CALENDAR</h3>
-            <PnLCalendar days={data.calendarDays} />
-          </div>
-        )}
-        {data.timeOfDay && data.timeOfDay.length > 0 && <TimeOfDayCard data={data.timeOfDay} />}
-        {data.durationStats && data.durationStats.length > 0 && <DurationStatsCard data={data.durationStats} />}
-        {data.avgHoldByHour && data.avgHoldByHour.length > 0 && <TimeInPositionCard data={data.avgHoldByHour} />}
-        {data.symbols && data.symbols.length > 0 && <SymbolPerformanceTable data={data.symbols} />}
-        {data.setups && data.setups.length > 0 && <SetupPerformanceTable data={data.setups} />}
-        {((data.sessionPerformance ?? []).length > 0 || (data.confidencePerformance ?? []).some((c) => c.trades > 0) || (data.marketConditionPerformance ?? []).length > 0) && (
-          <SessionPerformanceCard sessions={data.sessionPerformance ?? []} confidence={data.confidencePerformance} marketCondition={data.marketConditionPerformance} />
-        )}
-        {data.tagStats && data.tagStats.length > 0 && <TagStatsCard data={data.tagStats} />}
-        {data.mistakeStats && data.mistakeStats.length > 0 && <MistakeStatsCard data={data.mistakeStats} />}
-        {data.monthlyStats && data.monthlyStats.length >= 2 && <MonthlyBreakdownTable data={data.monthlyStats} />}
-
-        {/* Psychology & mind section divider */}
-        {data.totalCheckins > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, marginTop: 8 }}>
-            <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", whiteSpace: "nowrap" }}>MIND LAYER</span>
-            <div style={{ flex: 1, height: 1, background: "var(--border)" }} />
-          </div>
-        )}
-
-        {/* Psychology KPI row */}
-        {data.totalCheckins > 0 && (
-          <div className="analytics-kpi-grid" style={{ marginBottom: 20 }}>
-            {[
-              { label: "CHECK-INS", value: data.totalCheckins, color: "var(--blue)" },
-              { label: "AVG SCORE", value: data.avgScore ?? "—", color: scoreColor(data.avgScore), suffix: data.avgScore ? "/100" : "" },
-              { label: "STREAK", value: data.currentStreak > 0 ? `${data.currentStreak}` : "—", color: data.currentStreak >= 3 ? "var(--amber)" : "var(--text-muted)" },
-              { label: "DISCIPLINE", value: `${data.disciplinePct}%`, color: data.disciplinePct >= 80 ? "var(--green)" : data.disciplinePct >= 50 ? "var(--amber)" : "var(--red)" },
-            ].map((kpi) => (
-              <div key={kpi.label} className="card" style={{ padding: "16px 12px", textAlign: "center" }}>
-                <div className="font-bebas" style={{ fontSize: 26, color: kpi.color, lineHeight: 1, marginBottom: 4 }}>
-                  {kpi.value}{(kpi as { suffix?: string }).suffix ?? ""}
-                </div>
-                <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", lineHeight: 1.3 }}>{kpi.label}</div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Top Insight */}
-        <TopInsightCard data={data} />
-
-        {/* Cohort Benchmarks */}
-        {benchmarks && !benchmarks.insufficient && (
-          <CohortBenchmarkCard data={benchmarks} />
-        )}
-
-        {/* Estimated saved losses — hero card */}
-        {data.estimatedSaved > 0 && (
-          <div className="card" style={{ padding: 24, marginBottom: 20, background: "linear-gradient(135deg, rgba(0,232,122,0.06), rgba(0,232,122,0.02))", border: "1px solid rgba(0,232,122,0.2)", display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--green)", marginBottom: 8 }}>ESTIMATED LOSSES AVOIDED</div>
-              <div className="font-bebas" style={{ fontSize: 48, color: "var(--green)", lineHeight: 1, textShadow: "0 0 30px rgba(0,232,122,0.4)" }}>
-                +${data.estimatedSaved.toLocaleString()}
-              </div>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginTop: 8 }}>
-                You respected your NO-TRADE signal on <strong>{data.respectedNoTradeCount}</strong> {data.respectedNoTradeCount === 1 ? "day" : "days"}. Based on your average loss when trading with a low score, that&apos;s roughly ${data.estimatedSaved.toLocaleString()} saved.
-              </p>
-            </div>
-            {data.tradedOnNoTradeDayCount > 0 && (
-              <div className="card" style={{ padding: 16, minWidth: 140, textAlign: "center", border: "1px solid rgba(255,59,92,0.2)", background: "rgba(255,59,92,0.04)" }}>
-                <div className="font-bebas" style={{ fontSize: 32, color: "var(--red)", lineHeight: 1 }}>{data.tradedOnNoTradeDayCount}</div>
-                <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em", marginTop: 4 }}>DAYS IGNORED<br />NO-TRADE</div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Score trend */}
-        <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>MENTAL SCORE TREND</h3>
-            <div style={{ display: "flex", gap: 6 }}>
-              {([30, 90] as const).map((r) => (
-                <button key={r} onClick={() => setTrendRange(r)}
-                  style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${trendRange === r ? "var(--blue)" : "var(--border)"}`, background: trendRange === r ? "rgba(94,106,210,0.1)" : "transparent", color: trendRange === r ? "var(--blue)" : "var(--text-muted)", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>
-                  {r}D
-                </button>
-              ))}
-            </div>
-          </div>
-          <ScoreLineChart data={data.scoreTrend} range={trendRange} />
+        {/* Tab navigation */}
+        <div style={{ display: "flex", gap: 4, marginBottom: 20, background: "var(--surface2)", borderRadius: 12, padding: 4, border: "1px solid var(--border)" }}>
+          {(["overview", "performance", "psychology"] as const).map((tab) => {
+            const labels: Record<string, string> = { overview: "Overview", performance: "Performance", psychology: "Psychology" };
+            const active = activeTab === tab;
+            return (
+              <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: 1, padding: "9px 8px", borderRadius: 9, border: "none", background: active ? "var(--surface)" : "transparent", color: active ? "var(--text)" : "var(--text-muted)", fontWeight: active ? 700 : 500, fontSize: 13, cursor: "pointer", transition: "background 0.15s, color 0.15s", boxShadow: active ? "0 1px 4px rgba(0,0,0,0.25)" : "none" }}>
+                {labels[tab]}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Verdict breakdown */}
-        <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-          <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 20 }}>VERDICT BREAKDOWN</h3>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
-            {[
-              { label: "GO", count: data.verdictCounts.GO, pct: goPct, color: "var(--green)" },
-              { label: "CAUTION", count: data.verdictCounts.CAUTION, pct: cautionPct, color: "var(--amber)" },
-              { label: "NO-TRADE", count: data.verdictCounts["NO-TRADE"], pct: noTradePct, color: "var(--red)" },
-            ].map((v) => (
-              <div key={v.label} style={{ textAlign: "center", padding: "16px 8px", borderRadius: 12, background: "var(--surface2)", border: `1px solid ${v.color}20` }}>
-                <div className="font-bebas" style={{ fontSize: 32, color: v.color, lineHeight: 1 }}>{v.pct}%</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: v.color, lineHeight: 1, marginTop: 2 }}>{v.count}</div>
-                <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", marginTop: 4 }}>{v.label}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{ height: 8, borderRadius: 4, overflow: "hidden", display: "flex" }}>
-            <div style={{ flex: goPct, background: "var(--green)", transition: "flex 0.5s" }} />
-            <div style={{ flex: cautionPct, background: "var(--amber)", transition: "flex 0.5s" }} />
-            <div style={{ flex: noTradePct, background: "var(--red)", transition: "flex 0.5s" }} />
-          </div>
-        </div>
+        {/* Overview tab */}
+        {activeTab === "overview" && (<>
+          {data.equityCurve && data.equityCurve.length >= 2 && <EquityCurveCard data={data.equityCurve} />}
+          {data.equityCurve && data.equityCurve.length >= 3 && <DrawdownChart equityCurve={data.equityCurve} />}
+          {data.profitFactor !== undefined && <ProfitMetricsRow data={data} />}
+          <AdvancedMetricsCard data={data} />
+          {data.monthlyStats && data.monthlyStats.length >= 2 && <MonthlyBreakdownTable data={data.monthlyStats} />}
+        </>)}
 
-        {/* Mental P&L Calculator */}
-        <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(139,92,246,0.2)", background: "rgba(139,92,246,0.02)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>MENTAL P&L CALCULATOR</h3>
-            <span style={{ fontSize: 10, background: "rgba(139,92,246,0.12)", color: "#8B5CF6", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 4, padding: "1px 6px", fontWeight: 700 }}>TRADEMIND</span>
-          </div>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 16 }}>
-            What is your mental state actually costing you — or earning you — in real dollars?
-          </p>
-          <MentalPnL />
-        </div>
-
-        {/* P&L Correlation */}
-        <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
-            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>PSYCHOLOGY vs PERFORMANCE</h3>
-            {data.winRate !== null && (
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Win rate: <strong style={{ color: data.winRate >= 50 ? "var(--green)" : "var(--red)" }}>{data.winRate}%</strong></span>
-            )}
-          </div>
-          <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 16 }}>
-            Dots = mental score (top zone). Bars = P&L that day. Correlation reveals your psychological edge.
-          </p>
-          <CorrelationChart data={data.correlation} />
-          {data.totalPnl !== 0 && (
-            <div style={{ marginTop: 16, padding: 12, borderRadius: 8, background: "var(--surface2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Total journaled P&L</span>
-              <span className="font-bebas" style={{ fontSize: 22, color: data.totalPnl >= 0 ? "var(--green)" : "var(--red)" }}>
-                {data.totalPnl >= 0 ? "+" : ""}${Math.abs(data.totalPnl).toFixed(2)}
-              </span>
+        {/* Performance tab */}
+        {activeTab === "performance" && (<>
+          {data.calendarDays && data.calendarDays.some((d) => d.pnl !== null) && (
+            <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+              <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>P&L CALENDAR</h3>
+              <PnLCalendar days={data.calendarDays} />
             </div>
           )}
-        </div>
+          {data.symbols && data.symbols.length > 0 && <SymbolPerformanceTable data={data.symbols} />}
+          {data.setups && data.setups.length > 0 && <SetupPerformanceTable data={data.setups} />}
+          {((data.sessionPerformance ?? []).length > 0 || (data.confidencePerformance ?? []).some((c) => c.trades > 0) || (data.marketConditionPerformance ?? []).length > 0) && (
+            <SessionPerformanceCard sessions={data.sessionPerformance ?? []} confidence={data.confidencePerformance} marketCondition={data.marketConditionPerformance} />
+          )}
+          {data.timeOfDay && data.timeOfDay.length > 0 && <TimeOfDayCard data={data.timeOfDay} />}
+          {data.durationStats && data.durationStats.length > 0 && <DurationStatsCard data={data.durationStats} />}
+          {data.avgHoldByHour && data.avgHoldByHour.length > 0 && <TimeInPositionCard data={data.avgHoldByHour} />}
+          {data.tagStats && data.tagStats.length > 0 && <TagStatsCard data={data.tagStats} />}
+          {data.mistakeStats && data.mistakeStats.length > 0 && <MistakeStatsCard data={data.mistakeStats} />}
+        </>)}
 
-        {/* Calendar heatmap */}
-        <div className="card" style={{ padding: 24, marginBottom: 20 }}>
-          <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>90-DAY CONSISTENCY</h3>
-          <CalendarHeatmap days={data.calendarDays} />
-          <div style={{ display: "flex", gap: 20, marginTop: 16, flexWrap: "wrap" }}>
-            <div style={{ textAlign: "center" }}>
-              <div className="font-bebas" style={{ fontSize: 28, color: "var(--amber)" }}>{data.longestStreak}</div>
-              <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>LONGEST STREAK</div>
+        {/* Psychology tab */}
+        {activeTab === "psychology" && (<>
+          {/* Psychology KPI row */}
+          {data.totalCheckins > 0 && (
+            <div className="analytics-kpi-grid" style={{ marginBottom: 20 }}>
+              {[
+                { label: "CHECK-INS", value: data.totalCheckins, color: "var(--blue)" },
+                { label: "AVG SCORE", value: data.avgScore ?? "—", color: scoreColor(data.avgScore), suffix: data.avgScore ? "/100" : "" },
+                { label: "STREAK", value: data.currentStreak > 0 ? `${data.currentStreak}` : "—", color: data.currentStreak >= 3 ? "var(--amber)" : "var(--text-muted)" },
+                { label: "DISCIPLINE", value: `${data.disciplinePct}%`, color: data.disciplinePct >= 80 ? "var(--green)" : data.disciplinePct >= 50 ? "var(--amber)" : "var(--red)" },
+              ].map((kpi) => (
+                <div key={kpi.label} className="card" style={{ padding: "16px 12px", textAlign: "center" }}>
+                  <div className="font-bebas" style={{ fontSize: 26, color: kpi.color, lineHeight: 1, marginBottom: 4 }}>
+                    {kpi.value}{(kpi as { suffix?: string }).suffix ?? ""}
+                  </div>
+                  <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", lineHeight: 1.3 }}>{kpi.label}</div>
+                </div>
+              ))}
             </div>
-            <div style={{ textAlign: "center" }}>
-              <div className="font-bebas" style={{ fontSize: 28, color: "var(--blue)" }}>{data.totalCheckins}</div>
-              <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>TOTAL CHECK-INS</div>
+          )}
+
+          <TopInsightCard data={data} />
+
+          {benchmarks && !benchmarks.insufficient && (
+            <CohortBenchmarkCard data={benchmarks} />
+          )}
+
+          {data.estimatedSaved > 0 && (
+            <div className="card" style={{ padding: 24, marginBottom: 20, background: "linear-gradient(135deg, rgba(0,232,122,0.06), rgba(0,232,122,0.02))", border: "1px solid rgba(0,232,122,0.2)", display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--green)", marginBottom: 8 }}>ESTIMATED LOSSES AVOIDED</div>
+                <div className="font-bebas" style={{ fontSize: 48, color: "var(--green)", lineHeight: 1, textShadow: "0 0 30px rgba(0,232,122,0.4)" }}>
+                  +${data.estimatedSaved.toLocaleString()}
+                </div>
+                <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginTop: 8 }}>
+                  You respected your NO-TRADE signal on <strong>{data.respectedNoTradeCount}</strong> {data.respectedNoTradeCount === 1 ? "day" : "days"}. Based on your average loss when trading with a low score, that&apos;s roughly ${data.estimatedSaved.toLocaleString()} saved.
+                </p>
+              </div>
+              {data.tradedOnNoTradeDayCount > 0 && (
+                <div className="card" style={{ padding: 16, minWidth: 140, textAlign: "center", border: "1px solid rgba(255,59,92,0.2)", background: "rgba(255,59,92,0.04)" }}>
+                  <div className="font-bebas" style={{ fontSize: 32, color: "var(--red)", lineHeight: 1 }}>{data.tradedOnNoTradeDayCount}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em", marginTop: 4 }}>DAYS IGNORED<br />NO-TRADE</div>
+                </div>
+              )}
             </div>
-            {data.avg30 !== null && (
-              <div style={{ textAlign: "center" }}>
-                <div className="font-bebas" style={{ fontSize: 28, color: scoreColor(data.avg30) }}>{data.avg30}</div>
-                <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>30-DAY AVG</div>
+          )}
+
+          <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>MENTAL SCORE TREND</h3>
+              <div style={{ display: "flex", gap: 6 }}>
+                {([30, 90] as const).map((r) => (
+                  <button key={r} onClick={() => setTrendRange(r)}
+                    style={{ padding: "4px 12px", borderRadius: 6, border: `1px solid ${trendRange === r ? "var(--blue)" : "var(--border)"}`, background: trendRange === r ? "rgba(94,106,210,0.1)" : "transparent", color: trendRange === r ? "var(--blue)" : "var(--text-muted)", cursor: "pointer", fontSize: 11, fontWeight: 700 }}>
+                    {r}D
+                  </button>
+                ))}
+              </div>
+            </div>
+            <ScoreLineChart data={data.scoreTrend} range={trendRange} />
+          </div>
+
+          <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 20 }}>VERDICT BREAKDOWN</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 20 }}>
+              {[
+                { label: "GO", count: data.verdictCounts.GO, pct: goPct, color: "var(--green)" },
+                { label: "CAUTION", count: data.verdictCounts.CAUTION, pct: cautionPct, color: "var(--amber)" },
+                { label: "NO-TRADE", count: data.verdictCounts["NO-TRADE"], pct: noTradePct, color: "var(--red)" },
+              ].map((v) => (
+                <div key={v.label} style={{ textAlign: "center", padding: "16px 8px", borderRadius: 12, background: "var(--surface2)", border: `1px solid ${v.color}20` }}>
+                  <div className="font-bebas" style={{ fontSize: 32, color: v.color, lineHeight: 1 }}>{v.pct}%</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: v.color, lineHeight: 1, marginTop: 2 }}>{v.count}</div>
+                  <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", marginTop: 4 }}>{v.label}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ height: 8, borderRadius: 4, overflow: "hidden", display: "flex" }}>
+              <div style={{ flex: goPct, background: "var(--green)", transition: "flex 0.5s" }} />
+              <div style={{ flex: cautionPct, background: "var(--amber)", transition: "flex 0.5s" }} />
+              <div style={{ flex: noTradePct, background: "var(--red)", transition: "flex 0.5s" }} />
+            </div>
+          </div>
+
+          <div className="card" style={{ padding: 24, marginBottom: 20, border: "1px solid rgba(139,92,246,0.2)", background: "rgba(139,92,246,0.02)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>MENTAL P&L CALCULATOR</h3>
+              <span style={{ fontSize: 10, background: "rgba(139,92,246,0.12)", color: "#8B5CF6", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 4, padding: "1px 6px", fontWeight: 700 }}>TRADEMIND</span>
+            </div>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 16 }}>
+              What is your mental state actually costing you — or earning you — in real dollars?
+            </p>
+            <MentalPnL />
+          </div>
+
+          <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+              <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)" }}>PSYCHOLOGY vs PERFORMANCE</h3>
+              {data.winRate !== null && (
+                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Win rate: <strong style={{ color: data.winRate >= 50 ? "var(--green)" : "var(--red)" }}>{data.winRate}%</strong></span>
+              )}
+            </div>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.5, marginBottom: 16 }}>
+              Dots = mental score (top zone). Bars = P&L that day. Correlation reveals your psychological edge.
+            </p>
+            <CorrelationChart data={data.correlation} />
+            {data.totalPnl !== 0 && (
+              <div style={{ marginTop: 16, padding: 12, borderRadius: 8, background: "var(--surface2)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Total journaled P&L</span>
+                <span className="font-bebas" style={{ fontSize: 22, color: data.totalPnl >= 0 ? "var(--green)" : "var(--red)" }}>
+                  {data.totalPnl >= 0 ? "+" : ""}${Math.abs(data.totalPnl).toFixed(2)}
+                </span>
               </div>
             )}
           </div>
-        </div>
 
-        {/* NEW: Performance by Mental State */}
-        {data.scoreRangePerformance && <MentalStatePerformanceCard data={data.scoreRangePerformance} />}
+          <div className="card" style={{ padding: 24, marginBottom: 20 }}>
+            <h3 style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 16 }}>90-DAY CONSISTENCY</h3>
+            <CalendarHeatmap days={data.calendarDays} />
+            <div style={{ display: "flex", gap: 20, marginTop: 16, flexWrap: "wrap" }}>
+              <div style={{ textAlign: "center" }}>
+                <div className="font-bebas" style={{ fontSize: 28, color: "var(--amber)" }}>{data.longestStreak}</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>LONGEST STREAK</div>
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <div className="font-bebas" style={{ fontSize: 28, color: "var(--blue)" }}>{data.totalCheckins}</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>TOTAL CHECK-INS</div>
+              </div>
+              {data.avg30 !== null && (
+                <div style={{ textAlign: "center" }}>
+                  <div className="font-bebas" style={{ fontSize: 28, color: scoreColor(data.avg30) }}>{data.avg30}</div>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>30-DAY AVG</div>
+                </div>
+              )}
+            </div>
+          </div>
 
-        {/* NEW: Best Days to Trade */}
-        {data.byDayOfWeek && data.byDayOfWeek.some((d) => d.trades > 0) && (
-          <BestDaysCard data={data.byDayOfWeek} />
-        )}
+          {data.scoreRangePerformance && <MentalStatePerformanceCard data={data.scoreRangePerformance} />}
 
-        {/* Behavioral Patterns */}
-        {data.behavioralPatterns && <BehavioralPatternsCard data={data.behavioralPatterns} />}
+          {data.byDayOfWeek && data.byDayOfWeek.some((d) => d.trades > 0) && (
+            <BestDaysCard data={data.byDayOfWeek} />
+          )}
 
-        {/* CTA: Playbook */}
-        <div className="card" style={{ padding: 24, textAlign: "center", border: "1px solid rgba(94,106,210,0.2)", background: "rgba(94,106,210,0.03)" }}>
-          <div style={{ marginBottom: 12, display: "flex", justifyContent: "center", color: "var(--blue)" }}><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="currentColor" strokeWidth="2"/><path d="M11 11h10M11 16h10M11 21h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></div>
-          <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>Define Your Trading Rules</div>
-          <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 20 }}>
-            Write your entry rules, exit criteria, and risk limits. TradeMind will show them to you before every check-in.
-          </p>
-          <Link href="/playbook">
-            <button className="btn-primary" style={{ fontSize: 14, padding: "12px 28px" }}>Open Playbook →</button>
-          </Link>
-        </div>
+          {data.behavioralPatterns && <BehavioralPatternsCard data={data.behavioralPatterns} />}
+
+          <div className="card" style={{ padding: 24, textAlign: "center", border: "1px solid rgba(94,106,210,0.2)", background: "rgba(94,106,210,0.03)" }}>
+            <div style={{ marginBottom: 12, display: "flex", justifyContent: "center", color: "var(--blue)" }}><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="4" width="20" height="24" rx="3" stroke="currentColor" strokeWidth="2"/><path d="M11 11h10M11 16h10M11 21h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg></div>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 8 }}>Define Your Trading Rules</div>
+            <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 20 }}>
+              Write your entry rules, exit criteria, and risk limits. TradeMind will show them to you before every check-in.
+            </p>
+            <Link href="/playbook">
+              <button className="btn-primary" style={{ fontSize: 14, padding: "12px 28px" }}>Open Playbook →</button>
+            </Link>
+          </div>
+        </>)}
       </div>
 
       <BottomNav />
