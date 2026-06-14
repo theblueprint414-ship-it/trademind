@@ -208,17 +208,33 @@ export async function POST(request: NextRequest) {
     };
   }
 
-  const rawTrades = await db.tradeEntry.findMany({
-    where,
-    orderBy: [{ date: "asc" }, { createdAt: "asc" }],
-    take: 2000,
-    select: {
-      id: true, date: true, pnl: true, commission: true, checkinScore: true,
-      rMultiple: true, side: true, assetType: true, ictSetups: true,
-      confidence: true, sessionType: true, marketCondition: true, timeframe: true,
-      entryTime: true, createdAt: true,
-    },
-  });
+  // Try full query first; if optional columns don't exist in the DB, fall back to base fields
+  let rawTrades: Array<Partial<TradeRow> & { id: string; date: string; pnl: number | null; commission: number | null; checkinScore: number | null; rMultiple: number | null; side: string | null; assetType: string | null; ictSetups: string | null; entryTime: string | null; createdAt: Date }>;
+  try {
+    rawTrades = await db.tradeEntry.findMany({
+      where,
+      orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+      take: 2000,
+      select: {
+        id: true, date: true, pnl: true, commission: true, checkinScore: true,
+        rMultiple: true, side: true, assetType: true, ictSetups: true,
+        confidence: true, sessionType: true, marketCondition: true, timeframe: true,
+        entryTime: true, createdAt: true,
+      },
+    });
+  } catch {
+    // Fallback: some columns may not exist in older DB schemas
+    rawTrades = await db.tradeEntry.findMany({
+      where,
+      orderBy: [{ date: "asc" }, { createdAt: "asc" }],
+      take: 2000,
+      select: {
+        id: true, date: true, pnl: true, commission: true, checkinScore: true,
+        rMultiple: true, side: true, assetType: true, ictSetups: true,
+        entryTime: true, createdAt: true,
+      },
+    });
+  }
 
   if (rawTrades.length === 0) {
     return Response.json({ error: "No trades found" }, { status: 404 });
