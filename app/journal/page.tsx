@@ -1726,6 +1726,15 @@ export default function JournalPage() {
     return d.toISOString().split("T")[0];
   });
 
+  // Daily P&L map from allEntries for date strip
+  const dailyPnlMap = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const e of allEntries) {
+      if (e.pnl !== null) m[e.date] = (m[e.date] ?? 0) + e.pnl;
+    }
+    return m;
+  }, [allEntries]);
+
   if (isPro === null) {
     return (
       <div style={{ background: "var(--bg)", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center" }} className="has-bottom-nav">
@@ -1891,25 +1900,41 @@ export default function JournalPage() {
         )}
 
         {/* Date strip — list view only */}
-        {viewMode === "list" && !isFirstTime && <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 24, scrollbarWidth: "none" }}>
+        {viewMode === "list" && !isFirstTime && <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 4, marginBottom: 24, scrollbarWidth: "none" }}>
           {recentDates.map((d) => {
             const isToday = d === today;
             const isSelected = d === selectedDate;
-            const label = isToday ? "Today" : new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+            const dayPnl = dailyPnlMap[d];
+            const hasPnlDay = dayPnl !== undefined;
+            const dayLabel = isToday ? "Today" : new Date(d + "T12:00:00").toLocaleDateString("en-US", { weekday: "short" });
+            const dateLabel = new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "numeric", day: "numeric" });
+            const pnlColor = hasPnlDay ? (dayPnl > 0 ? "var(--green)" : "var(--red)") : "var(--text-muted)";
             return (
               <button
                 key={d}
                 onClick={() => setSelectedDate(d)}
                 style={{
-                  flexShrink: 0, padding: "8px 16px", borderRadius: 20,
-                  border: `1.5px solid ${isSelected ? "var(--blue)" : "var(--border)"}`,
-                  background: isSelected ? "rgba(94,106,210,0.12)" : "var(--surface2)",
-                  color: isSelected ? "var(--blue)" : "var(--text-muted)",
-                  cursor: "pointer", fontSize: 12, fontWeight: isSelected ? 700 : 400,
-                  whiteSpace: "nowrap", transition: "all 0.15s",
+                  flexShrink: 0,
+                  padding: "8px 12px",
+                  borderRadius: 10,
+                  border: `1.5px solid ${isSelected ? "var(--blue)" : hasPnlDay ? (dayPnl > 0 ? "rgba(0,232,122,0.3)" : "rgba(255,59,92,0.3)") : "var(--border)"}`,
+                  background: isSelected ? "rgba(94,106,210,0.12)" : hasPnlDay ? (dayPnl > 0 ? "rgba(0,232,122,0.06)" : "rgba(255,59,92,0.06)") : "var(--surface2)",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 2,
+                  minWidth: 56,
                 }}
               >
-                {label}
+                <span style={{ fontSize: 10, fontWeight: 700, color: isSelected ? "var(--blue)" : "var(--text-muted)", letterSpacing: "0.04em" }}>{dayLabel}</span>
+                <span style={{ fontSize: 10, color: isSelected ? "var(--blue)" : "var(--text-dim)" }}>{dateLabel}</span>
+                {hasPnlDay && (
+                  <span style={{ fontSize: 10, fontWeight: 800, color: isSelected ? "var(--blue)" : pnlColor, fontFamily: "var(--font-geist-mono)" }}>
+                    {dayPnl > 0 ? "+" : ""}${Math.abs(dayPnl) >= 1000 ? `${(dayPnl / 1000).toFixed(1)}k` : dayPnl.toFixed(0)}
+                  </span>
+                )}
               </button>
             );
           })}
