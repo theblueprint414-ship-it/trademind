@@ -1092,6 +1092,129 @@ function TradeForm({
   );
 }
 
+function CalendarView({
+  allEntries,
+  onDayClick,
+  today,
+}: {
+  allEntries: { date: string; pnl: number | null }[];
+  onDayClick: (date: string) => void;
+  today: string;
+}) {
+  const [month, setMonth] = React.useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
+
+  const dayData: Record<string, { pnl: number; trades: number }> = {};
+  for (const e of allEntries) {
+    if (!dayData[e.date]) dayData[e.date] = { pnl: 0, trades: 0 };
+    dayData[e.date].trades++;
+    if (e.pnl !== null) dayData[e.date].pnl += e.pnl;
+  }
+
+  const year = month.getFullYear();
+  const mo = month.getMonth();
+  const firstDay = new Date(year, mo, 1);
+  const lastDay = new Date(year, mo + 1, 0);
+  const startDow = (firstDay.getDay() + 6) % 7;
+  const totalCells = Math.ceil((startDow + lastDay.getDate()) / 7) * 7;
+  const cells: (number | null)[] = Array.from({ length: totalCells }, (_, i) => {
+    const d = i - startDow + 1;
+    return d >= 1 && d <= lastDay.getDate() ? d : null;
+  });
+
+  const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const monthLabel = month.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const monthPrefix = `${year}-${String(mo + 1).padStart(2, "0")}`;
+  const monthDays = Object.entries(dayData).filter(([d]) => d.startsWith(monthPrefix));
+  const monthPnl = monthDays.reduce((s, [, d]) => s + d.pnl, 0);
+  const monthTrades = monthDays.reduce((s, [, d]) => s + d.trades, 0);
+  const monthWins = monthDays.filter(([, d]) => d.pnl > 0).length;
+  const monthWinRate = monthDays.length > 0 ? Math.round((monthWins / monthDays.length) * 100) : null;
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+        <button
+          onClick={() => setMonth(new Date(year, mo - 1, 1))}
+          style={{ background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)", cursor: "pointer", borderRadius: 8, padding: "6px 14px", fontSize: 18, lineHeight: 1 }}
+        >‹</button>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", letterSpacing: "-0.01em" }}>{monthLabel}</div>
+          {monthTrades > 0 && (
+            <div style={{ fontSize: 12, color: monthPnl >= 0 ? "var(--green)" : "var(--red)", fontWeight: 700, marginTop: 2 }}>
+              {monthPnl >= 0 ? "+" : ""}${Math.abs(monthPnl).toFixed(0)}&nbsp;&nbsp;·&nbsp;&nbsp;{monthTrades} trades{monthWinRate !== null ? ` · ${monthWinRate}% days green` : ""}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={() => setMonth(new Date(year, mo + 1, 1))}
+          style={{ background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--text)", cursor: "pointer", borderRadius: 8, padding: "6px 14px", fontSize: 18, lineHeight: 1 }}
+        >›</button>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 3 }}>
+        {DAY_LABELS.map(d => (
+          <div key={d} style={{ textAlign: "center", fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.06em", padding: "3px 0" }}>{d}</div>
+        ))}
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3 }}>
+        {cells.map((dayNum, i) => {
+          if (!dayNum) return <div key={i} style={{ borderRadius: 8, minHeight: 60 }} />;
+          const dateStr = `${year}-${String(mo + 1).padStart(2, "0")}-${String(dayNum).padStart(2, "0")}`;
+          const data = dayData[dateStr];
+          const isToday = dateStr === today;
+          const pnl = data?.pnl ?? 0;
+          const profitable = pnl > 0;
+          const hasTrades = !!data;
+          return (
+            <div
+              key={i}
+              onClick={() => hasTrades && onDayClick(dateStr)}
+              style={{
+                borderRadius: 8,
+                padding: "6px 3px 5px",
+                textAlign: "center",
+                cursor: hasTrades ? "pointer" : "default",
+                background: hasTrades
+                  ? profitable ? "rgba(0,232,122,0.10)" : "rgba(255,59,92,0.10)"
+                  : "var(--surface2)",
+                border: `1.5px solid ${
+                  isToday ? "var(--blue)"
+                  : hasTrades ? (profitable ? "rgba(0,232,122,0.28)" : "rgba(255,59,92,0.28)")
+                  : "transparent"
+                }`,
+                transition: "transform 0.1s, background 0.1s",
+                minHeight: 60,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "flex-start",
+                gap: 2,
+              }}
+            >
+              <div style={{ fontSize: 11, fontWeight: isToday ? 800 : 500, color: isToday ? "var(--blue)" : hasTrades ? "var(--text)" : "var(--text-muted)", lineHeight: 1 }}>{dayNum}</div>
+              {hasTrades && (
+                <>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: profitable ? "var(--green)" : "var(--red)", lineHeight: 1.1 }}>
+                    {pnl >= 0 ? "+" : "-"}${Math.abs(pnl) >= 1000 ? `${(Math.abs(pnl) / 1000).toFixed(1)}k` : Math.abs(pnl).toFixed(0)}
+                  </div>
+                  <div style={{ fontSize: 9, color: "var(--text-muted)", background: "rgba(255,255,255,0.06)", borderRadius: 4, padding: "1px 4px", marginTop: 1 }}>{data.trades}T</div>
+                </>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {allEntries.length === 0 && (
+        <div style={{ textAlign: "center", padding: "32px 20px", color: "var(--text-muted)", fontSize: 13 }}>
+          Log trades to see your P&L calendar
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function JournalPage() {
   const today = new Date().toISOString().split("T")[0];
   const [selectedDate, setSelectedDate] = useState(today);
@@ -1133,6 +1256,7 @@ export default function JournalPage() {
   const [filterSetup, setFilterSetup] = useState<string>("all");
   const [sortBy, setSortBy] = useState<"date" | "pnl" | "symbol" | "duration">("date");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [viewMode, setViewMode] = useState<"list" | "calendar">("list");
   const [csvResult, setCsvResult] = useState<{ imported: number; skipped: number; format: string } | null>(null);
   const [csvError, setCsvError] = useState<string | null>(null);
   const [aiDetecting, setAiDetecting] = useState(false);
@@ -1623,11 +1747,26 @@ export default function JournalPage() {
         <Link href="/dashboard" style={{ textDecoration: "none" }}>
           <button className="btn-ghost" style={{ fontSize: 13, padding: "8px 14px" }}>← Home</button>
         </Link>
-        <div style={{ textAlign: "center" }}>
-          <span className="font-bebas" style={{ fontSize: 20, color: "var(--text)", letterSpacing: "0.05em", display: "block", lineHeight: 1.1 }}>JOURNAL</span>
-          <span style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.06em" }}>{new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }).toUpperCase()}</span>
+        <span className="font-bebas" style={{ fontSize: 20, color: "var(--text)", letterSpacing: "0.05em" }}>JOURNAL</span>
+        <div style={{ display: "flex", gap: 4, background: "var(--surface2)", borderRadius: 8, padding: 3, border: "1px solid var(--border)" }}>
+          <button
+            onClick={() => setViewMode("list")}
+            style={{ padding: "5px 10px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: viewMode === "list" ? "var(--surface3)" : "transparent", color: viewMode === "list" ? "var(--text)" : "var(--text-muted)", transition: "all 0.15s" }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }}>
+              <path d="M2 3h8M2 6h8M2 9h8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            </svg>List
+          </button>
+          <button
+            onClick={() => setViewMode("calendar")}
+            style={{ padding: "5px 10px", borderRadius: 6, border: "none", cursor: "pointer", fontSize: 11, fontWeight: 700, background: viewMode === "calendar" ? "var(--surface3)" : "transparent", color: viewMode === "calendar" ? "var(--text)" : "var(--text-muted)", transition: "all 0.15s" }}
+          >
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" style={{ display: "inline", verticalAlign: "middle", marginRight: 4 }}>
+              <rect x="1" y="2" width="10" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
+              <path d="M1 5h10M4 1v2M8 1v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>Calendar
+          </button>
         </div>
-        <div style={{ width: 80 }} />
       </div>
 
       <div style={{ maxWidth: 720, margin: "0 auto", padding: "24px 16px" }}>
@@ -1738,8 +1877,21 @@ export default function JournalPage() {
           </div>
         )}
 
-        {/* Date strip */}
-        {!isFirstTime && <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 24, scrollbarWidth: "none" }}>
+        {/* Calendar view */}
+        {viewMode === "calendar" && !isFirstTime && (
+          <CalendarView
+            allEntries={allEntries}
+            today={today}
+            onDayClick={(date) => {
+              setSelectedDate(date);
+              setViewMode("list");
+              setFilterPeriod("all");
+            }}
+          />
+        )}
+
+        {/* Date strip — list view only */}
+        {viewMode === "list" && !isFirstTime && <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, marginBottom: 24, scrollbarWidth: "none" }}>
           {recentDates.map((d) => {
             const isToday = d === today;
             const isSelected = d === selectedDate;
@@ -2313,8 +2465,8 @@ export default function JournalPage() {
           </div>
         )}
 
-        {/* Entries list */}
-        {loading ? (
+        {/* Entries list — hidden in calendar mode */}
+        {viewMode === "calendar" ? null : loading ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {[80, 65, 90].map((w, i) => (
               <div key={i} className="card" style={{ padding: 20 }}>
