@@ -93,6 +93,13 @@ const MORE_ITEMS = [
     color: "#A78BFA",
   },
   {
+    href: "/import",
+    label: "Import Trades",
+    emoji: "📥",
+    description: "Import CSV from any broker",
+    color: "var(--green)",
+  },
+  {
     href: "/trade-card",
     label: "Trade Cards",
     emoji: "🃏",

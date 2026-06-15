@@ -43,13 +43,43 @@ function TradeShareCard({ trade }: { trade: Trade }) {
     : "linear-gradient(135deg, rgba(255,59,92,0.12) 0%, rgba(255,59,92,0.02) 100%)";
 
   function handlePrint() {
-    const orig = document.body.innerHTML;
     const card = cardRef.current;
     if (!card) return;
-    document.body.innerHTML = card.outerHTML;
-    window.print();
-    document.body.innerHTML = orig;
-    window.location.reload();
+
+    // Open a minimal print window with only the card
+    const win = window.open("", "_blank", "width=600,height=500");
+    if (!win) return;
+
+    // Grab all CSS variables from root
+    const rootStyle = getComputedStyle(document.documentElement);
+    const cssVars = [
+      "--bg","--surface","--surface2","--surface3","--border","--border-bright",
+      "--text","--text-dim","--text-muted","--green","--red","--amber","--blue",
+    ].map((v) => `${v}:${rootStyle.getPropertyValue(v)}`).join(";");
+
+    // Copy relevant font faces
+    const fontLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+      .map((l) => l.outerHTML).join("");
+
+    win.document.write(`<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  ${fontLinks}
+  <style>
+    :root { ${cssVars}; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; font-family: system-ui, sans-serif; }
+    .font-bebas { font-family: "Bebas Neue", sans-serif; }
+    @media print { body { padding: 0; } }
+  </style>
+</head>
+<body>
+  ${card.outerHTML}
+  <script>setTimeout(() => { window.print(); window.close(); }, 400);<\/script>
+</body>
+</html>`);
+    win.document.close();
   }
 
   return (
