@@ -152,6 +152,11 @@ function ShareCardModal({ score, verdict, onClose }: { score: number; verdict: R
     else copyText();
   }
 
+  function shareOnX() {
+    const text = encodeURIComponent(`My TradeMind mental score today: ${score}/100 — ${verdict.label} 🧠\n\nKnow your mental edge before you trade → trademindedge.com`);
+    window.open(`https://x.com/intent/tweet?text=${text}`, "_blank", "noopener");
+  }
+
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 12 }}>
@@ -201,23 +206,30 @@ function ShareCardModal({ score, verdict, onClose }: { score: number; verdict: R
         {/* Share actions */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           <button
+            onClick={shareOnX}
+            style={{ padding: "14px", background: "#000", border: "1px solid #333", borderRadius: 12, color: "#fff", fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.737-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+            Post on X
+          </button>
+          <button
             onClick={nativeShare}
             style={{ padding: "14px", background: verdict.color, border: "none", borderRadius: 12, color: "#070B14", fontWeight: 700, fontSize: 14, cursor: "pointer" }}
           >
             Share →
           </button>
-          <button
-            onClick={copyText}
-            style={{ padding: "14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--text)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}
-          >
-            {copied ? (
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                Copied
-              </span>
-            ) : "Copy text"}
-          </button>
         </div>
+        <button
+          onClick={copyText}
+          style={{ padding: "11px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, color: "var(--text)", fontWeight: 600, fontSize: 13, cursor: "pointer" }}
+        >
+          {copied ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Copied
+            </span>
+          ) : "Copy text"}
+        </button>
 
         <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 13, cursor: "pointer", padding: 8 }}>
           Close
