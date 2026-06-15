@@ -1265,6 +1265,7 @@ export default function JournalPage() {
   const [chartUploading, setChartUploading] = useState(false);
   const [chartUploadError, setChartUploadError] = useState<string | null>(null);
   const [pretradeRitualDone, setPretradeRitualDone] = useState(false);
+  const [checklistChecked, setChecklistChecked] = useState(0); // 0-7 items checked from localStorage
   const [lossPrompt, setLossPrompt] = useState<{ id: string; pnl: number } | null>(null);
   const [lossReflect, setLossReflect] = useState("");
 
@@ -1310,6 +1311,17 @@ export default function JournalPage() {
       .then((r) => r.json())
       .then((d) => { if (d.rituals?.length > 0) setPretradeRitualDone(true); })
       .catch(() => {});
+
+    // Read checklist progress from localStorage
+    try {
+      const raw = localStorage.getItem("pretrade_checklist");
+      if (raw) {
+        const parsed = JSON.parse(raw) as { date: string; items: number[] };
+        if (parsed.date === today && Array.isArray(parsed.items)) {
+          setChecklistChecked(parsed.items.length);
+        }
+      }
+    } catch {}
   }, [today]);
 
   useEffect(() => {
@@ -2291,12 +2303,34 @@ export default function JournalPage() {
         )}
 
 
-        {/* Pre-trade ritual nudge */}
-        {showForm && !pretradeRitualDone && selectedDate === today && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.2)", marginBottom: 12 }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><circle cx="7" cy="7" r="6" stroke="#60A5FA" strokeWidth="1.3"/><path d="M7 4v3M7 10v.5" stroke="#60A5FA" strokeWidth="1.4" strokeLinecap="round"/></svg>
-            <span style={{ fontSize: 12, color: "var(--text-dim)", flex: 1 }}>No pre-trade ritual logged today — takes 30 seconds.</span>
-            <Link href="/pretrade" style={{ fontSize: 12, fontWeight: 700, color: "#60A5FA", textDecoration: "none", whiteSpace: "nowrap" }}>Do ritual →</Link>
+        {/* Pre-trade checklist gate */}
+        {showForm && !pretradeRitualDone && selectedDate === today && checklistChecked < 7 && (
+          <div style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(96,165,250,0.05)", border: "1px solid rgba(96,165,250,0.25)", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><rect x="2" y="2" width="10" height="10" rx="2" stroke="#60A5FA" strokeWidth="1.2"/><path d="M4.5 7l2 2 3-3" stroke="#60A5FA" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#60A5FA" }}>Pre-Trade Checklist</span>
+              </div>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{checklistChecked}/7</span>
+            </div>
+            <div style={{ height: 4, background: "var(--surface3)", borderRadius: 999, overflow: "hidden", marginBottom: 10 }}>
+              <div style={{ width: `${Math.round((checklistChecked / 7) * 100)}%`, height: "100%", background: checklistChecked === 7 ? "var(--green)" : "#60A5FA", borderRadius: 999, transition: "width 0.4s ease" }} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+              <p style={{ fontSize: 12, color: "var(--text-dim)", margin: 0, flex: 1 }}>
+                {checklistChecked === 0 ? "Complete your pre-trade ritual before logging — takes 30 seconds." : `${7 - checklistChecked} items left on your pre-trade checklist.`}
+              </p>
+              <Link href="/pretrade" style={{ fontSize: 12, fontWeight: 700, color: "#60A5FA", textDecoration: "none", whiteSpace: "nowrap", flexShrink: 0 }}>
+                {checklistChecked === 0 ? "Start ritual →" : "Finish →"}
+              </Link>
+            </div>
+          </div>
+        )}
+        {showForm && !pretradeRitualDone && selectedDate === today && checklistChecked >= 7 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, background: "rgba(0,232,122,0.05)", border: "1px solid rgba(0,232,122,0.2)", marginBottom: 12 }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3.5 3.5L11 4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span style={{ fontSize: 12, color: "var(--text-dim)", flex: 1 }}>Checklist done — good preparation.</span>
+            <Link href="/pretrade" style={{ fontSize: 12, fontWeight: 700, color: "var(--green)", textDecoration: "none", whiteSpace: "nowrap" }}>Log ritual →</Link>
           </div>
         )}
 

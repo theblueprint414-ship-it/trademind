@@ -86,6 +86,13 @@ const MORE_ITEMS = [
     color: "var(--green)",
   },
   {
+    href: "/mid-checkin",
+    label: "Mid-Session Check",
+    emoji: "⚡",
+    description: "Quick pulse check during your trading session",
+    color: "var(--amber)",
+  },
+  {
     href: "/weekly",
     label: "Weekly Review",
     emoji: "📅",
