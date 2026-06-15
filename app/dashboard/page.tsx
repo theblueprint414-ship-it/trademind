@@ -102,6 +102,7 @@ export default function DashboardPage() {
   const [equityCurve, setEquityCurve] = useState<{ date: string; cum: number }[]>([]);
   const [equityStats, setEquityStats] = useState<{ totalPnl: number; winRate: number | null; profitFactor: number | null; maxDrawdown: number; avgR: number | null; tradingDays: number } | null>(null);
   const [equityRange, setEquityRange] = useState<"1M" | "3M" | "ALL">("3M");
+  const [patternInsights, setPatternInsights] = useState<Array<{ id: string; type: string; title: string; body: string; value?: string; action?: string; actionHref?: string }>>([]);
 
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -149,6 +150,11 @@ export default function DashboardPage() {
             fetch("/api/analytics")
               .then((r) => r.json())
               .then((ad) => { if (ad.estimatedSaved > 0) setSavedLosses(ad.estimatedSaved); })
+              .catch(() => {});
+
+            fetch("/api/insights")
+              .then((r) => r.json())
+              .then((d) => { if (Array.isArray(d.insights) && d.insights.length > 0) setPatternInsights(d.insights); })
               .catch(() => {});
 
             fetch("/api/lifestyle?days=30")
@@ -1679,6 +1685,50 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
+
+        {/* Pattern Insights */}
+        {patternInsights.length > 0 && (
+          <div className="card dash-section s5" style={{ padding: "20px 24px", marginBottom: 20, border: "1px solid rgba(0,232,122,0.15)", background: "linear-gradient(135deg, rgba(0,232,122,0.03), var(--surface))" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: "rgba(0,232,122,0.12)", border: "1px solid rgba(0,232,122,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 9l2.5-3.5 2.5 2 3-5" stroke="var(--green)" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--green)" }}>YOUR TRADING PATTERNS</span>
+              </div>
+              <Link href="/analytics" style={{ fontSize: 11, color: "var(--green)", textDecoration: "none", fontWeight: 700, letterSpacing: "0.06em" }}>ALL INSIGHTS →</Link>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {patternInsights.map((insight) => {
+                const isWarning = insight.type === "warning";
+                const accentColor = isWarning ? "var(--amber)" : "var(--green)";
+                const bg = isWarning ? "rgba(255,176,32,0.05)" : "rgba(0,232,122,0.04)";
+                const border = isWarning ? "rgba(255,176,32,0.2)" : "rgba(0,232,122,0.15)";
+                return (
+                  <div key={insight.id} style={{ padding: "12px 14px", borderRadius: 10, background: bg, border: `1px solid ${border}`, display: "flex", gap: 10, alignItems: "flex-start" }}>
+                    <div style={{ flexShrink: 0, marginTop: 2 }}>
+                      {isWarning ? (
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5L13 12.5H1L7 1.5z" stroke="var(--amber)" strokeWidth="1.2" strokeLinejoin="round"/><path d="M7 5.5v3M7 10v.5" stroke="var(--amber)" strokeWidth="1.3" strokeLinecap="round"/></svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 10l2.5-3.5L7 9l4-6" stroke="var(--green)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      )}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: accentColor }}>{insight.title}</span>
+                        {insight.value && <span style={{ fontSize: 11, fontWeight: 700, background: `${accentColor}18`, color: accentColor, padding: "1px 7px", borderRadius: 4, flexShrink: 0 }}>{insight.value}</span>}
+                      </div>
+                      <p style={{ fontSize: 12, color: "var(--text-dim)", lineHeight: 1.5, margin: 0 }}>{insight.body}</p>
+                      {insight.action && insight.actionHref && (
+                        <Link href={insight.actionHref} style={{ fontSize: 11, color: accentColor, textDecoration: "none", fontWeight: 700, display: "inline-block", marginTop: 6 }}>{insight.action} →</Link>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Weekly AI Coach */}
         {weeklyCoach && (
