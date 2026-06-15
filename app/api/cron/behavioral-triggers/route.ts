@@ -6,7 +6,7 @@ import { createHmac } from "crypto";
 import { NextRequest } from "next/server";
 import { sendPushToUser } from "@/lib/push";
 
-const resend = new Resend(process.env.AUTH_RESEND_KEY);
+const resend = new Resend(process.env.AUTH_RESEND_KEY || "re_placeholder_build_only");
 
 function makeUnsubToken(email: string) {
   return createHmac("sha256", process.env.CRON_SECRET ?? "").update(email).digest("hex");

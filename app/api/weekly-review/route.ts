@@ -1,3 +1,5 @@
+export const runtime = "nodejs";
+
 import { db } from "@/lib/db";
 import { requireAuth } from "@/lib/planGuard";
 import { rateLimit } from "@/lib/ratelimit";
