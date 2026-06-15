@@ -93,6 +93,13 @@ const MORE_ITEMS = [
     color: "#A78BFA",
   },
   {
+    href: "/trade-card",
+    label: "Trade Cards",
+    emoji: "🃏",
+    description: "Export & share your best trades",
+    color: "var(--green)",
+  },
+  {
     href: "/settings",
     label: "Settings",
     emoji: "⚙️",

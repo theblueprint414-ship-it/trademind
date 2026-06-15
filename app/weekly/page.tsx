@@ -83,6 +83,33 @@ export default function WeeklyPage() {
   const [data, setData] = useState<WeekData | null>(null);
   const [loading, setLoading] = useState(true);
   const [dayPnls, setDayPnls] = useState<DayPnl[]>([]);
+  const [aiReview, setAiReview] = useState<string | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [reviewSlide, setReviewSlide] = useState(0);
+
+  async function generateReview() {
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const res = await fetch("/api/ai-coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "weekly" }),
+      });
+      const d = await res.json();
+      if (!res.ok) {
+        setAiError(d.error ?? "Failed to generate review");
+      } else {
+        setAiReview(d.message ?? null);
+        setReviewSlide(0);
+      }
+    } catch {
+      setAiError("Network error. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
+  }
 
   const load = useCallback(async (off: number) => {
     setLoading(true);
@@ -282,6 +309,96 @@ export default function WeeklyPage() {
                 )}
               </div>
             )}
+
+            {/* AI Weekly Review */}
+            <div className="card" style={{ padding: 24, marginBottom: 16, border: "1px solid rgba(139,92,246,0.2)", background: "rgba(139,92,246,0.03)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(139,92,246,0.12)", display: "flex", alignItems: "center", justifyContent: "center", color: "#8B5CF6", flexShrink: 0 }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2l1.3 3.9H13l-3.1 2.2 1.2 3.7L8 9.6l-3.1 2.2 1.2-3.7L3 5.9h3.7L8 2z" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round"/></svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-muted)" }}>AI WEEKLY REVIEW</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>Powered by Alex, your trading coach</div>
+                </div>
+                {!aiReview && !aiLoading && (
+                  <button
+                    onClick={generateReview}
+                    style={{ padding: "7px 14px", borderRadius: 8, border: "none", background: "#8B5CF6", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
+                  >
+                    Generate
+                  </button>
+                )}
+              </div>
+
+              {aiLoading && (
+                <div style={{ padding: "20px 0", textAlign: "center" }}>
+                  <div style={{ display: "inline-flex", gap: 6 }}>
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: "#8B5CF6", animation: `bounce 1.2s ${i * 0.2}s infinite` }} />
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 10 }}>Alex is reviewing your week...</div>
+                </div>
+              )}
+
+              {aiError && (
+                <div style={{ fontSize: 12, color: "var(--red)", padding: "10px 12px", borderRadius: 8, background: "rgba(255,59,92,0.08)" }}>
+                  {aiError}
+                </div>
+              )}
+
+              {aiReview && !aiLoading && (() => {
+                // Split review into slide-able sentences (2-3 per slide)
+                const sentences = aiReview.split(/(?<=[.!?])\s+/).filter(Boolean);
+                const slides: string[][] = [];
+                for (let i = 0; i < sentences.length; i += 2) {
+                  slides.push(sentences.slice(i, i + 2));
+                }
+                const slide = slides[reviewSlide] ?? slides[0];
+                return (
+                  <div>
+                    <div style={{ minHeight: 80, padding: "16px 0", fontSize: 14, color: "var(--text-dim)", lineHeight: 1.8, fontStyle: "italic" }}>
+                      &ldquo;{slide.join(" ")}&rdquo;
+                    </div>
+                    {slides.length > 1 && (
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 12 }}>
+                        <button
+                          onClick={() => setReviewSlide((s) => Math.max(0, s - 1))}
+                          disabled={reviewSlide === 0}
+                          style={{ padding: "6px 12px", borderRadius: 7, border: "1px solid var(--border)", background: "transparent", color: reviewSlide === 0 ? "var(--text-muted)" : "var(--text)", cursor: reviewSlide === 0 ? "default" : "pointer", fontSize: 12 }}
+                        >
+                          ← Prev
+                        </button>
+                        <div style={{ display: "flex", gap: 5 }}>
+                          {slides.map((_, i) => (
+                            <div key={i} onClick={() => setReviewSlide(i)} style={{ width: 6, height: 6, borderRadius: "50%", background: i === reviewSlide ? "#8B5CF6" : "var(--surface3)", cursor: "pointer", transition: "background 0.2s" }} />
+                          ))}
+                        </div>
+                        <button
+                          onClick={() => setReviewSlide((s) => Math.min(slides.length - 1, s + 1))}
+                          disabled={reviewSlide === slides.length - 1}
+                          style={{ padding: "6px 12px", borderRadius: 7, border: "1px solid var(--border)", background: "transparent", color: reviewSlide === slides.length - 1 ? "var(--text-muted)" : "var(--text)", cursor: reviewSlide === slides.length - 1 ? "default" : "pointer", fontSize: 12 }}
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => { setAiReview(null); setReviewSlide(0); }}
+                      style={{ marginTop: 12, padding: "6px 12px", borderRadius: 7, border: "1px solid var(--border)", background: "transparent", color: "var(--text-muted)", cursor: "pointer", fontSize: 11 }}
+                    >
+                      Regenerate
+                    </button>
+                  </div>
+                );
+              })()}
+
+              {!aiReview && !aiLoading && !aiError && (
+                <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.6 }}>
+                  Get a personalized AI analysis of this week — patterns, behavioral insights, and one clear focus for next week. Pro feature.
+                </p>
+              )}
+            </div>
 
             {/* Ask Alex CTA */}
             <Link href="/coach" style={{ textDecoration: "none" }}>

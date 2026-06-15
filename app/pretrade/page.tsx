@@ -91,6 +91,18 @@ function RitualCard({ ritual }: { ritual: Ritual }) {
   );
 }
 
+const CHECKLIST_ITEMS = [
+  "I have reviewed yesterday's trades and lessons",
+  "I checked the economic calendar for high-impact news",
+  "My setup is clearly identified with a defined edge",
+  "I have a defined entry, stop loss, and target",
+  "I know my exact risk in $ before entering",
+  "I am NOT trading out of boredom, FOMO, or revenge",
+  "My mental state today supports clear decision-making",
+];
+
+const CHECKLIST_KEY = "pretrade_checklist";
+
 export default function PreTradePage() {
   const [step, setStep] = useState<"form" | "done">("form");
   const [setupType, setSetupType] = useState<string | null>(null);
@@ -101,6 +113,37 @@ export default function PreTradePage() {
   const [error, setError] = useState<string | null>(null);
   const [todayRituals, setTodayRituals] = useState<Ritual[]>([]);
   const [loadingRituals, setLoadingRituals] = useState(true);
+  const [checkedItems, setCheckedItems] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(CHECKLIST_KEY);
+      if (stored) {
+        const { date, items } = JSON.parse(stored) as { date: string; items: number[] };
+        if (date === today) {
+          setCheckedItems(new Set(items));
+        } else {
+          localStorage.removeItem(CHECKLIST_KEY);
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  function toggleCheckItem(idx: number) {
+    setCheckedItems((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      try {
+        localStorage.setItem(CHECKLIST_KEY, JSON.stringify({ date: today, items: Array.from(next) }));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }
 
   useEffect(() => {
     fetch(`/api/pretrade?date=${today}`)
@@ -175,15 +218,68 @@ export default function PreTradePage() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Checklist reminder */}
-            <div style={{ background: "rgba(96,165,250,0.06)", border: "1px solid rgba(96,165,250,0.2)", borderRadius: 12, padding: "12px 14px" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#60A5FA", textTransform: "uppercase", marginBottom: 8, letterSpacing: "0.05em" }}>Before You Enter</div>
-              {["I have identified my setup clearly", "I have a defined entry, stop, and target", "I know my risk in $", "I am not trading out of boredom or FOMO", "My mental score today supports trading"].map((item, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                  <span style={{ color: "#60A5FA", fontSize: 13 }}>□</span>
-                  <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{item}</span>
+            {/* Strategy Checklist */}
+            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 14, padding: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#60A5FA", textTransform: "uppercase", letterSpacing: "0.08em" }}>Pre-Trade Checklist</div>
+                <div style={{ fontSize: 11, color: checkedItems.size === CHECKLIST_ITEMS.length ? "var(--green)" : "var(--text-muted)" }}>
+                  {checkedItems.size}/{CHECKLIST_ITEMS.length}
+                  {checkedItems.size === CHECKLIST_ITEMS.length && " ✓"}
                 </div>
-              ))}
+              </div>
+              {/* Progress bar */}
+              <div style={{ height: 3, borderRadius: 2, background: "var(--surface3)", marginBottom: 12, overflow: "hidden" }}>
+                <div style={{
+                  height: "100%",
+                  width: `${(checkedItems.size / CHECKLIST_ITEMS.length) * 100}%`,
+                  background: checkedItems.size === CHECKLIST_ITEMS.length ? "var(--green)" : "#60A5FA",
+                  borderRadius: 2,
+                  transition: "width 0.3s ease",
+                }} />
+              </div>
+              {CHECKLIST_ITEMS.map((item, i) => {
+                const checked = checkedItems.has(i);
+                return (
+                  <button
+                    key={i}
+                    onClick={() => toggleCheckItem(i)}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: 10,
+                      marginBottom: 8,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      padding: "4px 0",
+                      textAlign: "left",
+                    }}
+                  >
+                    <div style={{
+                      width: 18, height: 18, borderRadius: 5, flexShrink: 0, marginTop: 1,
+                      background: checked ? "#60A5FA" : "var(--surface3)",
+                      border: `1.5px solid ${checked ? "#60A5FA" : "var(--border-bright)"}`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      transition: "all 0.15s",
+                    }}>
+                      {checked && (
+                        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                          <path d="M2 5l2.5 2.5 3.5-4" stroke="#09090b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </div>
+                    <span style={{ fontSize: 13, color: checked ? "var(--text-muted)" : "var(--text)", lineHeight: 1.4, textDecoration: checked ? "line-through" : "none" }}>
+                      {item}
+                    </span>
+                  </button>
+                );
+              })}
+              {checkedItems.size < CHECKLIST_ITEMS.length && (
+                <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 4, padding: "6px 10px", background: "var(--surface2)", borderRadius: 6 }}>
+                  Complete all items before entering a trade for maximum discipline.
+                </div>
+              )}
             </div>
 
             {/* Setup type */}
