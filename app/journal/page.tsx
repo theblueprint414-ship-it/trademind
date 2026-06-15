@@ -4,6 +4,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { showToast } from "@/components/Toast";
 import Link from "next/link";
 import BottomNav from "@/components/BottomNav";
+import TiltBanner from "@/components/TiltBanner";
 
 type TradeEntry = {
   id: string;
@@ -1983,6 +1984,7 @@ export default function JournalPage() {
         ))}
 
         {!isFirstTime && isFree && <FreeBanner todayCount={todayEntryCount} />}
+        <TiltBanner />
 
         {/* Day summary */}
         {hasPnl && (

@@ -11,6 +11,7 @@ import BottomNav from "@/components/BottomNav";
 import LiveSession from "@/components/LiveSession";
 import StatCard from "@/components/StatCard";
 import { Skeleton, SkeletonCard, SkeletonStat } from "@/components/Skeleton";
+import TiltBanner from "@/components/TiltBanner";
 
 type HistoryEntry = { date: string; score: number; verdict?: string };
 type WeeklyStats = { pnl: number; trades: number; winRate: number | null };
@@ -680,6 +681,9 @@ export default function DashboardPage() {
             </span>
           </div>
         )}
+
+        {/* Tilt detection banner */}
+        <TiltBanner />
 
         {/* TODAY'S ROUTINE — daily habit tracker */}
         {!routineDismissed && (() => {

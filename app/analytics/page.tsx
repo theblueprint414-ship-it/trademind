@@ -9,6 +9,7 @@ import MentalPnL from "@/components/MentalPnL";
 import ExecutionQualityTab from "@/components/ExecutionQualityTab";
 import MistakeHeatmapTab from "@/components/MistakeHeatmapTab";
 import MonteCarloCard from "@/components/MonteCarloCard";
+import ConfluenceAnalyticsTab from "@/components/ConfluenceAnalyticsTab";
 
 type ScoreRangeEntry = {
   label: string;
@@ -1664,7 +1665,7 @@ function AnalyticsPageInner() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [filterApplied, setFilterApplied] = useState(false);
-  const [activeTab, setActiveTab] = useState<"overview" | "performance" | "psychology" | "execution" | "heatmap">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "performance" | "psychology" | "execution" | "heatmap" | "confluence">("overview");
   const searchParams = useSearchParams();
 
   const fetchAnalytics = React.useCallback((sd?: string, ed?: string) => {
@@ -1966,8 +1967,8 @@ function AnalyticsPageInner() {
 
         {/* Tab navigation */}
         <div style={{ display: "flex", gap: 4, marginBottom: 20, background: "var(--surface2)", borderRadius: 12, padding: 4, border: "1px solid var(--border)", overflowX: "auto", WebkitOverflowScrolling: "touch" as const }}>
-          {(["overview", "performance", "psychology", "execution", "heatmap"] as const).map((tab) => {
-            const labels: Record<string, string> = { overview: "Overview", performance: "Performance", psychology: "Psychology", execution: "Execution", heatmap: "Heatmap" };
+          {(["overview", "performance", "psychology", "execution", "heatmap", "confluence"] as const).map((tab) => {
+            const labels: Record<string, string> = { overview: "Overview", performance: "Performance", psychology: "Psychology", execution: "Execution", heatmap: "Heatmap", confluence: "Confluence" };
             const active = activeTab === tab;
             return (
               <button key={tab} onClick={() => setActiveTab(tab)} style={{ flex: "0 0 auto", padding: "9px 14px", borderRadius: 9, border: "none", background: active ? "var(--surface)" : "transparent", color: active ? "var(--text)" : "var(--text-muted)", fontWeight: active ? 700 : 500, fontSize: 13, cursor: "pointer", transition: "background 0.15s, color 0.15s", boxShadow: active ? "0 1px 4px rgba(0,0,0,0.25)" : "none", whiteSpace: "nowrap" as const }}>
@@ -2177,6 +2178,14 @@ function AnalyticsPageInner() {
         {/* Mistake Heatmap tab */}
         {activeTab === "heatmap" && (
           <MistakeHeatmapTab
+            startDate={filterApplied ? startDate : undefined}
+            endDate={filterApplied ? endDate : undefined}
+          />
+        )}
+
+        {/* Confluence analytics tab */}
+        {activeTab === "confluence" && (
+          <ConfluenceAnalyticsTab
             startDate={filterApplied ? startDate : undefined}
             endDate={filterApplied ? endDate : undefined}
           />
