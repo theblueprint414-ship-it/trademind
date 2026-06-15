@@ -39,7 +39,7 @@ const STEPS = [
     step: "03", color: "var(--green)",
     icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="8" y="4" width="12" height="16" rx="2" stroke="var(--green)" strokeWidth="1.5"/><path d="M11 10h6M11 14h4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/><path d="M5 20l4 4 10-10" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
     title: "Trade Journal",
-    desc: "Log every trade — or let TradeMind auto-import from MT4, MT5, and TopstepX. See exactly which mental states make you money. Most losing streaks have a pattern. This is where you find it.",
+    desc: "Log every trade — connect a broker (MT4, MT5, TopstepX) for auto-import, or upload a CSV from Tradovate, NinjaTrader, Rithmic, or any broker in 30 seconds. See exactly which mental states make you money. Most losing streaks have a pattern. This is where you find it.",
   },
   {
     step: "04", color: "var(--purple)",
@@ -149,6 +149,14 @@ const FAQ_ITEMS = [
   {
     q: "I'm already profitable. Why would I need this?",
     a: "Because your bad days are costing you more than you realize. Most profitable traders have 2–3 days per month where they give back a large portion of their gains. Those days almost always have identifiable mental triggers. Our analytics show users their 'avoidable loss' total — and it's usually the number that convinces them to stay.",
+  },
+  {
+    q: "Can I import my existing trades from my broker?",
+    a: "Yes — we support CSV import from Tradovate, NinjaTrader, Rithmic, MT4/MT5, and any broker with a generic export. Upload your file and TradeMind auto-detects the format, maps the columns, and shows you a preview before importing. You can also connect live broker sync for MT4, MT5, Bybit, Alpaca, Binance, and TopstepX.",
+  },
+  {
+    q: "What is tilt detection and how does it work?",
+    a: "Tilt detection monitors your intraday trading patterns for behavioral risk signals — specifically, consecutive losses and revenge trading (re-entering a trade within 5 minutes of a loss). When you hit 2+ consecutive losses, TradeMind shows a live intervention banner before you take your next trade. This is a feature no other trading journal currently offers. It's the difference between knowing you traded on tilt in your weekly review vs. being stopped before the damage happens.",
   },
   {
     q: "Can I cancel anytime?",
@@ -885,6 +893,18 @@ export default function LandingPage() {
                 title: "TradingView Replay",
                 desc: "One tap to open a live TradingView chart directly inside your trade journal entry. Review the exact market context of any trade — without leaving TradeMind.",
               },
+              {
+                bg: "rgba(255,59,92,0.07)", bd: "rgba(255,59,92,0.2)", color: "var(--red)", tag: "UNIQUE · LIVE TILT DETECTION",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 19h16L12 3z" stroke="var(--red)" strokeWidth="1.5" strokeLinejoin="round"/><path d="M12 9v5M12 16.5v.5" stroke="var(--red)" strokeWidth="1.6" strokeLinecap="round"/></svg>,
+                title: "Real-Time Tilt Detection",
+                desc: "After 2+ consecutive losses, TradeMind detects behavioral risk and shows you an intervention before your next trade. Identifies revenge trading patterns (re-entry within 5 minutes of a loss). No other trading journal has this.",
+              },
+              {
+                bg: "rgba(96,165,250,0.08)", bd: "rgba(96,165,250,0.2)", color: "#60A5FA", tag: "UNIQUE · COMBINATION ANALYTICS",
+                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="4" stroke="#60A5FA" strokeWidth="1.5"/><circle cx="16" cy="16" r="4" stroke="#60A5FA" strokeWidth="1.5"/><path d="M11.5 11.5l1 1" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+                title: "Confluence Combination Analytics",
+                desc: "Tag your setups (FVG, OB, BOS, etc.) and TradeMind shows which combinations produce your highest win rate. See if FVG + OB has 70% win rate while FVG alone is only 52%. No major trading journal offers this.",
+              },
             ].map((feature, i) => (
               <div key={feature.title} className={`card card-lift reveal reveal-delay-${Math.min(i + 1, 4)}`} style={{ padding: "22px 24px", borderColor: feature.bd, display: "flex", gap: 16, alignItems: "flex-start" }}>
                 <div style={{ width: 42, height: 42, borderRadius: 10, background: feature.bg, border: `1px solid ${feature.bd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -929,7 +949,7 @@ export default function LandingPage() {
               <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>Cancel before day 8 — you won&apos;t be charged.</div>
 
               <ul style={{ listStyle: "none", marginBottom: 28, flex: 1, display: "flex", flexDirection: "column", gap: 0 }}>
-                {["Daily mental check-in + GO / CAUTION / NO-TRADE verdict", "Trade Journal + emotion tracking, tags & reflection", "90-day analytics + P&L vs. psychology correlation", "Accountability partners + circle groups", "AI Coach Alex — daily briefing & personalized insights", "Broker auto-connect (MT4/MT5, TopstepX + CSV)", "Deep behavioral pattern detection (revenge, FOMO, overtrading)", "Trading Playbook & rules engine", "Prop firm challenge tracker (FTMO, TopStep & more)", "Mental P&L — see what psychology costs you in dollars", "Unlimited history + priority support"].map((f) => (
+                {["Daily mental check-in + GO / CAUTION / NO-TRADE verdict", "Trade Journal + emotion tracking, tags & reflection", "90-day analytics + P&L vs. psychology correlation", "Accountability partners + circle groups", "AI Coach Alex — daily briefing & personalized insights", "Broker auto-connect (MT4/MT5, TopstepX + CSV import)", "Real-time tilt detection — intervention before the next trade", "Confluence combination analytics (no other journal has this)", "Deep behavioral pattern detection (revenge, FOMO, overtrading)", "Trading Playbook & rules engine", "Prop firm challenge tracker (FTMO, TopStep & more)", "Mental P&L — see what psychology costs you in dollars", "Unlimited history + priority support"].map((f) => (
                   <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)" }}>
                     <CheckIcon color="#8B5CF6" />{f}
                   </li>

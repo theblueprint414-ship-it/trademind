@@ -442,20 +442,35 @@ export default function OnboardingPage() {
                 </div>
               ) : isPro === false ? (
                 <>
-                  <div className="card fade-up" style={{ padding: 28, marginBottom: 16, textAlign: "center", border: "1px solid rgba(139,92,246,0.25)", background: "rgba(139,92,246,0.04)" }}>
-                    <div style={{ marginBottom: 14, display: "flex", justifyContent: "center", color: "#8B5CF6" }}>
-                      <svg width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M16 24l8-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M22 17l3-3a5 5 0 017 7l-3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M18 23l-3 3a5 5 0 01-7-7l3-3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  {/* CSV Import — available to all */}
+                  <div className="card fade-up" style={{ padding: 22, marginBottom: 12, border: "1px solid rgba(0,232,122,0.25)", background: "rgba(0,232,122,0.04)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                      <div style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M4 14v3a1 1 0 001 1h12a1 1 0 001-1v-3" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/><path d="M11 3v10M7.5 9.5l3.5 4 3.5-4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 2 }}>Import from CSV — Free</div>
+                        <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Tradovate, NinjaTrader, Rithmic, MT4/MT5 or any broker</div>
+                      </div>
                     </div>
-                    <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Broker sync is part of TradeMind</div>
-                    <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 20 }}>
-                      Upgrade to connect MT4/MT5, TopstepX, and crypto exchanges. Unlock AI Coach, behavioral pattern detection, deep analytics, and more.
-                    </p>
-                    <Link href="/settings">
-                      <button className="btn-primary" style={{ background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start 7-Day Free Trial →</button>
+                    <Link href="/import" style={{ display: "block" }}>
+                      <button className="btn-primary" style={{ width: "100%", background: "var(--green)", color: "#09090b", border: "none", fontSize: 13 }}>Import My Trades →</button>
                     </Link>
                   </div>
+
+                  {/* Upgrade for live sync */}
+                  <div className="card fade-up" style={{ padding: 22, marginBottom: 12, border: "1px solid rgba(139,92,246,0.25)", background: "rgba(139,92,246,0.04)" }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>Upgrade for Live Broker Sync</div>
+                    <p style={{ fontSize: 12, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 14 }}>
+                      Connect MT4/MT5, TopstepX, Binance, Bybit, and more. Trades auto-import in real time — no CSV needed.
+                    </p>
+                    <Link href="/settings">
+                      <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }}>Start 7-Day Free Trial →</button>
+                    </Link>
+                  </div>
+
                   <button className="btn-ghost" style={{ width: "100%", fontSize: 13 }} onClick={() => goToStep("first-checkin")}>
-                    Skip — connect later in Settings
+                    Skip — I&apos;ll log trades manually
                   </button>
                 </>
               ) : connected ? (
