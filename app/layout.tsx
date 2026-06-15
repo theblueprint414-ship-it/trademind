@@ -33,8 +33,9 @@ const bebasNeue = Bebas_Neue({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://trademindedge.com"),
-  title: "TradeMind — Mental Edge for Traders",
-  description: "Daily mental check-in protocol, trade limit enforcement, and accountability partners for serious traders.",
+  title: { default: "TradeMind — Best Trading Journal for Prop Firm Traders", template: "%s — TradeMind" },
+  description: "The best trading journal for FTMO, Apex, and TopStep traders. Real-time tilt detection, mental readiness scores, multi-account drawdown tracking, and ICT confluence analytics.",
+  keywords: ["trading journal", "prop firm trading journal", "FTMO trading journal", "best trading journal 2025", "funded trader journal", "Apex trading journal", "TopStep trading journal", "trading psychology app", "tilt detection trading"],
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

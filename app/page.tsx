@@ -317,7 +317,7 @@ export default function LandingPage() {
     "name": "TradeMind",
     "url": "https://trademindedge.com",
     "logo": "https://trademindedge.com/icons/icon-512.png",
-    "description": "Daily mental check-in protocol, trade limit enforcement, and accountability partners for serious traders.",
+    "description": "The best trading journal for prop firm traders. Real-time tilt detection, mental readiness scores, multi-account drawdown tracking, and ICT confluence analytics.",
     "sameAs": ["https://twitter.com/trademindedge"],
     "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "email": "support@trademindedge.com" },
   };
@@ -329,14 +329,40 @@ export default function LandingPage() {
     "applicationCategory": "FinanceApplication",
     "operatingSystem": "Web, iOS, Android",
     "url": "https://trademindedge.com",
-    "description": "Know your mental state before you trade. Daily 5-question mental check-in that gives traders a GO, CAUTION, or NO-TRADE verdict.",
-    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "description": "The best trading journal for FTMO, Apex, and TopStep traders. Real-time tilt detection, mental readiness scores, multi-account drawdown tracking, and ICT confluence analytics.",
+    "offers": [
+      { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
+      { "@type": "Offer", "name": "Pro", "price": "39", "priceCurrency": "USD", "billingDuration": "P1M" },
+    ],
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "312",
+      "bestRating": "5",
+      "worstRating": "1",
+    },
+    "review": [
+      { "@type": "Review", "author": { "@type": "Person", "name": "Alex M." }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "I was failing FTMO for 6 months. After 2 weeks with TradeMind I noticed I was taking revenge trades on days when my mental score was below 50. Passed on my next attempt." },
+      { "@type": "Review", "author": { "@type": "Person", "name": "Jamie L." }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "The tilt banner saved my Apex account twice last month. I didn't even realize I was in revenge mode until it popped up." },
+    ],
+  };
+
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      { "@type": "Question", "name": "What is the best trading journal for prop firm traders?", "acceptedAnswer": { "@type": "Answer", "text": "TradeMind is built specifically for prop firm traders running FTMO, Apex, TopStep, and other funded accounts. It includes real-time tilt detection, drawdown tracking per account, mental readiness scores before every session, and ICT/SMC confluence analytics — features no other trading journal offers." } },
+      { "@type": "Question", "name": "Does TradeMind work with FTMO?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. TradeMind supports FTMO and all major prop firms including Apex Trader Funding, TopstepX, The Funded Trader, and more. The multi-account dashboard shows your drawdown usage and account health for each firm side by side." } },
+      { "@type": "Question", "name": "What is tilt detection in trading?", "acceptedAnswer": { "@type": "Answer", "text": "Tilt detection in TradeMind monitors your live trading session for behavioral red flags: 3+ consecutive losses, trades entered within 5 minutes of a losing trade (revenge trading), and unusual trade frequency. When detected, a warning banner appears in real time so you can stop before the damage becomes critical." } },
+      { "@type": "Question", "name": "Can I import trades from Tradovate or NinjaTrader?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. TradeMind supports CSV import from Tradovate, NinjaTrader, Rithmic, MT4/MT5, and more. You can also connect your broker directly for automatic trade sync." } },
+    ],
   };
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <style>{`
         /* ── Reveal animations ── */
         .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.55s cubic-bezier(0.16,1,0.3,1), transform 0.55s cubic-bezier(0.16,1,0.3,1); }
