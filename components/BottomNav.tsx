@@ -100,6 +100,13 @@ const MORE_ITEMS = [
     color: "#A78BFA",
   },
   {
+    href: "/accounts",
+    label: "Prop Accounts",
+    emoji: "🏦",
+    description: "Multi-account P&L & drawdown tracker",
+    color: "var(--blue)",
+  },
+  {
     href: "/import",
     label: "Import Trades",
     emoji: "📥",
