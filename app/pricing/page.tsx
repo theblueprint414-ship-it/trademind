@@ -266,15 +266,17 @@ export default function PricingPage() {
             </div>
 
             {[
-              { cat: "Mental Layer", rows: [
+              { cat: "Mental Layer (unique to TradeMind)", rows: [
                 ["Pre-trade mental check-in + GO/CAUTION/NO-TRADE", true, false],
+                ["Real-time tilt detection (consecutive loss intervention)", true, false],
                 ["Lifestyle × P&L correlation (sleep, caffeine, exercise)", true, false],
                 ["Mental Patterns Dashboard with auto-insights", true, false],
                 ["Behavioral pattern detection (revenge, FOMO, overtrading)", true, false],
                 ["Pre-trade ritual (conviction, thesis, stop loss confirmation)", true, false],
               ]},
-              { cat: "ICT / Smart Money", rows: [
+              { cat: "ICT / Smart Money (unique to TradeMind)", rows: [
                 ["ICT/SMC setup tagging on every trade", true, false],
+                ["Confluence combination analytics (e.g., FVG + OB win rate)", true, false],
                 ["Built-in setup library (FVG, OB, BOS, ChoCh, SMT…)", true, false],
                 ["Setup performance analytics", true, false],
               ]},
@@ -284,8 +286,11 @@ export default function PricingPage() {
                 ["Profit factor, expectancy, R-multiple", true, true],
                 ["Time-of-day + day-of-week performance", true, true],
                 ["Symbol performance table", true, true],
+                ["Monte Carlo projection (P10/P50/P90 curves)", true, false],
+                ["Execution quality (SL discipline, profit capture, R distribution)", true, false],
                 ["Trade replay on chart", true, true],
                 ["Advanced backtesting", false, true],
+                ["CSV import (Tradovate, NinjaTrader, Rithmic, MT4/MT5)", true, true],
               ]},
               { cat: "Desktop Sync", rows: [
                 ["Direct MT4/MT5 Expert Advisor sync (EdgeBridge)", true, false],

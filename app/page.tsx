@@ -174,6 +174,95 @@ const TESTIMONIALS = [
   { quote: "The accountability partner feature is underrated. My partner can see my morning score. I can't pretend I'm fine when I'm not. We've both improved just from knowing someone is watching.", name: "Ryan P.", role: "Swing Trader · Options", initials: "RP", color: "var(--purple)", context: "8 weeks" },
 ];
 
+function CostCalculator() {
+  const [badDays, setBadDays] = useState(4);
+  const [avgLoss, setAvgLoss] = useState(300);
+
+  const yearlyLoss = badDays * avgLoss * 12;
+  const preventable = Math.round(yearlyLoss * 0.6);
+  const tmCost = 468; // $39/month × 12
+  const roi = preventable - tmCost;
+
+  return (
+    <section style={{ background: "var(--bg)", borderTop: "1px solid var(--border)", padding: "80px 24px" }}>
+      <div style={{ maxWidth: 680, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 40 }} className="reveal">
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,176,32,0.08)", border: "1px solid rgba(255,176,32,0.25)", borderRadius: 20, padding: "6px 16px", fontSize: 11, color: "var(--amber)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 16 }}>
+            EMOTIONAL TRADING COST CALCULATOR
+          </div>
+          <h2 className="font-bebas" style={{ fontSize: "clamp(32px, 4vw, 48px)", marginBottom: 12 }}>How much is bad trading costing you?</h2>
+          <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 440, margin: "0 auto" }}>Traders average 4–6 avoidable losing days per month driven by emotions, fatigue, or FOMO. What does that add up to for you?</p>
+        </div>
+
+        <div className="card reveal" style={{ padding: "32px 32px 28px", border: "1px solid var(--border)", background: "var(--surface)" }}>
+          {/* Input: bad days */}
+          <div style={{ marginBottom: 28 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Avoidable losing days per month</label>
+              <span className="font-bebas" style={{ fontSize: 24, color: "var(--red)", lineHeight: 1 }}>{badDays}</span>
+            </div>
+            <input
+              type="range" min={1} max={12} value={badDays}
+              onChange={(e) => setBadDays(Number(e.target.value))}
+              title="Avoidable losing days per month"
+              style={{ width: "100%", accentColor: "var(--red)", cursor: "pointer" }}
+            />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
+              <span>1 day</span><span>12 days</span>
+            </div>
+          </div>
+
+          {/* Input: avg loss per bad day */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Average loss on those days</label>
+              <span className="font-bebas" style={{ fontSize: 24, color: "var(--red)", lineHeight: 1 }}>${avgLoss.toLocaleString()}</span>
+            </div>
+            <input
+              type="range" min={50} max={5000} step={50} value={avgLoss}
+              onChange={(e) => setAvgLoss(Number(e.target.value))}
+              title="Average loss per bad day in dollars"
+              style={{ width: "100%", accentColor: "var(--red)", cursor: "pointer" }}
+            />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
+              <span>$50</span><span>$5,000</span>
+            </div>
+          </div>
+
+          {/* Output */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 24 }}>
+            {[
+              { label: "YEARLY EMOTIONAL LOSSES", value: `$${yearlyLoss.toLocaleString()}`, color: "var(--red)", sub: `${badDays} days × $${avgLoss} × 12 months` },
+              { label: "PREVENTABLE (60%)", value: `$${preventable.toLocaleString()}`, color: "var(--amber)", sub: "Based on our user data" },
+              { label: "NET ROI WITH TRADEMIND", value: roi > 0 ? `+$${roi.toLocaleString()}` : `-$${Math.abs(roi).toLocaleString()}`, color: roi > 0 ? "var(--green)" : "var(--text-muted)", sub: `After $468/year cost` },
+            ].map((s) => (
+              <div key={s.label} style={{ padding: "14px 12px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)", textAlign: "center" }}>
+                <div className="font-bebas" style={{ fontSize: 24, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.value}</div>
+                <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", marginBottom: 4 }}>{s.label}</div>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.7 }}>{s.sub}</div>
+              </div>
+            ))}
+          </div>
+
+          {roi > 0 ? (
+            <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(0,232,122,0.06)", border: "1px solid rgba(0,232,122,0.2)", fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 20 }}>
+              TradeMind pays for itself if it prevents just <strong style={{ color: "var(--green)" }}>{Math.ceil(tmCost / avgLoss)} bad day{Math.ceil(tmCost / avgLoss) > 1 ? "s" : ""}</strong> per year — out of the {badDays * 12} avoidable ones you&apos;re currently having. That&apos;s the threshold.
+            </div>
+          ) : (
+            <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(255,176,32,0.06)", border: "1px solid rgba(255,176,32,0.2)", fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 20 }}>
+              At this loss level, you need TradeMind to prevent at least <strong style={{ color: "var(--amber)" }}>{Math.ceil(tmCost / avgLoss)} days</strong> per year to break even. Most users report preventing 3–5× that many.
+            </div>
+          )}
+
+          <Link href="/login?callbackUrl=/checkin" style={{ display: "block" }}>
+            <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15 }}>Start 7-Day Free Trial — No Credit Card Required →</button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function LandingPage() {
   const [mockupPhase, setMockupPhase] = useState(0);
   const [mockupTransitioning, setMockupTransitioning] = useState(false);
@@ -920,6 +1009,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Cost Calculator */}
+      <CostCalculator />
 
       {/* Pricing — immediately after How it works */}
       <section id="pricing" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
