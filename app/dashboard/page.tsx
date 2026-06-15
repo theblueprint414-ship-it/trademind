@@ -431,24 +431,25 @@ export default function DashboardPage() {
       <style>{`
         @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
         @keyframes slide-up { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes glow-pulse { 0%,100%{opacity:0.28} 50%{opacity:0.52} }
-        @keyframes ring-breathe { 0%,100%{transform:scale(1);opacity:0.18} 50%{transform:scale(1.06);opacity:0.32} }
+        @keyframes glow-pulse { 0%,100%{opacity:0.3} 50%{opacity:0.6} }
+        @keyframes ring-breathe { 0%,100%{transform:scale(1);opacity:0.2} 50%{transform:scale(1.08);opacity:0.4} }
         @keyframes spin { to{transform:rotate(360deg)} }
         @keyframes brief-shimmer { 0%{background-position:200% center} 100%{background-position:-200% center} }
         @keyframes fade-in { from{opacity:0} to{opacity:1} }
         @keyframes cta-pulse { 0%,100%{box-shadow:0 0 0 0 rgba(94,106,210,0.5)} 50%{box-shadow:0 0 0 8px rgba(94,106,210,0)} }
-        .dash-section { animation: slide-up 0.5s ease both; }
-        .s1{animation-delay:0.05s} .s2{animation-delay:0.12s} .s3{animation-delay:0.19s}
-        .s4{animation-delay:0.26s} .s5{animation-delay:0.33s} .s6{animation-delay:0.40s}
+        @keyframes aurora-slow { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(30px,-20px) scale(1.05)} }
+        .dash-section { animation: slide-up 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+        .s1{animation-delay:0.04s} .s2{animation-delay:0.10s} .s3{animation-delay:0.16s}
+        .s4{animation-delay:0.22s} .s5{animation-delay:0.28s} .s6{animation-delay:0.34s}
         .quick-link { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), box-shadow 0.2s ease, border-color 0.2s ease; position: relative; overflow: hidden; border-radius: 14px !important; }
-        .quick-link:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.48); border-color: var(--border-bright) !important; }
+        .quick-link:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(0,0,0,0.6); border-color: var(--border-bright) !important; }
         .quick-icon-box { transition: color 0.2s ease; color: var(--text-dim); }
         .quick-link:hover .quick-icon-box { color: var(--qa-hex); }
         .quick-link-arrow { opacity: 0.38; transition: opacity 0.18s ease, transform 0.18s ease, color 0.18s ease; }
         .quick-link:hover .quick-link-arrow { opacity: 1; transform: translateX(3px); color: var(--qa-hex) !important; }
         .quick-card-wide { grid-column: 1 / -1; }
         .stat-card { transition: transform 0.15s ease, border-color 0.2s ease, box-shadow 0.2s ease; }
-        .stat-card:hover { border-color: var(--border-bright) !important; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,0.25); }
+        .stat-card:hover { border-color: var(--border-bright) !important; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
         .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         @media (max-width: 600px) {
@@ -458,8 +459,14 @@ export default function DashboardPage() {
         }
         .bar-col:hover .bar-fill { opacity: 1 !important; }
         .brief-card { position: relative; overflow: hidden; }
-        .brief-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(94,106,210,0.06),rgba(139,92,246,0.06),rgba(0,232,122,0.04)); pointer-events:none; border-radius:inherit; }
+        .brief-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(94,106,210,0.07),rgba(139,92,246,0.05),rgba(0,232,122,0.04)); pointer-events:none; border-radius:inherit; }
         .ring-glow { position:absolute; border-radius:50%; animation:ring-breathe 4s ease-in-out infinite; pointer-events:none; }
+        /* Hero card verdict text */
+        .verdict-go    { color: var(--green); text-shadow: 0 0 60px rgba(0,232,122,0.5), 0 0 120px rgba(0,232,122,0.2); }
+        .verdict-caution { color: var(--amber); text-shadow: 0 0 60px rgba(255,176,32,0.5), 0 0 120px rgba(255,176,32,0.2); }
+        .verdict-notrade { color: var(--red); text-shadow: 0 0 60px rgba(255,59,92,0.5), 0 0 120px rgba(255,59,92,0.2); }
+        /* Aurora blobs on hero card */
+        .hero-aurora { position:absolute; border-radius:50%; filter:blur(60px); pointer-events:none; animation:aurora-slow 12s ease-in-out infinite; }
       `}</style>
 
       {/* Streak Celebration */}
@@ -789,39 +796,41 @@ export default function DashboardPage() {
         )}
 
         {/* TODAY HERO CARD */}
-        <div className={`card dash-section s1 ${verdict?.cardClass ?? ""}`} style={{ padding: 0, marginBottom: 20, overflow: "hidden", position: "relative" }}>
-          {verdict && (
-            <div style={{ position: "absolute", inset: 0, background: verdict.glow, filter: "blur(60px)", opacity: 0.5, pointerEvents: "none", animation: "glow-pulse 3s ease-in-out infinite" }} />
-          )}
+        <div className={`card dash-section s1 ${verdict?.cardClass ?? ""}`} style={{ padding: 0, marginBottom: 20, overflow: "hidden", position: "relative", border: verdict ? `1px solid ${verdict.color}22` : "1px solid var(--border)" }}>
+          {/* Aurora background blobs */}
+          {verdict && <>
+            <div className="hero-aurora" style={{ width: 300, height: 300, top: "50%", left: "20%", transform: "translate(-50%,-50%)", background: verdict.color, opacity: 0.06, animationDuration: "12s" }} />
+            <div className="hero-aurora" style={{ width: 200, height: 200, top: "30%", right: "10%", background: verdict.color, opacity: 0.04, animationDuration: "18s", animationDelay: "3s" }} />
+          </>}
+
           <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 0, flexWrap: "wrap" }}>
 
             {todayScore !== null && verdict ? (
               <>
                 {/* Score ring section */}
-                <div style={{ padding: "28px 24px 28px 28px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, borderRight: "1px solid var(--border)", minWidth: 140, position: "relative" }}>
-                  {/* Ambient glow rings */}
-                  <div className="ring-glow" style={{ width: 140, height: 140, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: `radial-gradient(circle, ${verdict.color}28 0%, transparent 70%)`, animationDelay: "0s" }} />
-                  <div className="ring-glow" style={{ width: 110, height: 110, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: `radial-gradient(circle, ${verdict.color}20 0%, transparent 70%)`, animationDelay: "1.5s" }} />
+                <div style={{ padding: "32px 24px 32px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, borderRight: "1px solid var(--border)", minWidth: 148, position: "relative" }}>
+                  <div className="ring-glow" style={{ width: 160, height: 160, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: `radial-gradient(circle, ${verdict.color}30 0%, transparent 70%)` }} />
                   <div style={{ position: "relative", zIndex: 1 }}>
-                    <ScoreRing score={todayScore} color={verdict.color} size={100} />
+                    <ScoreRing score={todayScore} color={verdict.color} size={108} />
                   </div>
-                  <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.1em", fontWeight: 700, position: "relative", zIndex: 1 }}>MENTAL SCORE</div>
+                  <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.12em", fontWeight: 700, position: "relative", zIndex: 1 }}>MENTAL SCORE</div>
                   {prevScore !== null && <TrendArrow current={todayScore} previous={prevScore} />}
                 </div>
 
                 {/* Verdict + info */}
-                <div style={{ flex: 1, padding: "28px 24px", minWidth: 200 }}>
-                  <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 6 }}>
+                <div style={{ flex: 1, padding: "32px 24px", minWidth: 200 }}>
+                  <div style={{ fontSize: 10, color: "var(--text-muted)", letterSpacing: "0.1em", marginBottom: 8 }}>
                     TODAY · {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}
                   </div>
-                  <div className="font-bebas" style={{ fontSize: "clamp(52px, 10vw, 80px)", color: verdict.color, lineHeight: 0.9, marginBottom: 10, textShadow: `0 0 30px ${verdict.color}60`, letterSpacing: "0.02em" }}>
+                  <div className={`font-bebas verdict-${verdict.label === "GO" ? "go" : verdict.label === "CAUTION" ? "caution" : "notrade"}`}
+                    style={{ fontSize: "clamp(56px, 10vw, 88px)", lineHeight: 0.9, marginBottom: 12, letterSpacing: "0.01em" }}>
                     {verdict.label}
                   </div>
-                  <div style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: positionSizePct !== null && positionSizePct < 100 ? 12 : 0 }}>
+                  <div style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.65, marginBottom: positionSizePct !== null && positionSizePct < 100 ? 14 : 0 }}>
                     {getMotivationalLine(todayScore)}
                   </div>
                   {positionSizePct !== null && positionSizePct < 100 && (
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: 8, background: positionSizePct === 0 ? "rgba(255,59,92,0.1)" : "rgba(255,176,32,0.1)", border: `1px solid ${positionSizePct === 0 ? "rgba(255,59,92,0.3)" : "rgba(255,176,32,0.3)"}` }}>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 14px", borderRadius: 10, background: positionSizePct === 0 ? "rgba(255,59,92,0.08)" : "rgba(255,176,32,0.08)", border: `1px solid ${positionSizePct === 0 ? "rgba(255,59,92,0.25)" : "rgba(255,176,32,0.25)"}` }}>
                       <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M6 1v5M6 9v1.5" stroke={positionSizePct === 0 ? "var(--red)" : "var(--amber)"} strokeWidth="1.5" strokeLinecap="round"/><circle cx="6" cy="6" r="5" stroke={positionSizePct === 0 ? "var(--red)" : "var(--amber)"} strokeWidth="1.1"/></svg>
                       <span style={{ fontSize: 12, fontWeight: 700, color: positionSizePct === 0 ? "var(--red)" : "var(--amber)" }}>{positionSizePct}% max position size today</span>
                     </div>
@@ -829,45 +838,44 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Right action */}
-                <div style={{ padding: "28px 24px 28px 8px", display: "flex", flexDirection: "column", gap: 8, alignItems: "flex-end" }}>
-                  <Link href="/result"><button className="btn-ghost" style={{ fontSize: 12, padding: "7px 12px", whiteSpace: "nowrap" }}>View Report</button></Link>
-                  <Link href="/checkin"><button style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, cursor: "pointer", padding: "4px 12px" }}>Re-do</button></Link>
+                <div style={{ padding: "32px 28px 32px 8px", display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-end" }}>
+                  <Link href="/result"><button className="btn-ghost" style={{ fontSize: 12, padding: "8px 14px", whiteSpace: "nowrap" }}>View Report</button></Link>
+                  <Link href="/checkin"><button style={{ background: "none", border: "none", color: "var(--text-muted)", fontSize: 12, cursor: "pointer", padding: "4px 12px", fontFamily: "inherit" }}>Re-do check-in</button></Link>
                 </div>
               </>
             ) : (
-              <div style={{ width: "100%", padding: "36px 28px", display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap" }}>
+              <div style={{ width: "100%", padding: "40px 32px", display: "flex", alignItems: "center", gap: 36, flexWrap: "wrap" }}>
                 {/* Animated ring graphic */}
                 <div style={{ flexShrink: 0, position: "relative", width: 96, height: 96, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "2px solid rgba(94,106,210,0.15)", animation: "ring-breathe 3s ease-in-out infinite" }} />
-                  <div style={{ position: "absolute", inset: 8, borderRadius: "50%", border: "2px solid rgba(94,106,210,0.25)", animation: "ring-breathe 3s ease-in-out 0.8s infinite" }} />
-                  <svg width="40" height="40" viewBox="0 0 40 40" fill="none" style={{ color: "rgba(94,106,210,0.6)" }}>
-                    <circle cx="20" cy="20" r="16" stroke="currentColor" strokeWidth="2" strokeOpacity="0.3" />
-                    <circle cx="20" cy="20" r="8" stroke="currentColor" strokeWidth="2" strokeOpacity="0.5" />
-                    <circle cx="20" cy="20" r="3" fill="currentColor" />
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: "1.5px solid rgba(94,106,210,0.2)", animation: "ring-breathe 3s ease-in-out infinite" }} />
+                  <div style={{ position: "absolute", inset: 10, borderRadius: "50%", border: "1.5px solid rgba(94,106,210,0.3)", animation: "ring-breathe 3s ease-in-out 0.8s infinite" }} />
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "radial-gradient(circle, rgba(94,106,210,0.08) 0%, transparent 70%)", animation: "glow-pulse 4s ease-in-out infinite" }} />
+                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none" style={{ color: "rgba(94,106,210,0.7)" }}>
+                    <circle cx="18" cy="18" r="14" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.4" />
+                    <circle cx="18" cy="18" r="7" stroke="currentColor" strokeWidth="1.5" strokeOpacity="0.6" />
+                    <circle cx="18" cy="18" r="3" fill="currentColor" />
                   </svg>
                 </div>
                 <div style={{ flex: 1, minWidth: 200 }}>
-                  <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.1em", marginBottom: 10 }}>
                     {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }).toUpperCase()}
                   </div>
-                  <div className="font-bebas" style={{ fontSize: "clamp(32px, 6vw, 48px)", lineHeight: 1, marginBottom: 10, color: "var(--text)" }}>
+                  <div className="font-bebas" style={{ fontSize: "clamp(32px, 6vw, 52px)", lineHeight: 1, marginBottom: 12, color: "var(--text)", letterSpacing: "0.01em" }}>
                     {history.length === 0 ? "Your edge starts here." : "Ready to trade?"}
                   </div>
-                  <div style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.7, maxWidth: 440 }}>
+                  <div style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.75, maxWidth: 460 }}>
                     {history.length === 0
-                      ? "The traders who make it log their mental state before every session — not occasionally, religiously. One week of honest check-ins is all it takes to start seeing your own patterns."
+                      ? "The traders who make it log their mental state before every session — not occasionally, religiously. One week of honest check-ins is all it takes to start seeing your patterns."
                       : "Take 60 seconds before you open any charts. Your mental score determines your verdict — and your verdict determines your size."}
                   </div>
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center", flexShrink: 0 }}>
                   <Link href="/checkin">
-                    <button className="btn-primary" style={{ padding: "16px 32px", fontSize: 15, whiteSpace: "nowrap", animation: "cta-pulse 2.5s ease-in-out infinite" }}>
-                      {history.length === 0 ? "Do Your First Check-in →" : "Start Check-in →"}
+                    <button className="btn-primary" style={{ padding: "16px 36px", fontSize: 15, whiteSpace: "nowrap", animation: "cta-pulse 2.5s ease-in-out infinite" }}>
+                      {history.length === 0 ? "Do First Check-in →" : "Start Check-in →"}
                     </button>
                   </Link>
-                  {history.length === 0 && (
-                    <span style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>Takes 60 seconds</span>
-                  )}
+                  <span style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center" }}>Takes 60 seconds</span>
                 </div>
               </div>
             )}

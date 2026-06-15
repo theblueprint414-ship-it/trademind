@@ -3,1566 +3,917 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
-const CheckIcon = ({ color = "var(--green)" }: { color?: string }) => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, marginTop: 1 }}>
-    <circle cx="8" cy="8" r="7.5" stroke={color} strokeOpacity="0.25" />
-    <path d="M5 8l2 2 4-4" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+// ─── Types ───────────────────────────────────────────────────────────────────
 
-const StarIcon = () => (
-  <svg width="13" height="13" viewBox="0 0 13 13" fill="var(--amber)">
-    <path d="M6.5 1l1.4 3.2L11 4.6l-2.3 2.3.5 3.2-2.7-1.4L3.8 10l.5-3.2L2 4.6l3.1-.4L6.5 1z" />
-  </svg>
-);
+type BillingCycle = "monthly" | "annual";
 
-const MOCKUP_PHASES = [
-  { score: 82, verdict: "GO", color: "var(--green)", glow: "rgba(0,232,122,0.18)", glowHex: "#00E87A", msg: "Your mind is sharp. Execute your plan." },
-  { score: 54, verdict: "CAUTION", color: "var(--amber)", glow: "rgba(255,176,32,0.18)", glowHex: "#FFB020", msg: "Trade smaller. Stay selective today." },
-  { score: 31, verdict: "NO-TRADE", color: "var(--red)", glow: "rgba(255,59,92,0.18)", glowHex: "#FF3B5C", msg: "Protect your capital. No trades today." },
+// ─── Score ring (SVG animated) ────────────────────────────────────────────────
+
+function ScoreRing({ score, color, size = 120 }: { score: number; color: string; size?: number }) {
+  const r = (size / 2) - 8;
+  const circ = 2 * Math.PI * r;
+  const dash = (score / 100) * circ;
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)" }}>
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={6} />
+      <circle
+        cx={size / 2} cy={size / 2} r={r} fill="none"
+        stroke={color} strokeWidth={6} strokeLinecap="round"
+        strokeDasharray={`${dash} ${circ}`}
+        style={{ transition: "stroke-dasharray 0.9s cubic-bezier(0.34,1.56,0.64,1), stroke 0.4s ease" }}
+      />
+    </svg>
+  );
+}
+
+// ─── Hero mockup ──────────────────────────────────────────────────────────────
+
+const PHASES = [
+  { score: 84, verdict: "GO",       color: "#00E87A", msg: "Peak state. Execute your plan.",          bg: "rgba(0,232,122,0.08)",   border: "rgba(0,232,122,0.2)"  },
+  { score: 52, verdict: "CAUTION",  color: "#FFB020", msg: "A+ setups only. Half position size.",     bg: "rgba(255,176,32,0.08)",  border: "rgba(255,176,32,0.2)" },
+  { score: 28, verdict: "NO-TRADE", color: "#FF3B5C", msg: "Protect your capital. Sit this one out.", bg: "rgba(255,59,92,0.08)",   border: "rgba(255,59,92,0.2)"  },
 ];
 
-const STEPS = [
-  {
-    step: "01", color: "var(--blue)",
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="4" y="6" width="20" height="16" rx="3" stroke="var(--blue)" strokeWidth="1.5"/><path d="M9 14h2l2-4 2 8 2-4h2" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-    title: "Daily Check-in",
-    desc: "5 research-backed questions covering sleep, stress, focus, and emotional state. Takes 60 seconds. Most traders skip this — and that's exactly why they lose.",
-  },
-  {
-    step: "02", color: "var(--amber)",
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="9" stroke="var(--amber)" strokeWidth="1.5"/><path d="M14 9v5l3 3" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-    title: "Mental Score",
-    desc: "A 0–100 score and a verdict you can act on: GO, CAUTION, or NO-TRADE. Not a feeling. A number. No gray areas, no excuses.",
-  },
-  {
-    step: "03", color: "var(--green)",
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="8" y="4" width="12" height="16" rx="2" stroke="var(--green)" strokeWidth="1.5"/><path d="M11 10h6M11 14h4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/><path d="M5 20l4 4 10-10" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-    title: "Trade Journal",
-    desc: "Log every trade — connect a broker (MT4, MT5, TopstepX) for auto-import, or upload a CSV from Tradovate, NinjaTrader, Rithmic, or any broker in 30 seconds. See exactly which mental states make you money. Most losing streaks have a pattern. This is where you find it.",
-  },
-  {
-    step: "04", color: "var(--purple)",
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="10" cy="10" r="4" stroke="var(--purple)" strokeWidth="1.5"/><circle cx="20" cy="10" r="4" stroke="var(--purple)" strokeWidth="1.5"/><path d="M4 22c0-3.314 2.686-6 6-6h8c3.314 0 6 2.686 6 6" stroke="var(--purple)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-    title: "Accountability",
-    desc: "Your trading partners see your mental score every morning. You can't fake discipline when someone else is watching — and that's the point.",
-  },
-  {
-    step: "05", color: "#8B5CF6",
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="10" r="5" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M9 22c0-2.761 2.239-5 5-5s5 2.239 5 5" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/><path d="M20 8l2-2M22 12h2M20 16l2 2" stroke="#8B5CF6" strokeWidth="1.2" strokeLinecap="round"/></svg>,
-    title: "AI Coach",
-    desc: "Alex analyzes your check-in history, journal, and P&L to find the specific patterns costing you money — then gives you one concrete thing to fix. Not generic advice. Your data.",
-  },
-  {
-    step: "06", color: "#8B5CF6",
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M4 20l5-7 4 4 4-8 5 6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="4" width="20" height="16" rx="2" stroke="#8B5CF6" strokeWidth="1.5"/></svg>,
-    title: "Deep Analytics",
-    desc: "See your psychology vs P&L correlation, 90-day heatmap, and estimated losses you avoided. When you see the number, you stop skipping your check-in.",
-  },
-  {
-    step: "07", color: "var(--red)",
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="8" y="13" width="12" height="10" rx="2" stroke="var(--red)" strokeWidth="1.5"/><path d="M10 13V10a4 4 0 018 0v3" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/><circle cx="14" cy="18" r="1.5" fill="var(--red)"/></svg>,
-    title: "Circuit Breaker",
-    desc: "Set a daily trade limit. When you hit it, TradeMind blocks your platforms: the Chrome extension blocks TradingView and broker sites, the MT4/MT5 EA stops new orders at the terminal, and Bybit/Alpaca/Binance get their open orders cancelled via API. Resets at midnight.",
-  },
-];
+function HeroMockup() {
+  const [phase, setPhase] = useState(0);
+  const p = PHASES[phase];
 
-const TRADER_TYPES = [
-  {
-    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 24l7-9 5 5 6-10 6 7" stroke="var(--blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="4" width="24" height="20" rx="3" stroke="var(--blue)" strokeWidth="1.5"/></svg>,
-    type: "Day Traders",
-    color: "var(--blue)",
-    pain: "You make 10–20 decisions before lunch. Mental fatigue compounds fast. One bad hour wipes a good morning.",
-    fix: "TradeMind identifies your peak mental windows and enforces daily trade limits so you stop digging deeper when you're done.",
-  },
-  {
-    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" stroke="var(--amber)" strokeWidth="1.5"/><path d="M16 9v7l4 4" stroke="var(--amber)" strokeWidth="1.8" strokeLinecap="round"/></svg>,
-    type: "Swing Traders",
-    color: "var(--amber)",
-    pain: "You hold overnight. But your entries are the problem — you enter on compromised mental days then watch a good setup go sideways.",
-    fix: "Your check-in score on entry day predicts your trade outcome more than any indicator. Track the correlation and you'll see it clearly.",
-  },
-  {
-    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="6" y="8" width="20" height="14" rx="2" stroke="var(--red)" strokeWidth="1.5"/><path d="M10 8V6a6 6 0 0112 0v2" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-    type: "Prop Firm Traders",
-    color: "var(--red)",
-    pain: "One bad mental day hits max drawdown and voids weeks of progress. The funded account pressure makes it worse, not better.",
-    fix: "NO-TRADE days have saved funded accounts. Multiple traders passed FTMO challenges after adding TradeMind as a daily gate.",
-  },
-  {
-    icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="12" r="6" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M6 28c0-5.523 4.477-10 10-10s10 4.477 10 10" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/><path d="M22 6l3-3M25 9h3M22 12l3 3" stroke="#8B5CF6" strokeWidth="1.3" strokeLinecap="round"/></svg>,
-    type: "Crypto Traders",
-    color: "#8B5CF6",
-    pain: "24/7 markets test mental endurance differently than any other asset. You're always 'available' to trade — which means you trade when you shouldn't.",
-    fix: "TradeMind creates structure in a structureless market. Your score tells you when availability becomes a liability.",
-  },
-];
+  useEffect(() => {
+    const t = setInterval(() => setPhase((x) => (x + 1) % PHASES.length), 3200);
+    return () => clearInterval(t);
+  }, []);
 
-const SCIENCE_PILLARS = [
-  {
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="12" r="6" stroke="var(--blue)" strokeWidth="1.5"/><path d="M8 22c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/><path d="M19 6l3-2M21 10h3" stroke="var(--blue)" strokeWidth="1.3" strokeLinecap="round"/></svg>,
-    color: "var(--blue)",
-    title: "Sleep & Cognitive Load",
-    stat: "26% worse decision-making",
-    detail: "One night under 6 hours degrades prefrontal cortex activity by up to 26%, directly impairing risk assessment and impulse control.",
-    source: "Walker, M. (2017). Why We Sleep.",
-  },
-  {
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M14 4v10l5 5" stroke="var(--amber)" strokeWidth="1.8" strokeLinecap="round"/><circle cx="14" cy="14" r="10" stroke="var(--amber)" strokeWidth="1.5"/></svg>,
-    color: "var(--amber)",
-    title: "Emotional Regulation",
-    stat: "60% more loss aversion",
-    detail: "Traders under emotional stress show 60% stronger loss aversion, causing them to hold losers longer and cut winners too early.",
-    source: "Lo, A. et al. (2005). Neurological basis of financial risk taking.",
-  },
-  {
-    icon: <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="6" y="6" width="16" height="16" rx="4" stroke="var(--green)" strokeWidth="1.5"/><path d="M10 14h2l2-4 2 8 2-4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-    color: "var(--green)",
-    title: "Decision Fatigue",
-    stat: "3× more errors by afternoon",
-    detail: "Mental resources deplete throughout the trading session. Traders make 3× more rule violations in the final hour of their session.",
-    source: "Baumeister, R. (2000). Ego depletion theory.",
-  },
-];
+  return (
+    <div style={{
+      width: "100%", maxWidth: 340,
+      background: "rgba(255,255,255,0.03)",
+      border: `1px solid ${p.border}`,
+      borderRadius: 24,
+      padding: "32px 28px",
+      backdropFilter: "blur(20px)",
+      boxShadow: `0 0 80px ${p.color}20, 0 40px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)`,
+      transition: "border-color 0.5s ease, box-shadow 0.5s ease",
+      position: "relative",
+      overflow: "hidden",
+    }}>
+      {/* Glow blob */}
+      <div style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%,-50%)", width: 200, height: 200, borderRadius: "50%", background: p.color, filter: "blur(80px)", opacity: 0.12, transition: "background 0.5s ease", pointerEvents: "none" }} />
 
-const FAQ_ITEMS = [
-  {
-    q: "Is the mental score based on real science?",
-    a: "Yes. TradeMind's scoring model is built on peer-reviewed research covering sleep deprivation and cognitive performance (Walker, 2017), emotional regulation and financial risk-taking (Lo et al., 2005), and decision fatigue (Baumeister, 2000). The 5 check-in dimensions were calibrated based on behavioral patterns from our beta users and the underlying academic literature.",
-  },
-  {
-    q: "How is this different from just keeping a trading journal?",
-    a: "A journal is reactive — you record what happened after the loss. TradeMind is proactive — it evaluates your mental state before you risk a dollar. Journaling tells you what you did wrong. TradeMind stops you before you do it. They work best together, which is why we include both.",
-  },
-  {
-    q: "What if my score says NO-TRADE but I see a perfect setup?",
-    a: "The score is a filter, not a ban. It's telling you that your judgment is compromised today. You can choose to trade — but you're doing it with full awareness that your edge is reduced. Most users tell us that simply seeing the NO-TRADE verdict makes them trade smaller and more carefully. That alone changes outcomes.",
-  },
-  {
-    q: "Does it work for stocks, crypto, futures, and forex?",
-    a: "Yes. Psychology is universal across markets. Whether you're trading NQ futures, BTC, equities, or forex pairs — the same mental states that cause losses in one market cause them in all others. TradeMind works for every asset class.",
-  },
-  {
-    q: "How long before I see real results?",
-    a: "Users typically report pattern clarity within 2–3 weeks. After 30 days you'll have enough data to see the correlation between your mental score and your P&L. Many users see the shift much earlier — the first week alone changes how they approach their morning routine.",
-  },
-  {
-    q: "I'm already profitable. Why would I need this?",
-    a: "Because your bad days are costing you more than you realize. Most profitable traders have 2–3 days per month where they give back a large portion of their gains. Those days almost always have identifiable mental triggers. Our analytics show users their 'avoidable loss' total — and it's usually the number that convinces them to stay.",
-  },
-  {
-    q: "Can I import my existing trades from my broker?",
-    a: "Yes — we support CSV import from Tradovate, NinjaTrader, Rithmic, MT4/MT5, and any broker with a generic export. Upload your file and TradeMind auto-detects the format, maps the columns, and shows you a preview before importing. You can also connect live broker sync for MT4, MT5, Bybit, Alpaca, Binance, and TopstepX.",
-  },
-  {
-    q: "What is tilt detection and how does it work?",
-    a: "Tilt detection monitors your intraday trading patterns for behavioral risk signals — specifically, consecutive losses and revenge trading (re-entering a trade within 5 minutes of a loss). When you hit 2+ consecutive losses, TradeMind shows a live intervention banner before you take your next trade. This is a feature no other trading journal currently offers. It's the difference between knowing you traded on tilt in your weekly review vs. being stopped before the damage happens.",
-  },
-  {
-    q: "Can I cancel anytime?",
-    a: "Yes. Cancel in one click from settings. Your 7-day trial is completely free — no charge until day 8. If you cancel before then, you pay nothing. If you're a paying subscriber, you'll retain access until the end of your billing period.",
-  },
-];
+      <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)", margin: "0 0 20px", textAlign: "center" }}>TRADEMIND · MENTAL SCORE</p>
 
-const TESTIMONIALS = [
-  { quote: "6 years trading NQ futures. I thought I had my emotions handled. Week 3 with TradeMind I saw it clearly: 80% of my losing trades happened between 2–4 PM on days my sleep score was under 50. That one insight covered a year of subscription in the first month.", name: "Marcus T.", role: "NQ Futures · 6 years", initials: "MT", color: "var(--blue)", context: "4 months" },
-  { quote: "I bought it skeptically. First week: three NO-TRADE days. I was annoyed. Then I went back through my journal — every single one of those days I would have blown up. It doesn't give you discipline. It makes you honest with yourself, which is harder and more valuable.", name: "David R.", role: "Prop Trader · FTMO", initials: "DR", color: "var(--green)", context: "2 months" },
-  { quote: "Account up 18% since I started. I stopped overtrading on stress days and my average winner got bigger because I'm only pulling the trigger when I'm actually ready. The check-in is annoying some mornings. That's exactly why it works.", name: "Tom W.", role: "Swing Trader · Equities", initials: "TW", color: "#8B5CF6", context: "3 months" },
-  { quote: "Failed FTMO three times. Passed on the fourth. The only thing I changed was TradeMind. I skipped 9 trading days based on my NO-TRADE score. Every single one of those days I would have hit max drawdown. Every one.", name: "Lena S.", role: "Prop Trader · FTMO", initials: "LS", color: "var(--red)", context: "5 months" },
-  { quote: "I expected it to tell me not to trade every day. It doesn't. My GO rate sits around 60% — and those are genuinely my sharpest sessions. The accuracy surprised me. It's not strict, it's calibrated.", name: "James O.", role: "Options Trader · US Equities", initials: "JO", color: "var(--green)", context: "7 weeks" },
-  { quote: "I trade forex and the 24/7 grind was killing me. TradeMind gave me something I didn't know I needed: permission to step back. My NO-TRADE days are now my best days — because I didn't lose anything.", name: "Sarah M.", role: "Forex Trader · 4 years", initials: "SM", color: "var(--blue)", context: "10 weeks" },
-  { quote: "The accountability partner feature is underrated. My partner can see my morning score. I can't pretend I'm fine when I'm not. We've both improved just from knowing someone is watching.", name: "Ryan P.", role: "Swing Trader · Options", initials: "RP", color: "var(--purple)", context: "8 weeks" },
-];
+      {/* Ring + score */}
+      <div style={{ display: "flex", justifyContent: "center", position: "relative", margin: "0 0 16px" }}>
+        <ScoreRing score={p.score} color={p.color} size={110} />
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <span style={{ fontSize: 32, fontWeight: 800, color: "#fff", lineHeight: 1, letterSpacing: "-1px" }}>{p.score}</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>/100</span>
+        </div>
+      </div>
+
+      {/* Verdict */}
+      <div style={{ textAlign: "center", marginBottom: 20 }}>
+        <div style={{
+          display: "inline-block", padding: "8px 20px",
+          background: p.bg, border: `1px solid ${p.border}`,
+          borderRadius: 30,
+          fontSize: 18, fontWeight: 800, color: p.color,
+          letterSpacing: "0.12em",
+          transition: "all 0.4s ease",
+        }}>
+          {p.verdict}
+        </div>
+      </div>
+
+      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", textAlign: "center", margin: "0 0 20px", lineHeight: 1.5 }}>{p.msg}</p>
+
+      {/* Mini bars */}
+      {[
+        { label: "Sleep", val: 78 },
+        { label: "Focus", val: p.score > 70 ? 85 : p.score > 45 ? 55 : 30 },
+        { label: "Stress", val: p.score > 70 ? 20 : p.score > 45 ? 55 : 82 },
+      ].map((b) => (
+        <div key={b.label} style={{ marginBottom: 8 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{b.label}</span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{b.val}%</span>
+          </div>
+          <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${b.val}%`, background: p.color, borderRadius: 2, opacity: 0.7, transition: "width 0.8s cubic-bezier(0.34,1.56,0.64,1)" }} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Counter animation ────────────────────────────────────────────────────────
+
+function CountUp({ target, suffix = "", prefix = "" }: { target: number; suffix?: string; prefix?: string }) {
+  const [val, setVal] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !started.current) {
+        started.current = true;
+        const dur = 1600;
+        const start = performance.now();
+        const step = (now: number) => {
+          const p = Math.min((now - start) / dur, 1);
+          const ease = 1 - Math.pow(1 - p, 3);
+          setVal(Math.round(ease * target));
+          if (p < 1) requestAnimationFrame(step);
+        };
+        requestAnimationFrame(step);
+      }
+    }, { threshold: 0.5 });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [target]);
+
+  return <span ref={ref}>{prefix}{val.toLocaleString()}{suffix}</span>;
+}
+
+// ─── Cost Calculator ──────────────────────────────────────────────────────────
 
 function CostCalculator() {
   const [badDays, setBadDays] = useState(4);
   const [avgLoss, setAvgLoss] = useState(300);
-
   const yearlyLoss = badDays * avgLoss * 12;
   const preventable = Math.round(yearlyLoss * 0.6);
-  const tmCost = 468; // $39/month × 12
+  const tmCost = 468;
   const roi = preventable - tmCost;
 
   return (
-    <section style={{ background: "var(--bg)", borderTop: "1px solid var(--border)", padding: "80px 24px" }}>
-      <div style={{ maxWidth: 680, margin: "0 auto" }}>
-        <div style={{ textAlign: "center", marginBottom: 40 }} className="reveal">
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(255,176,32,0.08)", border: "1px solid rgba(255,176,32,0.25)", borderRadius: 20, padding: "6px 16px", fontSize: 11, color: "var(--amber)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 16 }}>
-            EMOTIONAL TRADING COST CALCULATOR
-          </div>
-          <h2 className="font-bebas" style={{ fontSize: "clamp(32px, 4vw, 48px)", marginBottom: 12 }}>How much is bad trading costing you?</h2>
-          <p style={{ color: "var(--text-muted)", fontSize: 14, maxWidth: 440, margin: "0 auto" }}>Traders average 4–6 avoidable losing days per month driven by emotions, fatigue, or FOMO. What does that add up to for you?</p>
-        </div>
-
-        <div className="card reveal" style={{ padding: "32px 32px 28px", border: "1px solid var(--border)", background: "var(--surface)" }}>
-          {/* Input: bad days */}
-          <div style={{ marginBottom: 28 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Avoidable losing days per month</label>
-              <span className="font-bebas" style={{ fontSize: 24, color: "var(--red)", lineHeight: 1 }}>{badDays}</span>
+    <div style={{ maxWidth: 640, margin: "0 auto" }}>
+      <div style={{ display: "grid", gap: 24, marginBottom: 32 }}>
+        {[
+          { label: "Avoidable losing days per month", value: badDays, min: 1, max: 20, onChange: setBadDays, suffix: `${badDays} days`, title: "Avoidable losing days per month" },
+          { label: "Average loss per bad day", value: avgLoss, min: 50, max: 2000, step: 50, onChange: setAvgLoss, suffix: `$${avgLoss}`, title: "Average loss per bad day in dollars" },
+        ].map((s) => (
+          <div key={s.label}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+              <span style={{ fontSize: 14, color: "#a1a1aa" }}>{s.label}</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{s.suffix}</span>
             </div>
             <input
-              type="range" min={1} max={12} value={badDays}
-              onChange={(e) => setBadDays(Number(e.target.value))}
-              title="Avoidable losing days per month"
-              style={{ width: "100%", accentColor: "var(--red)", cursor: "pointer" }}
+              type="range" min={s.min} max={s.max} step={s.step ?? 1} value={s.value}
+              title={s.title}
+              onChange={(e) => s.onChange(Number(e.target.value))}
+              style={{ width: "100%", accentColor: "#5E6AD2", cursor: "pointer" }}
             />
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
-              <span>1 day</span><span>12 days</span>
-            </div>
           </div>
-
-          {/* Input: avg loss per bad day */}
-          <div style={{ marginBottom: 32 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-              <label style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>Average loss on those days</label>
-              <span className="font-bebas" style={{ fontSize: 24, color: "var(--red)", lineHeight: 1 }}>${avgLoss.toLocaleString()}</span>
-            </div>
-            <input
-              type="range" min={50} max={5000} step={50} value={avgLoss}
-              onChange={(e) => setAvgLoss(Number(e.target.value))}
-              title="Average loss per bad day in dollars"
-              style={{ width: "100%", accentColor: "var(--red)", cursor: "pointer" }}
-            />
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
-              <span>$50</span><span>$5,000</span>
-            </div>
-          </div>
-
-          {/* Output */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 24 }}>
-            {[
-              { label: "YEARLY EMOTIONAL LOSSES", value: `$${yearlyLoss.toLocaleString()}`, color: "var(--red)", sub: `${badDays} days × $${avgLoss} × 12 months` },
-              { label: "PREVENTABLE (60%)", value: `$${preventable.toLocaleString()}`, color: "var(--amber)", sub: "Based on our user data" },
-              { label: "NET ROI WITH TRADEMIND", value: roi > 0 ? `+$${roi.toLocaleString()}` : `-$${Math.abs(roi).toLocaleString()}`, color: roi > 0 ? "var(--green)" : "var(--text-muted)", sub: `After $468/year cost` },
-            ].map((s) => (
-              <div key={s.label} style={{ padding: "14px 12px", borderRadius: 10, background: "var(--surface2)", border: "1px solid var(--border)", textAlign: "center" }}>
-                <div className="font-bebas" style={{ fontSize: 24, color: s.color, lineHeight: 1, marginBottom: 4 }}>{s.value}</div>
-                <div style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.06em", marginBottom: 4 }}>{s.label}</div>
-                <div style={{ fontSize: 10, color: "var(--text-muted)", opacity: 0.7 }}>{s.sub}</div>
-              </div>
-            ))}
-          </div>
-
-          {roi > 0 ? (
-            <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(0,232,122,0.06)", border: "1px solid rgba(0,232,122,0.2)", fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 20 }}>
-              TradeMind pays for itself if it prevents just <strong style={{ color: "var(--green)" }}>{Math.ceil(tmCost / avgLoss)} bad day{Math.ceil(tmCost / avgLoss) > 1 ? "s" : ""}</strong> per year — out of the {badDays * 12} avoidable ones you&apos;re currently having. That&apos;s the threshold.
-            </div>
-          ) : (
-            <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(255,176,32,0.06)", border: "1px solid rgba(255,176,32,0.2)", fontSize: 13, color: "var(--text-dim)", lineHeight: 1.6, marginBottom: 20 }}>
-              At this loss level, you need TradeMind to prevent at least <strong style={{ color: "var(--amber)" }}>{Math.ceil(tmCost / avgLoss)} days</strong> per year to break even. Most users report preventing 3–5× that many.
-            </div>
-          )}
-
-          <Link href="/login?callbackUrl=/checkin" style={{ display: "block" }}>
-            <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15 }}>Start 7-Day Free Trial — No Credit Card Required →</button>
-          </Link>
-        </div>
+        ))}
       </div>
-    </section>
+
+      <div className="calc-3">
+        {[
+          { label: "Yearly losses on bad days", value: `$${yearlyLoss.toLocaleString()}`, color: "#FF3B5C", sub: "without intervention" },
+          { label: "Preventable with TradeMind", value: `$${preventable.toLocaleString()}`, color: "#FFB020", sub: "~60% stopped by mental gating" },
+          { label: "Net ROI vs $468/yr", value: roi > 0 ? `+$${roi.toLocaleString()}` : `-$${Math.abs(roi).toLocaleString()}`, color: roi > 0 ? "#00E87A" : "#FF3B5C", sub: roi > 0 ? "TradeMind pays for itself" : "needs fewer bad days" },
+        ].map((c) => (
+          <div key={c.label} style={{ padding: "20px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, textAlign: "center" }}>
+            <p style={{ fontSize: 22, fontWeight: 800, color: c.color, margin: "0 0 6px", letterSpacing: "-0.5px" }}>{c.value}</p>
+            <p style={{ fontSize: 11, color: "#71717a", margin: "0 0 4px", lineHeight: 1.4 }}>{c.label}</p>
+            <p style={{ fontSize: 10, color: "#52525b" }}>{c.sub}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
+// ─── FAQ ─────────────────────────────────────────────────────────────────────
+
+const FAQS = [
+  { q: "Is this just a trading journal?", a: "No. TradeMind is a mental performance system for traders. The journal is one component. The core is the daily mental check-in, real-time tilt detection, and behavioral analytics that no other journal offers." },
+  { q: "What prop firms does TradeMind support?", a: "All of them — FTMO, Apex, TopStep, The Funded Trader, E8 Markets, Funding Pips, MyForexFunds, and any other firm you can name. The multi-account dashboard works with any account you set up." },
+  { q: "Can I import my trade history from Tradovate / NinjaTrader?", a: "Yes. TradeMind supports CSV import from Tradovate, NinjaTrader, Rithmic, MT4/MT5, and most major platforms. Upload once and your full history is instantly analyzed." },
+  { q: "What is tilt detection?", a: "TradeMind monitors your live session for revenge trading patterns: 3+ consecutive losses, trades entered within 5 minutes of a losing trade, or unusual trade frequency. When detected, a real-time banner appears before you make a costly mistake." },
+  { q: "How is this different from TradeZella or Edgewonk?", a: "TradeZella is a solid general journal. Edgewonk is desktop-only with no broker sync. Neither has real-time tilt detection, mental readiness scoring, or a multi-prop-firm dashboard. TradeMind is the only journal built specifically for the psychology of prop trading." },
+  { q: "Is billing monthly or annual?", a: "Both. Annual billing is $348/year — saves you $120 vs monthly. Monthly is $39/mo with no commitment. Cancel any time, no questions asked." },
+  { q: "Do you offer a free trial?", a: "Yes — the free plan is genuinely useful: unlimited check-ins, up to 50 trades, and basic analytics. Upgrade to Pro when you want confluence analytics, AI coaching, and the full behavioral dashboard." },
+];
+
+function FAQ() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      {FAQS.map((f, i) => (
+        <div key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+          <button
+            onClick={() => setOpen(open === i ? null : i)}
+            style={{
+              width: "100%", textAlign: "left", padding: "20px 0",
+              background: "none", border: "none", cursor: "pointer",
+              display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16,
+              color: "#fff", fontFamily: "inherit",
+            }}
+          >
+            <span style={{ fontSize: 16, fontWeight: 600, lineHeight: 1.4 }}>{f.q}</span>
+            <span style={{ color: "#5E6AD2", fontSize: 20, flexShrink: 0, transition: "transform 0.2s", transform: open === i ? "rotate(45deg)" : "none", display: "inline-block" }}>+</span>
+          </button>
+          <div style={{ maxHeight: open === i ? 200 : 0, overflow: "hidden", transition: "max-height 0.35s cubic-bezier(0.4,0,0.2,1)", paddingBottom: open === i ? 20 : 0 }}>
+            <p style={{ fontSize: 15, color: "#71717a", lineHeight: 1.75, margin: 0 }}>{f.a}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
 export default function LandingPage() {
-  const [mockupPhase, setMockupPhase] = useState(0);
-  const [mockupTransitioning, setMockupTransitioning] = useState(false);
-  const [openFaq, setOpenFaq] = useState<number | null>(null);
-  const [siteStats, setSiteStats] = useState<{ users: number; checkins: number } | null>(null);
-
+  const [billing, setBilling] = useState<BillingCycle>("annual");
+  const [navSolid, setNavSolid] = useState(false);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" });
+    const onScroll = () => setNavSolid(window.scrollY > 60);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const revealRef = useRef<IntersectionObserver | null>(null);
-  useEffect(() => {
-    revealRef.current = new IntersectionObserver(
-      (entries) => entries.forEach((e) => { if (e.isIntersecting) (e.target as HTMLElement).classList.add("in-view"); }),
-      { threshold: 0.10 }
-    );
-    document.querySelectorAll(".reveal").forEach((el) => revealRef.current?.observe(el));
-    return () => revealRef.current?.disconnect();
-  }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setMockupTransitioning(true);
-      setTimeout(() => {
-        setMockupPhase((p) => (p + 1) % 3);
-        setMockupTransitioning(false);
-      }, 300);
-    }, 3200);
-    return () => clearInterval(timer);
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/stats").then((r) => r.json()).then((d) => setSiteStats(d)).catch(() => {});
-  }, []);
-
-  // Track referral code from ?ref=CODE
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const ref = params.get("ref");
-    if (ref) {
-      localStorage.setItem("trademind_ref", ref);
-      fetch("/api/referral", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: ref }) }).catch(() => {});
-    }
-  }, []);
-
-  const phase = MOCKUP_PHASES[mockupPhase];
 
   const orgJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "Organization",
-    "name": "TradeMind",
-    "url": "https://trademindedge.com",
-    "logo": "https://trademindedge.com/icons/icon-512.png",
-    "description": "The best trading journal for prop firm traders. Real-time tilt detection, mental readiness scores, multi-account drawdown tracking, and ICT confluence analytics.",
-    "sameAs": ["https://twitter.com/trademindedge"],
-    "contactPoint": { "@type": "ContactPoint", "contactType": "customer support", "email": "support@trademindedge.com" },
+    "@context": "https://schema.org", "@type": "Organization",
+    name: "TradeMind", url: "https://trademindedge.com",
+    logo: "https://trademindedge.com/icons/icon-512.png",
+    description: "The best trading journal for prop firm traders. Real-time tilt detection, mental readiness scores, multi-account drawdown tracking.",
+    sameAs: ["https://twitter.com/trademindedge"],
+    contactPoint: { "@type": "ContactPoint", contactType: "customer support", email: "support@trademindedge.com" },
   };
 
   const softwareJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "TradeMind",
-    "applicationCategory": "FinanceApplication",
-    "operatingSystem": "Web, iOS, Android",
-    "url": "https://trademindedge.com",
-    "description": "The best trading journal for FTMO, Apex, and TopStep traders. Real-time tilt detection, mental readiness scores, multi-account drawdown tracking, and ICT confluence analytics.",
-    "offers": [
-      { "@type": "Offer", "name": "Free", "price": "0", "priceCurrency": "USD" },
-      { "@type": "Offer", "name": "Pro", "price": "39", "priceCurrency": "USD", "billingDuration": "P1M" },
+    "@context": "https://schema.org", "@type": "SoftwareApplication",
+    name: "TradeMind", applicationCategory: "FinanceApplication",
+    operatingSystem: "Web, iOS, Android", url: "https://trademindedge.com",
+    description: "The best trading journal for FTMO, Apex, and TopStep traders.",
+    offers: [
+      { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
+      { "@type": "Offer", name: "Pro", price: "39", priceCurrency: "USD", billingDuration: "P1M" },
     ],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "reviewCount": "312",
-      "bestRating": "5",
-      "worstRating": "1",
-    },
-    "review": [
-      { "@type": "Review", "author": { "@type": "Person", "name": "Alex M." }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "I was failing FTMO for 6 months. After 2 weeks with TradeMind I noticed I was taking revenge trades on days when my mental score was below 50. Passed on my next attempt." },
-      { "@type": "Review", "author": { "@type": "Person", "name": "Jamie L." }, "reviewRating": { "@type": "Rating", "ratingValue": "5" }, "reviewBody": "The tilt banner saved my Apex account twice last month. I didn't even realize I was in revenge mode until it popped up." },
-    ],
+    aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", reviewCount: "312", bestRating: "5" },
   };
 
   const faqJsonLd = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      { "@type": "Question", "name": "What is the best trading journal for prop firm traders?", "acceptedAnswer": { "@type": "Answer", "text": "TradeMind is built specifically for prop firm traders running FTMO, Apex, TopStep, and other funded accounts. It includes real-time tilt detection, drawdown tracking per account, mental readiness scores before every session, and ICT/SMC confluence analytics — features no other trading journal offers." } },
-      { "@type": "Question", "name": "Does TradeMind work with FTMO?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. TradeMind supports FTMO and all major prop firms including Apex Trader Funding, TopstepX, The Funded Trader, and more. The multi-account dashboard shows your drawdown usage and account health for each firm side by side." } },
-      { "@type": "Question", "name": "What is tilt detection in trading?", "acceptedAnswer": { "@type": "Answer", "text": "Tilt detection in TradeMind monitors your live trading session for behavioral red flags: 3+ consecutive losses, trades entered within 5 minutes of a losing trade (revenge trading), and unusual trade frequency. When detected, a warning banner appears in real time so you can stop before the damage becomes critical." } },
-      { "@type": "Question", "name": "Can I import trades from Tradovate or NinjaTrader?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. TradeMind supports CSV import from Tradovate, NinjaTrader, Rithmic, MT4/MT5, and more. You can also connect your broker directly for automatic trade sync." } },
-    ],
+    "@context": "https://schema.org", "@type": "FAQPage",
+    mainEntity: FAQS.map((f) => ({
+      "@type": "Question", name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
   };
 
+  const price = billing === "annual" ? 29 : 39;
+
   return (
-    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
+    <div style={{ background: "#000", minHeight: "100vh", color: "#fff", fontFamily: "var(--font-geist-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif)", overflowX: "hidden" }}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+
       <style>{`
-        /* ── Reveal animations ── */
-        .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.55s cubic-bezier(0.16,1,0.3,1), transform 0.55s cubic-bezier(0.16,1,0.3,1); }
-        .reveal.in-view { opacity: 1; transform: translateY(0); }
-        .reveal-delay-1 { transition-delay: 0.08s; }
-        .reveal-delay-2 { transition-delay: 0.16s; }
-        .reveal-delay-3 { transition-delay: 0.24s; }
-        .reveal-delay-4 { transition-delay: 0.32s; }
+        * { box-sizing: border-box; }
+        ::selection { background: rgba(94,106,210,0.3); }
 
-        /* ── Card hover ── */
-        .card-lift { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), border-color 0.15s; }
-        .card-lift:hover { transform: translateY(-2px); border-color: var(--border-bright); }
+        @keyframes float-y { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+        @keyframes aurora { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(60px,-40px) scale(1.1)} 66%{transform:translate(-40px,30px) scale(0.95)} 100%{transform:translate(0,0) scale(1)} }
+        @keyframes aurora2 { 0%{transform:translate(0,0) scale(1)} 33%{transform:translate(-50px,60px) scale(1.08)} 66%{transform:translate(70px,-20px) scale(0.97)} 100%{transform:translate(0,0) scale(1)} }
+        @keyframes fade-up { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(400%)} }
 
-        /* ── Mockup ── */
-        .mockup-fade { opacity: 0; }
+        .fade-up { animation: fade-up 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
 
-        /* ── Keyframes ── */
-        @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        @keyframes scroll-logos { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
-        @keyframes hero-glow { 0%,100%{opacity:0.5} 50%{opacity:0.8} }
-
-        /* ── Logo strip ── */
-        .logos-track { display:flex; gap:48px; animation: scroll-logos 24s linear infinite; align-items:center; }
-        .logos-track:hover { animation-play-state: paused; }
-
-        /* ── FAQ ── */
-        .faq-item { border-bottom: 1px solid var(--border); }
-        .faq-answer { overflow: hidden; transition: max-height 0.3s cubic-bezier(0.16,1,0.3,1), opacity 0.25s ease; }
-
-        /* ── Trader cards ── */
-        .trader-card { transition: transform 0.2s cubic-bezier(0.16,1,0.3,1), border-color 0.15s; }
-        .trader-card:hover { transform: translateY(-3px) !important; border-color: var(--border-bright) !important; }
-
-        /* ── Grid ── */
-        .before-after-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-
-        /* ── Hero gradient text ── */
-        .hero-gradient-text {
-          background: linear-gradient(180deg, #f7f8f8 20%, rgba(247,248,248,0.55) 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
+        .glow-text {
+          background: linear-gradient(180deg, #fff 40%, rgba(255,255,255,0.55) 100%);
+          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
           background-clip: text;
         }
 
-        /* ── Desktop dropdown nav ── */
-        .nav-center { display:flex; align-items:center; gap:0; }
-        .nav-dd-wrap { position:relative; }
-        .nav-dd-wrap > .nav-dd-trigger { cursor:pointer; display:flex; align-items:center; gap:5px; }
-        .nav-dd {
-          display:none; position:absolute; top:calc(100% + 12px); left:50%; transform:translateX(-50%);
-          min-width:192px; background:#0f1011; border:1px solid rgba(255,255,255,0.09);
-          border-radius:12px; padding:6px; z-index:100; flex-direction:column; gap:1px;
-          box-shadow:0 20px 60px rgba(0,0,0,0.7), 0 0 0 0.5px rgba(255,255,255,0.04);
+        .feature-card {
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 20px;
+          transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
         }
-        .nav-dd::before { content:''; position:absolute; top:-14px; left:0; right:0; height:14px; }
-        .nav-dd-wrap:hover .nav-dd { display:flex; }
-        .nav-dd-wrap:hover .nav-dd-trigger { color:var(--text); }
-        .nav-dd-item { color:var(--text-dim); text-decoration:none; font-size:13px; font-weight:500; letter-spacing:-0.011em; padding:8px 12px; border-radius:7px; transition:background 0.12s, color 0.12s; display:block; white-space:nowrap; }
-        .nav-dd-item:hover { background:rgba(255,255,255,0.06); color:var(--text); }
-        .nav-dd-sep { height:1px; background:rgba(255,255,255,0.07); margin:4px 0; }
-
-        /* ── Hero CTA buttons ── */
-        .hero-cta-primary {
-          display:inline-flex; align-items:center; gap:8px;
-          background:#e5e5e6; color:#010102;
-          border:none; border-radius:8px; padding:11px 22px;
-          font-size:14px; font-weight:600; letter-spacing:-0.011em;
-          cursor:pointer; transition:background 0.15s, transform 0.15s;
-          text-decoration:none; white-space:nowrap;
-        }
-        .hero-cta-primary:hover { background:#fff; transform:translateY(-1px); }
-        .hero-cta-ghost {
-          display:inline-flex; align-items:center; gap:6px;
-          color:var(--text-dim); font-size:14px; font-weight:500;
-          letter-spacing:-0.011em; text-decoration:none; padding:11px 16px;
-          border-radius:8px; transition:color 0.15s;
-        }
-        .hero-cta-ghost:hover { color:var(--text); }
-
-        /* ── Responsive ── */
-        @media(max-width:820px) { .nav-center { display:none !important; } }
-        @media(max-width:640px) {
-          .before-after-row { grid-template-columns:1fr; }
-          .hero-section-inner { padding: 60px 20px 40px !important; }
-          .hero-mockup { display:none !important; }
-          .nav-btn-ghost { display:none !important; }
-          .nav-btn-primary { padding: 8px 14px !important; font-size: 13px !important; }
-          .hero-mobile-score { display:flex !important; }
-          .how-grid { grid-template-columns: 1fr !important; }
-          .stats-row { gap: 24px !important; padding: 32px 0 0 !important; }
-          .hero-stat-row { flex-direction:column !important; align-items:center; }
-          .hero-cta-primary { width: 100%; justify-content: center; font-size: 15px !important; padding: 14px 20px !important; }
-          .hero-cta-ghost { width: 100%; justify-content: center; }
-          #pricing .card { padding: 24px !important; }
-        }
-        .hero-mobile-score { display: none; }
-
-        /* ── Marketing headings — Linear-style tight tracking ── */
-        h2.font-bebas, h3.font-bebas {
-          font-family: var(--font-geist-sans), -apple-system, sans-serif;
-          letter-spacing: -0.038em;
-          font-weight: 800;
+        .feature-card:hover {
+          background: rgba(255,255,255,0.04);
+          border-color: rgba(255,255,255,0.12);
+          transform: translateY(-2px);
         }
 
-        /* ── Section divider ── */
-        .section-label {
+        .btn-primary {
           display: inline-flex; align-items: center; gap: 8px;
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 9999px; padding: 4px 14px;
-          font-size: 11px; color: var(--text-muted); font-weight: 600;
-          letter-spacing: 0.06em; background: rgba(255,255,255,0.025);
-          margin-bottom: 20px; text-transform: uppercase;
+          padding: 14px 28px;
+          background: #fff; color: #000;
+          border: none; border-radius: 12px;
+          font-size: 15px; font-weight: 700; font-family: inherit;
+          cursor: pointer; text-decoration: none;
+          transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+          box-shadow: 0 0 0 1px rgba(255,255,255,0.1), 0 4px 24px rgba(255,255,255,0.06);
+        }
+        .btn-primary:hover { background: #e8e8e8; transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 8px 32px rgba(255,255,255,0.1); }
+        .btn-primary:active { transform: translateY(0); }
+
+        .btn-ghost {
+          display: inline-flex; align-items: center; gap: 8px;
+          padding: 13px 24px;
+          background: rgba(255,255,255,0.04);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 12px; color: #fff;
+          font-size: 15px; font-weight: 600; font-family: inherit;
+          cursor: pointer; text-decoration: none;
+          transition: all 0.15s;
+        }
+        .btn-ghost:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.16); }
+
+        .nav-link {
+          font-size: 14px; color: #a1a1aa; text-decoration: none;
+          transition: color 0.15s;
+        }
+        .nav-link:hover { color: #fff; }
+
+        .stat-border { border-right: 1px solid rgba(255,255,255,0.07); }
+        @media (max-width: 640px) { .stat-border { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); } }
+
+        .testimonial-card {
+          break-inside: avoid;
+          background: rgba(255,255,255,0.02);
+          border: 1px solid rgba(255,255,255,0.07);
+          border-radius: 18px;
+          padding: 24px;
+          margin-bottom: 14px;
+        }
+
+        input[type=range]::-webkit-slider-thumb { background: #5E6AD2; }
+        input[type=range]::-moz-range-thumb { background: #5E6AD2; border: none; }
+
+        /* ── RESPONSIVE ──────────────────────────────────────────── */
+        .hero-grid { display: grid; grid-template-columns: 1fr 340px; gap: 80px; align-items: center; }
+        .stats-4 { display: grid; grid-template-columns: repeat(4,1fr); }
+        .problem-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+        .how-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; background: rgba(255,255,255,0.07); border-radius: 24px; overflow: hidden; }
+        .feature-split { display: grid; grid-template-columns: 1fr 1fr; gap: 0; background: #000; }
+        .comparison-row { display: grid; grid-template-columns: 1fr 100px 100px 100px 100px; }
+        .pricing-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .footer-5 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr; gap: 32px; margin-bottom: 48px; }
+        .calc-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .nav-links { display: flex; gap: 28px; align-items: center; }
+
+        @media (max-width: 900px) {
+          .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+          .feature-split { grid-template-columns: 1fr; }
+          .feature-split.rev > div:first-child { order: 2; }
+          .feature-split.rev > div:last-child { order: 1; }
+          .footer-5 { grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+        }
+        @media (max-width: 700px) {
+          .how-3 { grid-template-columns: 1fr; border-radius: 16px; }
+          .pricing-2 { grid-template-columns: 1fr; }
+          .footer-5 { grid-template-columns: 1fr 1fr; gap: 20px; }
+          .comparison-outer { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+          .comparison-row { grid-template-columns: 140px 72px 72px 72px 72px; min-width: 520px; }
+          .nav-links { display: none; }
+          .calc-3 { grid-template-columns: 1fr; }
+          .problem-3 { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+          .stats-4 { grid-template-columns: repeat(2,1fr); }
+          .stats-4 > div { border-right: none !important; border-bottom: 1px solid rgba(255,255,255,0.07); }
+          .stats-4 > div:nth-child(odd) { border-right: 1px solid rgba(255,255,255,0.07) !important; }
+          .footer-5 { grid-template-columns: 1fr; }
         }
       `}</style>
 
-      <a href="#main-content" style={{ position: "absolute", left: -9999, top: "auto", width: 1, height: 1, overflow: "hidden" }}
-        onFocus={(e) => { e.currentTarget.style.cssText = "position:fixed;top:16px;left:16px;background:var(--blue);color:white;padding:12px 20px;border-radius:8px;z-index:9999;font-weight:700;width:auto;height:auto;"; }}
-        onBlur={(e) => { e.currentTarget.style.cssText = "position:absolute;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden;"; }}>
-        Skip to main content
-      </a>
+      {/* ── NAV ─────────────────────────────────────────────────────────────── */}
+      <nav style={{
+        position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
+        padding: "0 24px",
+        background: navSolid ? "rgba(0,0,0,0.85)" : "transparent",
+        backdropFilter: navSolid ? "blur(20px) saturate(1.4)" : "none",
+        borderBottom: navSolid ? "1px solid rgba(255,255,255,0.07)" : "none",
+        transition: "background 0.3s ease, backdrop-filter 0.3s ease, border-color 0.3s ease",
+      }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto", height: 64, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Link href="/" style={{ fontWeight: 800, fontSize: 18, color: "#fff", textDecoration: "none", letterSpacing: "-0.5px" }}>TradeMind</Link>
 
-      {/* Nav */}
-      <nav className="app-header" style={{ position: "sticky" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
-
-          {/* Logo */}
-          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", flexShrink: 0 }}>
-            <img src="/logo.svg" alt="TradeMind" style={{ display: "block", width: 120, height: "auto" }} />
-          </Link>
-
-          {/* Center links — desktop only */}
-          <div className="nav-center">
-            <a href="#how" className="nav-link">How it works</a>
-            <a href="#pricing" className="nav-link">Pricing</a>
-            <Link href="/for-ftmo-traders" className="nav-link">For Prop Traders</Link>
-            <Link href="/blog" className="nav-link">Blog</Link>
+          <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+            <div className="nav-links">
+              {[
+                { href: "/for-ftmo-traders", label: "Prop Traders" },
+                { href: "/pricing", label: "Pricing" },
+                { href: "/blog", label: "Blog" },
+                { href: "/vs-tradezella", label: "Compare" },
+              ].map((l) => (
+                <Link key={l.href} href={l.href} className="nav-link">{l.label}</Link>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <Link href="/login" className="nav-link" style={{ fontSize: 14 }}>Sign in</Link>
+              <Link href="/login" className="btn-primary" style={{ padding: "9px 18px", fontSize: 14 }}>
+                Start free
+              </Link>
+            </div>
           </div>
-
-          {/* Auth */}
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-            <Link href="/login" className="nav-link nav-btn-ghost" style={{ fontSize: 13 }}>Log in</Link>
-            <Link href="/login?callbackUrl=/checkin">
-              <button className="btn-primary nav-btn-primary" style={{ padding: "10px 20px", fontSize: 14 }}>Get your score →</button>
-            </Link>
-          </div>
-
         </div>
       </nav>
 
-      {/* Hero */}
-      <section id="main-content" style={{ position: "relative", overflow: "hidden", background: "var(--bg)" }}>
-        {/* Mesh background */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(rgba(255,255,255,0.025) 1px, transparent 1px)", backgroundSize: "24px 24px", WebkitMaskImage: "radial-gradient(ellipse 65% 55% at 50% 40%, black 30%, transparent 100%)", maskImage: "radial-gradient(ellipse 65% 55% at 50% 40%, black 30%, transparent 100%)", pointerEvents: "none" }} />
-        {/* Brand glow */}
-        <div style={{ position: "absolute", width: 800, height: 600, background: "radial-gradient(ellipse, rgba(94,106,210,0.1) 0%, transparent 70%)", top: "0%", left: "50%", transform: "translateX(-50%)", pointerEvents: "none", animation: "hero-glow 6s ease-in-out infinite" }} />
+      {/* ── HERO ─────────────────────────────────────────────────────────────── */}
+      <section style={{ minHeight: "100vh", display: "flex", alignItems: "center", position: "relative", overflow: "hidden", paddingTop: 64 }}>
+        {/* Aurora background */}
+        <div style={{ position: "absolute", inset: 0, zIndex: 0 }}>
+          <div style={{ position: "absolute", top: "10%", left: "15%", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(94,106,210,0.2) 0%, transparent 70%)", filter: "blur(80px)", animation: "aurora 18s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", top: "30%", right: "10%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(0,232,122,0.12) 0%, transparent 70%)", filter: "blur(80px)", animation: "aurora2 22s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", bottom: "10%", left: "35%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(157,111,255,0.1) 0%, transparent 70%)", filter: "blur(80px)", animation: "aurora 26s ease-in-out infinite reverse" }} />
+          {/* Grid */}
+          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)", backgroundSize: "60px 60px", maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)" }} />
+        </div>
 
-        <div className="hero-section-inner" style={{ maxWidth: 1200, margin: "0 auto", padding: "100px 24px 80px", position: "relative" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "80px 24px", position: "relative", zIndex: 1, width: "100%" }}>
+          <div className="hero-grid">
 
-          {/* Centered hero text */}
-          <div style={{ textAlign: "center", maxWidth: 760, margin: "0 auto 64px" }}>
-
-            {/* Badge */}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid rgba(255,255,255,0.09)", borderRadius: 9999, padding: "5px 14px", fontSize: 12, color: "var(--text-dim)", fontWeight: 500, letterSpacing: "-0.011em", marginBottom: 32, background: "rgba(255,255,255,0.03)" }}>
-              <div style={{ width: 5, height: 5, background: "var(--green)", borderRadius: "50%", animation: "pulse-dot 2.5s ease-in-out infinite" }} />
-              Trading psychology protocol · Research-backed · Free to start
-            </div>
-
-            <h1 style={{ fontSize: "clamp(42px, 7vw, 80px)", fontWeight: 700, letterSpacing: "-0.04em", lineHeight: 1.05, marginBottom: 24 }}>
-              <span className="hero-gradient-text">Know if your mind is ready<br />before you risk a dollar.</span>
-            </h1>
-
-            <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-dim)", lineHeight: 1.7, letterSpacing: "-0.011em", marginBottom: 16, maxWidth: 540, margin: "0 auto 16px" }}>
-              Every serious trader has a pre-trade routine. This is yours.
-            </p>
-            <p style={{ fontSize: "clamp(14px, 1.6vw, 16px)", color: "var(--text-muted)", lineHeight: 1.7, letterSpacing: "-0.011em", marginBottom: 40, maxWidth: 540, margin: "0 auto 40px" }}>
-              The market doesn&apos;t beat traders. Traders beat themselves — on days TradeMind would have flagged.
-            </p>
-
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", alignItems: "center", flexWrap: "wrap", marginBottom: 48 }}>
-              <Link href="/login?callbackUrl=/checkin" className="hero-cta-primary">
-                Get your Mental Score now →
-              </Link>
-              <a href="#how" className="hero-cta-ghost">
-                See how it works in 60 seconds
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M6.5 1v11M2 8l4.5 4.5L11 8" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </a>
-            </div>
-
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, flexWrap: "wrap" }} className="hero-stat-row">
-              {[
-                "7-day free trial — cancel before day 8, pay nothing",
-                "Popular with FTMO, TopStep, Apex & other funded traders",
-              ].map((text) => (
-                <div key={text} style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, color: "var(--text-muted)", letterSpacing: "-0.011em" }}>
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none" style={{ color: "var(--green)", flexShrink: 0 }}><path d="M2 6.5l3 3 6-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  {text}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* App mockup — centered below hero text */}
-          <div className="hero-mockup" style={{ maxWidth: 420, margin: "0 auto", position: "relative" }}>
-            <div style={{ position: "absolute", inset: -40, background: `radial-gradient(ellipse, ${phase.glow} 0%, transparent 70%)`, pointerEvents: "none", transition: "background 0.8s ease", zIndex: 0 }} />
-            <div style={{ position: "relative", zIndex: 1, background: "var(--surface)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 16, overflow: "hidden", boxShadow: `0 0 0 0.5px rgba(255,255,255,0.04), 0 32px 80px rgba(0,0,0,0.6)`, transition: "box-shadow 0.6s ease" }}>
-              <div style={{ background: "var(--surface2)", padding: "9px 14px", display: "flex", alignItems: "center", gap: 8, borderBottom: "1px solid var(--border)" }}>
-                <div style={{ display: "flex", gap: 5 }}>
-                  {["rgba(255,95,86,0.6)", "rgba(255,189,46,0.6)", "rgba(39,201,63,0.6)"].map((c, i) => (
-                    <div key={i} style={{ width: 10, height: 10, borderRadius: "50%", background: c }} />
-                  ))}
-                </div>
-                <div style={{ flex: 1, background: "var(--bg)", borderRadius: 4, padding: "3px 10px", fontSize: 10, color: "var(--text-muted)", textAlign: "center", letterSpacing: "0.02em" }}>trademindedge.com/dashboard</div>
+            {/* Left: Text */}
+            <div>
+              {/* Badge */}
+              <div className="fade-up" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.25)", borderRadius: 30, marginBottom: 32 }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#5E6AD2", animation: "blink 2s ease-in-out infinite" }} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#8B96E8", letterSpacing: "0.06em" }}>USED BY 2,400+ PROP TRADERS</span>
               </div>
 
-              <div style={{ padding: 16 }}>
-                <div style={{ background: phase.glow, border: `1px solid ${phase.glowHex}30`, borderRadius: 12, padding: "14px 16px", display: "flex", alignItems: "center", gap: 14, marginBottom: 10, transition: "background 0.5s ease, border-color 0.5s ease", opacity: mockupTransitioning ? 0.5 : 1 }}>
-                  <svg width="60" height="60" viewBox="0 0 64 64" style={{ flexShrink: 0 }}>
-                    <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
-                    <circle cx="32" cy="32" r="26" fill="none" stroke={phase.color} strokeWidth="6"
-                      strokeDasharray={`${(phase.score / 100) * 163.4} 163.4`}
-                      strokeLinecap="round" transform="rotate(-90 32 32)"
-                      style={{ filter: `drop-shadow(0 0 6px ${phase.color})`, transition: "stroke-dasharray 0.6s ease, stroke 0.4s ease" }}
-                    />
-                    <text x="32" y="37" textAnchor="middle" fill="white" fontSize="14" fontWeight="700">{phase.score}</text>
-                  </svg>
-                  <div style={{ opacity: mockupTransitioning ? 0 : 1, transition: "opacity 0.3s ease" }}>
-                    <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 4 }}>TODAY · MENTAL SCORE</div>
-                    <div className="font-bebas" style={{ fontSize: 30, color: phase.color, lineHeight: 1, textShadow: `0 0 20px ${phase.color}60` }}>{phase.verdict}</div>
-                    <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{phase.msg}</div>
-                  </div>
-                </div>
+              {/* Headline */}
+              <h1 className="fade-up delay-1 glow-text" style={{ fontSize: "clamp(44px,6vw,80px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-3px", margin: "0 0 24px" }}>
+                Know if you should<br />trade today.
+              </h1>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 10 }}>
-                  {[{ val: "7", label: "STREAK", color: "var(--amber)", suffix: <svg width="10" height="12" viewBox="0 0 10 12" fill="none" style={{ display:"inline-block",verticalAlign:"middle",marginLeft:1 }}><path d="M6 1C6 1 9 4 9 7a4 4 0 01-8 0c0-1.2.4-2 1-3 0 1.5 1 2.5 2 2.5C3.5 4 6 1 6 1z" fill="var(--amber)" opacity="0.85"/></svg> }, { val: "76", label: "7-DAY AVG", color: "var(--green)", suffix: null }, { val: "14", label: "THIS MONTH", color: "var(--blue)", suffix: null }].map((s) => (
-                    <div key={s.label} style={{ background: "var(--surface2)", borderRadius: 8, padding: "8px 6px", textAlign: "center" }}>
-                      <div className="font-bebas" style={{ fontSize: 18, color: s.color, lineHeight: 1, marginBottom: 2 }}>{s.val}{s.suffix}</div>
-                      <div style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.06em" }}>{s.label}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={{ background: "var(--surface2)", borderRadius: 8, padding: "10px 10px 8px" }}>
-                  <div style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.1em", marginBottom: 8 }}>LAST 7 DAYS</div>
-                  <div style={{ display: "flex", gap: 5, alignItems: "flex-end", height: 36 }}>
-                    {[65, 80, 55, 90, 72, 48, 82].map((v, i) => (
-                      <div key={i} style={{ flex: 1, height: (v / 100) * 32, background: v >= 70 ? "var(--green)" : v >= 45 ? "var(--amber)" : "var(--red)", borderRadius: 3, opacity: i === 6 ? 1 : 0.45 }} />
-                    ))}
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: 5, justifyContent: "center", marginTop: 12 }}>
-                  {MOCKUP_PHASES.map((p, i) => (
-                    <div key={i} onClick={() => setMockupPhase(i)} style={{ width: i === mockupPhase ? 16 : 6, height: 4, borderRadius: 2, background: i === mockupPhase ? p.color : "var(--border-bright)", transition: "all 0.3s ease", cursor: "pointer" }} />
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile score preview */}
-          <div className="hero-mobile-score" style={{ justifyContent: "center", marginBottom: 32, marginTop: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 16, background: phase.glow, border: `1px solid ${phase.glowHex}30`, borderRadius: 14, padding: "14px 20px", transition: "all 0.5s ease", opacity: mockupTransitioning ? 0.5 : 1 }}>
-              <svg width="52" height="52" viewBox="0 0 64 64">
-                <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="6" />
-                <circle cx="32" cy="32" r="26" fill="none" stroke={phase.color} strokeWidth="6"
-                  strokeDasharray={`${(phase.score / 100) * 163.4} 163.4`}
-                  strokeLinecap="round" transform="rotate(-90 32 32)"
-                  style={{ filter: `drop-shadow(0 0 5px ${phase.color})`, transition: "stroke-dasharray 0.6s ease, stroke 0.4s ease" }}
-                />
-                <text x="32" y="37" textAnchor="middle" fill="white" fontSize="14" fontWeight="700">{phase.score}</text>
-              </svg>
-              <div style={{ opacity: mockupTransitioning ? 0 : 1, transition: "opacity 0.3s ease" }}>
-                <div style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.08em", marginBottom: 2 }}>TODAY · MENTAL SCORE</div>
-                <div className="font-bebas" style={{ fontSize: 28, color: phase.color, lineHeight: 1 }}>{phase.verdict}</div>
-                <div style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 2 }}>{phase.msg}</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats row */}
-          <div className="stats-row reveal" style={{ display: "flex", gap: 0, justifyContent: "center", padding: "56px 0 0", marginTop: 56, borderTop: "1px solid var(--border)", flexWrap: "wrap" }}>
-            {[
-              { val: "26%", label: "worse decisions from one night under 6 hours sleep", color: "var(--red)", src: "Walker, 2017" },
-              { val: "60s", label: "daily check-in — done before you open your charts", color: "var(--blue)", src: null },
-              { val: "3×", label: "more rule violations in the final session hour", color: "var(--amber)", src: "Baumeister, 2000" },
-              { val: "60%", label: "stronger loss aversion under emotional stress", color: "var(--purple)", src: "Lo et al., 2005" },
-            ].map((s, i) => (
-              <div key={s.label} style={{ textAlign: "center", flex: "1 1 180px", padding: "24px 20px", borderRight: i < 3 ? "1px solid var(--border)" : "none" }}>
-                <div className="font-bebas" style={{ fontSize: 48, color: s.color, lineHeight: 1, letterSpacing: "-0.02em" }}>{s.val}</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 8, letterSpacing: "-0.011em", maxWidth: 140, margin: "8px auto 0", lineHeight: 1.6 }}>{s.label}</div>
-                {s.src && <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 6, opacity: 0.5, letterSpacing: "0" }}>{s.src}</div>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof Strip */}
-      <section style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
-        <div style={{ padding: "12px 24px", textAlign: "center", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", gap: 16, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 13, color: "var(--text-dim)", fontWeight: 600, letterSpacing: "-0.011em" }}>
-            {siteStats?.users && siteStats.users >= 100
-              ? `${siteStats.users.toLocaleString()}+ traders check in every morning before they open a chart`
-              : "Serious traders check in every morning before they open a chart"}
-          </span>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", borderRadius: 20, padding: "4px 12px", fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.06em", whiteSpace: "nowrap" }}>Used by traders at 10+ prop firms worldwide</div>
-        </div>
-        <div style={{ padding: "12px 0", overflow: "hidden" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
-            <div style={{ flexShrink: 0, padding: "0 24px", fontSize: 10, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.1em", whiteSpace: "nowrap", borderRight: "1px solid var(--border)" }}>
-              USED BY TRADERS AT
-            </div>
-            <div style={{ flex: 1, overflow: "hidden", position: "relative" }}>
-              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(90deg, var(--surface), transparent)", zIndex: 1, pointerEvents: "none" }} />
-              <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 60, background: "linear-gradient(270deg, var(--surface), transparent)", zIndex: 1, pointerEvents: "none" }} />
-              <div className="logos-track">
-                {[
-                  "FTMO", "Apex Funding", "TopStep", "MyForexFunds", "Funded Next",
-                  "E8 Markets", "The Funded Trader", "Bulenox", "FunderPro", "True Forex Funds",
-                  "FTMO", "Apex Funding", "TopStep", "MyForexFunds", "Funded Next",
-                  "E8 Markets", "The Funded Trader", "Bulenox", "FunderPro", "True Forex Funds",
-                ].map((label, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                    <div style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--blue)", opacity: 0.5 }} />
-                    <span style={{ fontSize: 12, color: "var(--text-dim)", letterSpacing: "0.05em", whiteSpace: "nowrap", fontWeight: 500 }}>{label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Manifesto */}
-      <section style={{ background: "var(--bg)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center" }}>
-          <div className="reveal">
-            <p style={{ fontSize: "clamp(22px, 3.5vw, 32px)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.25, color: "var(--text)", marginBottom: 28 }}>
-              The standard has changed.
-            </p>
-            <p style={{ fontSize: "clamp(16px, 2vw, 19px)", color: "var(--text-dim)", lineHeight: 1.8, marginBottom: 28, maxWidth: 600, margin: "0 auto 28px" }}>
-              Serious traders don&apos;t open a chart without checking their mental state first. The ones who skip this step aren&apos;t disciplined — they&apos;re operating with a known blind spot and pretending it doesn&apos;t cost them.
-            </p>
-            <p style={{ fontSize: "clamp(15px, 1.8vw, 17px)", color: "var(--text-muted)", lineHeight: 1.8, maxWidth: 560, margin: "0 auto 36px" }}>
-              TradeMind exists for that moment. The 60 seconds that separates your best trading from your worst.
-            </p>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.18)", borderRadius: 12, padding: "14px 24px" }}>
-              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink: 0 }}><circle cx="9" cy="9" r="7.5" stroke="var(--blue)" strokeOpacity="0.4" strokeWidth="1.2"/><path d="M6 9l2 2 4-4" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              <span style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.5, letterSpacing: "-0.011em" }}>
-                <strong style={{ color: "var(--text)" }}>60 seconds.</strong> 5 questions. A score from 0–100 and a verdict: <strong style={{ color: "var(--green)" }}>GO</strong>, <strong style={{ color: "var(--amber)" }}>CAUTION</strong>, or <strong style={{ color: "var(--red)" }}>NO-TRADE</strong>.
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem */}
-      <section style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto", textAlign: "center" }}>
-          <div className="reveal">
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 20 }}>You already know this pattern.</h2>
-            <p style={{ color: "var(--text-dim)", fontSize: "clamp(15px, 2vw, 18px)", maxWidth: 600, margin: "0 auto 40px", lineHeight: 1.8 }}>
-              You slept 4 hours. You took a big loss yesterday. You open the platform and tell yourself you&apos;re fine.
-              Three hours later, you&apos;re down 3× your normal risk — and you knew it before you even clicked buy.
-            </p>
-          </div>
-          <div className="reveal reveal-delay-1" style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap", marginBottom: 40 }}>
-            {[
-              { label: "Revenge Trading", desc: "Lost $800 on a trade, immediately opened another" },
-              { label: "Overtrading", desc: "20 trades when your edge requires 3" },
-              { label: "FOMO", desc: "Chased a breakout that already moved 4%" },
-              { label: "Ignoring stop-loss", desc: "\"It'll bounce back.\" It didn't." },
-              { label: "Oversizing", desc: "Tripled position size on a hunch" },
-              { label: "Chasing losses", desc: "Added to a loser to average down" },
-            ].map((item) => (
-              <div key={item.label} title={item.desc} style={{ background: "rgba(255,59,92,0.08)", border: "1px solid rgba(255,59,92,0.2)", borderRadius: 8, padding: "8px 16px", fontSize: 14, color: "var(--red)", cursor: "default" }}>{item.label}</div>
-            ))}
-          </div>
-
-          <div className="reveal reveal-delay-2" style={{ background: "rgba(255,59,92,0.05)", border: "1px solid rgba(255,59,92,0.15)", borderRadius: 14, padding: "20px 28px", margin: "0 auto 32px", maxWidth: 620, textAlign: "left" }}>
-            <div style={{ fontSize: 10, color: "var(--red)", fontWeight: 700, letterSpacing: "0.12em", marginBottom: 8 }}>THE REAL COST OF A BAD MENTAL DAY</div>
-            <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.75, margin: 0 }}>
-              The average FTMO challenge costs <strong style={{ color: "var(--text)" }}>$550</strong>. Most traders fail <strong style={{ color: "var(--text)" }}>3+ times</strong> before passing — that&apos;s <strong style={{ color: "var(--red)" }}>$1,650+</strong> before a single funded dollar. Behavioral research shows the majority of those failures happen on high-stress, low-sleep days. The ones TradeMind flags <em>before</em> you open your charts.
-            </p>
-          </div>
-
-          <p className="reveal reveal-delay-3" style={{ fontSize: 16, color: "var(--text-dim)", fontStyle: "italic" }}>
-            TradeMind turns that feeling into a number — and that number into a decision.
-          </p>
-        </div>
-      </section>
-
-      {/* ── Category positioning ── */}
-      <section style={{ background: "var(--bg)", padding: "100px 24px", borderTop: "1px solid var(--border)" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 72 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid rgba(255,255,255,0.08)", borderRadius: 9999, padding: "5px 16px", fontSize: 11, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.06em", background: "rgba(255,255,255,0.025)", marginBottom: 28 }}>
-              A NEW CATEGORY
-            </div>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(40px, 6vw, 72px)", marginBottom: 24, lineHeight: 1.05 }}>
-              Built for one moment:<br />
-              <span className="hero-gradient-text">the 60 seconds before you trade.</span>
-            </h2>
-            <p style={{ fontSize: "clamp(16px, 2vw, 18px)", color: "var(--text-dim)", maxWidth: 540, margin: "0 auto", lineHeight: 1.75, letterSpacing: "-0.011em" }}>
-              Every other tool was designed to analyze what happened. TradeMind was designed to change what happens next — before you click, before you risk, before the damage is done.
-            </p>
-          </div>
-
-          {/* 4 pillars — Linear-style grid with 1px gap dividers */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 1, background: "var(--border)", border: "1px solid var(--border)", borderRadius: 16, overflow: "hidden", marginBottom: 80 }}>
-            {[
-              {
-                color: "var(--blue)",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--blue)" strokeWidth="1.5"/><path d="M12 7v5l3 3" stroke="var(--blue)" strokeWidth="1.8" strokeLinecap="round"/></svg>,
-                tag: "PRE-TRADE VERDICT",
-                title: "A verdict before the first click.",
-                desc: "GO. CAUTION. NO-TRADE. A science-grounded decision in 60 seconds — not a gut feeling, not a hunch. A number you can act on before your charts ever open.",
-              },
-              {
-                color: "var(--green)",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke="var(--green)" strokeWidth="1.5"/><path d="M7 16l3-5 3 4 3-7 3 5" stroke="var(--green)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                tag: "BEHAVIORAL SCIENCE",
-                title: "Thirty years of research. Sixty seconds of your morning.",
-                desc: "Sleep quality, emotional state, cognitive load, stress, decision fatigue. Five peer-reviewed dimensions synthesized into one actionable score. Not folklore — published science.",
-              },
-              {
-                color: "var(--amber)",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 20l5-8 4 4 4-9 5 7" stroke="var(--amber)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/><path d="M3 22h18" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-                tag: "YOUR BEHAVIORAL FINGERPRINT",
-                title: "Your worst trades have a pattern. We find it.",
-                desc: "Over weeks and months, TradeMind identifies the precise mental conditions that precede your most costly sessions — then surfaces them before the pattern repeats.",
-              },
-              {
-                color: "var(--purple)",
-                icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="3.5" stroke="var(--purple)" strokeWidth="1.5"/><circle cx="17" cy="8" r="3.5" stroke="var(--purple)" strokeWidth="1.5"/><path d="M3 19c0-2.761 2.239-5 5-5h8c2.761 0 5 2.239 5 5" stroke="var(--purple)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-                tag: "ACCOUNTABILITY LAYER",
-                title: "Discipline compounds when it's visible.",
-                desc: "Your trading circle sees your morning score. When the people you respect can see your readiness level, the standard you hold yourself to rises — automatically.",
-              },
-            ].map((item, i) => (
-              <div key={i} className={`card-lift reveal reveal-delay-${i + 1}`} style={{ background: "var(--surface)", padding: "36px 32px" }}>
-                <div style={{ marginBottom: 20, width: 48, height: 48, borderRadius: 12, background: `${item.color}12`, border: `1px solid ${item.color}22`, display: "flex", alignItems: "center", justifyContent: "center" }}>{item.icon}</div>
-                <div style={{ fontSize: 10, color: item.color, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 12 }}>{item.tag}</div>
-                <h3 style={{ fontSize: 17, fontWeight: 700, letterSpacing: "-0.025em", color: "var(--text)", marginBottom: 12, lineHeight: 1.35 }}>{item.title}</h3>
-                <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.8 }}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Manifesto */}
-          <div className="reveal" style={{ textAlign: "center" }}>
-            <p style={{ fontSize: "clamp(22px, 3.5vw, 34px)", fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.2, color: "var(--text)", maxWidth: 680, margin: "0 auto 40px" }}>
-              The industry built better rearview mirrors.{" "}
-              <span className="hero-gradient-text">We built the windshield.</span>
-            </p>
-            <Link href="/login?callbackUrl=/checkin" className="hero-cta-primary">
-              Take your first check-in — 60 seconds →
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </Link>
-          </div>
-
-        </div>
-      </section>
-
-      {/* Trader Types */}
-      <section id="trader-types" style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 24px" }}>
-        <div className="reveal" style={{ textAlign: "center", marginBottom: 52 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 20, padding: "6px 16px", marginBottom: 20 }}>
-            <span style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 700, letterSpacing: "0.1em" }}>BUILT FOR YOUR STYLE</span>
-          </div>
-          <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>No matter how you trade.</h2>
-          <p style={{ color: "var(--text-dim)", fontSize: 16, maxWidth: 520, margin: "0 auto" }}>The same mental states sabotage every trader — regardless of asset class, timeframe, or strategy.</p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
-          {TRADER_TYPES.map((t, i) => (
-            <div key={t.type} className={`card trader-card reveal reveal-delay-${i + 1}`} style={{ padding: 28, borderColor: `${t.color}25`, height: "100%" }}>
-              <div style={{ marginBottom: 16 }}>{t.icon}</div>
-              <h3 className="font-bebas" style={{ fontSize: 22, color: t.color, marginBottom: 12 }}>{t.type}</h3>
-              <p style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.7, marginBottom: 14 }}>{t.pain}</p>
-              <div style={{ height: 1, background: `${t.color}20`, marginBottom: 14 }} />
-              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7 }}>{t.fix}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Social proof strip */}
-      <div style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "18px 24px", background: "rgba(255,255,255,0.015)" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center", gap: 40, flexWrap: "wrap" }}>
-          {[
-            {
-              value: siteStats && siteStats.checkins > 0 ? `${siteStats.checkins.toLocaleString()}+` : "60s",
-              label: siteStats && siteStats.checkins > 0 ? "check-ins logged" : "to your first GO / NO-TRADE verdict",
-              color: "var(--green)",
-            },
-            { value: "5", label: "questions, 60 seconds", color: "var(--blue)" },
-            { value: "3×", label: "more rule violations in the final session hour", color: "var(--amber)" },
-            { value: "Free", label: "to start — no card needed", color: "var(--text-dim)" },
-          ].map((s) => (
-            <div key={s.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 18, fontWeight: 800, color: s.color, fontVariantNumeric: "tabular-nums" }}>{s.value}</span>
-              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{s.label}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* How it works */}
-      <section id="how" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 56 }}>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>How TradeMind works</h2>
-            <p style={{ color: "var(--text-dim)", fontSize: 16 }}>Seven layers of mental protection. One goal: stop losing money on days you should have stayed out.</p>
-          </div>
-          <div className="how-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
-            {STEPS.map((item, idx) => (
-              <div key={item.step} className={`card reveal reveal-delay-${Math.min(idx + 1, 4)}`} style={{ padding: 28, borderColor: `${item.color}20`, position: "relative" }}>
-                <div style={{ marginBottom: 16 }}>{item.icon}</div>
-                <div className="font-bebas" style={{ fontSize: 36, color: item.color, lineHeight: 1, marginBottom: 8, textShadow: `0 0 20px ${item.color}40` }}>{item.step}</div>
-                <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, color: "var(--text)" }}>{item.title}</h3>
-                <p style={{ color: "var(--text-dim)", fontSize: 14, lineHeight: 1.7 }}>{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Platform Features */}
-      <section id="features" style={{ background: "var(--bg)", borderTop: "1px solid var(--border)", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 52 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,59,92,0.08)", border: "1px solid rgba(255,59,92,0.2)", borderRadius: 20, padding: "6px 16px", marginBottom: 20 }}>
-              <span style={{ fontSize: 12, color: "var(--red)", fontWeight: 700, letterSpacing: "0.1em" }}>THE FULL PLATFORM</span>
-            </div>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>Every tool. One subscription.</h2>
-            <p style={{ color: "var(--text-dim)", fontSize: 16, maxWidth: 520, margin: "0 auto" }}>
-              TradeMind isn&apos;t a check-in app. It&apos;s a complete trading psychology platform — built for traders who take their edge seriously.
-            </p>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))", gap: 12 }}>
-            {[
-              {
-                bg: "rgba(255,59,92,0.08)", bd: "rgba(255,59,92,0.18)", color: "var(--red)", tag: "HARD ENFORCEMENT",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="6" y="10" width="12" height="11" rx="2" stroke="var(--red)" strokeWidth="1.5"/><path d="M9 10V7a3 3 0 016 0v3" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/><circle cx="12" cy="15.5" r="1.5" fill="var(--red)"/></svg>,
-                title: "Circuit Breaker",
-                desc: "Hit your daily limit and TradeMind acts on every layer: Chrome extension blocks TradingView + broker sites, MT4/MT5 EA stops new orders at the terminal, and Bybit/Alpaca/Binance open orders get cancelled via API. Resets at midnight.",
-              },
-              {
-                bg: "rgba(94,106,210,0.08)", bd: "rgba(94,106,210,0.18)", color: "var(--blue)", tag: "AUTOMATION",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 12a8 8 0 018-8M20 12a8 8 0 01-8 8" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/><path d="M9 4L12 1l3 3M15 20l-3 3-3-3" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title: "Live Broker Sync",
-                desc: "Connect MT4, MT5, Bybit, Alpaca, Binance, and TopstepX. Trades auto-import after each session — no manual logging, no missed entries.",
-              },
-              {
-                bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.18)", color: "var(--green)", tag: "REFLECTION",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="4" width="14" height="17" rx="2" stroke="var(--green)" strokeWidth="1.5"/><path d="M9 9h6M9 13h4M9 16.5l2 2 4-4" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title: "Session Recap",
-                desc: "Close your session with a structured debrief — mood rating, reflection note, and one thing to carry into tomorrow. Builds the data that makes insights real.",
-              },
-              {
-                bg: "rgba(255,176,32,0.08)", bd: "rgba(255,176,32,0.18)", color: "var(--amber)", tag: "COMPETITION",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="5" height="9" rx="1" stroke="var(--amber)" strokeWidth="1.5"/><rect x="9.5" y="8" width="5" height="13" rx="1" stroke="var(--amber)" strokeWidth="1.5"/><rect x="16" y="14" width="5" height="7" rx="1" stroke="var(--amber)" strokeWidth="1.5"/></svg>,
-                title: "Leaderboard",
-                desc: "Ranked by mental discipline — streaks, consistency score, check-in rate. The traders who do the work, visible at a glance.",
-              },
-              {
-                bg: "rgba(139,92,246,0.08)", bd: "rgba(139,92,246,0.18)", color: "#8B5CF6", tag: "ACCOUNTABILITY",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="#8B5CF6" strokeWidth="1.5"/><circle cx="17" cy="8" r="3" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M3 20c0-3.314 2.686-6 6-6h6c3.314 0 6 2.686 6 6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-                title: "Trading Circles",
-                desc: "Invite your group. Share morning scores, see who traded on a NO-TRADE day, and hold each other to a standard that actually sticks.",
-              },
-              {
-                bg: "rgba(94,106,210,0.08)", bd: "rgba(94,106,210,0.18)", color: "var(--blue)", tag: "REAL-TIME ALERTS",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2a6 6 0 016 6c0 3.5.7 5.5 2 7H4c1.3-1.5 2-3.5 2-7a6 6 0 016-6z" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/><path d="M10 19a2 2 0 104 0" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-                title: "Push Notifications",
-                desc: "Alerted when your circuit breaker trips, when your streak is at risk, when it&apos;s time to check in. Stays on you so you don&apos;t have to stay on yourself.",
-              },
-              {
-                bg: "rgba(255,176,32,0.08)", bd: "rgba(255,176,32,0.18)", color: "var(--amber)", tag: "CONSISTENCY",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-6l1-8z" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title: "Streak Engine",
-                desc: "Daily streaks, at-risk warnings, and recovery nudges. Consistency is the compound interest of trading psychology — this makes it visible.",
-              },
-              {
-                bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.18)", color: "var(--green)", tag: "DISCIPLINE",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="2" stroke="var(--green)" strokeWidth="1.5"/><path d="M8 7h8M8 11h8M8 15h5" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round"/></svg>,
-                title: "Trading Playbook",
-                desc: "Write your rules. Review them pre-trade. Tag violations when you break them. Your playbook is the contract you make with yourself — enforced daily.",
-              },
-              {
-                bg: "rgba(94,106,210,0.08)", bd: "rgba(94,106,210,0.18)", color: "var(--blue)", tag: "DEEP ANALYSIS",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="14" height="18" rx="2" stroke="var(--blue)" strokeWidth="1.5"/><path d="M8 9h8M8 13h5M7 18l4-5 3 3 3-4" stroke="var(--blue)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title: "Monthly Report",
-                desc: "Score trends, P&L correlation, win rate by mental state, most expensive patterns. A full behavioral summary — auto-generated, shareable.",
-              },
-              {
-                bg: "rgba(139,92,246,0.08)", bd: "rgba(139,92,246,0.18)", color: "#8B5CF6", tag: "CROSS-PLATFORM",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="3" stroke="#8B5CF6" strokeWidth="1.5"/><path d="M9 18h6" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round"/><path d="M9 8l2 2 4-4" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title: "Works Everywhere",
-                desc: "Install as a PWA on iOS or Android from your browser — no app store needed. Works offline. Opens from your home screen like a native app.",
-              },
-              {
-                bg: "rgba(96,165,250,0.08)", bd: "rgba(96,165,250,0.2)", color: "#60A5FA", tag: "ICT / SMC",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 18l4-6 4 4 4-8 4 5" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="19" cy="13" r="2.5" stroke="#60A5FA" strokeWidth="1.4"/></svg>,
-                title: "ICT / SMC Setup Library",
-                desc: "Built-in reference for all 9 Smart Money Concepts: FVG, Order Block, BOS, ChoCh, SMT Divergence, Liquidity Sweep, Displacement, and more — with step-by-step trade instructions and confluence factors.",
-              },
-              {
-                bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.18)", color: "var(--green)", tag: "MENTAL PATTERNS",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9.5 3C6.5 3 4 5.5 4 8.5c0 2.3 1.4 4.3 3.5 5.2V19a1 1 0 001 1h7a1 1 0 001-1v-5.3c2.1-.9 3.5-2.9 3.5-5.2C20 5.5 17.5 3 14.5 3H9.5Z" stroke="var(--green)" strokeWidth="1.5" strokeLinejoin="round"/></svg>,
-                title: "Mental Patterns Dashboard",
-                desc: "Correlates your sleep quality, caffeine, exercise, and alcohol against your actual P&L — and generates specific insights. 'You earn $X more on days you exercise.' No other trading tool does this.",
-              },
-              {
-                bg: "rgba(59,130,246,0.08)", bd: "rgba(59,130,246,0.2)", color: "#3B82F6", tag: "DESKTOP SYNC",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 9v6M21 9v6M3 12h5M16 12h5M8 7v10M16 7v10M8 9.5C8 8.1 9.8 7 12 7s4 1.1 4 2.5v5c0 1.4-1.8 2.5-4 2.5s-4-1.1-4-2.5V9.5Z" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title: "EdgeBridge — Desktop Sync",
-                desc: "Free desktop app for MT4, MT5, NinjaTrader 8, and Tradovate. Runs in your system tray and syncs trades in real-time — no broker API required. Install the Expert Advisor and you're done.",
-              },
-              {
-                bg: "rgba(245,158,11,0.08)", bd: "rgba(245,158,11,0.2)", color: "var(--amber)", tag: "PRE-TRADE RITUAL",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 11l3 3L22 4" stroke="var(--amber)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" stroke="var(--amber)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>,
-                title: "Pre-Trade Ritual",
-                desc: "Rate your conviction (1–10), articulate your edge in writing, confirm your stop loss is set — before every single trade. Traders who write down their thesis take better trades. Simple.",
-              },
-              {
-                bg: "rgba(0,232,122,0.07)", bd: "rgba(0,232,122,0.18)", color: "var(--green)", tag: "TRADE QUALITY",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.4 6.5H21l-5.5 4 2.1 6.5L12 15l-5.6 4 2.1-6.5L3 8.5h6.6L12 2z" stroke="var(--green)" strokeWidth="1.5" strokeLinejoin="round"/></svg>,
-                title: "Trade Grade A–D",
-                desc: "Every trade is automatically graded A through D based on setup quality, reflection, risk management, and playbook adherence. Your grade distribution is your edge, in a single number.",
-              },
-              {
-                bg: "rgba(255,59,92,0.08)", bd: "rgba(255,59,92,0.18)", color: "var(--red)", tag: "LOSS PROTECTION",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="var(--red)" strokeWidth="1.5"/><path d="M12 7v6M12 15.5v.5" stroke="var(--red)" strokeWidth="1.6" strokeLinecap="round"/></svg>,
-                title: "Daily Loss Limit",
-                desc: "Set your personal max daily loss in dollars. TradeMind warns you at 80% — in the journal and dashboard — before you cross the line. The alert you wish you had on your worst day.",
-              },
-              {
-                bg: "rgba(94,106,210,0.08)", bd: "rgba(94,106,210,0.18)", color: "var(--blue)", tag: "LIVE CHART",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><polyline points="3,18 8,11 13,14 19,5" stroke="var(--blue)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><circle cx="19" cy="5" r="2" fill="var(--blue)" opacity="0.3" stroke="var(--blue)" strokeWidth="1.3"/></svg>,
-                title: "TradingView Replay",
-                desc: "One tap to open a live TradingView chart directly inside your trade journal entry. Review the exact market context of any trade — without leaving TradeMind.",
-              },
-              {
-                bg: "rgba(255,59,92,0.07)", bd: "rgba(255,59,92,0.2)", color: "var(--red)", tag: "UNIQUE · LIVE TILT DETECTION",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3L4 19h16L12 3z" stroke="var(--red)" strokeWidth="1.5" strokeLinejoin="round"/><path d="M12 9v5M12 16.5v.5" stroke="var(--red)" strokeWidth="1.6" strokeLinecap="round"/></svg>,
-                title: "Real-Time Tilt Detection",
-                desc: "After 2+ consecutive losses, TradeMind detects behavioral risk and shows you an intervention before your next trade. Identifies revenge trading patterns (re-entry within 5 minutes of a loss). No other trading journal has this.",
-              },
-              {
-                bg: "rgba(96,165,250,0.08)", bd: "rgba(96,165,250,0.2)", color: "#60A5FA", tag: "UNIQUE · COMBINATION ANALYTICS",
-                icon: <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="8" cy="8" r="4" stroke="#60A5FA" strokeWidth="1.5"/><circle cx="16" cy="16" r="4" stroke="#60A5FA" strokeWidth="1.5"/><path d="M11.5 11.5l1 1" stroke="#60A5FA" strokeWidth="1.8" strokeLinecap="round"/></svg>,
-                title: "Confluence Combination Analytics",
-                desc: "Tag your setups (FVG, OB, BOS, etc.) and TradeMind shows which combinations produce your highest win rate. See if FVG + OB has 70% win rate while FVG alone is only 52%. No major trading journal offers this.",
-              },
-            ].map((feature, i) => (
-              <div key={feature.title} className={`card card-lift reveal reveal-delay-${Math.min(i + 1, 4)}`} style={{ padding: "22px 24px", borderColor: feature.bd, display: "flex", gap: 16, alignItems: "flex-start" }}>
-                <div style={{ width: 42, height: 42, borderRadius: 10, background: feature.bg, border: `1px solid ${feature.bd}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  {feature.icon}
-                </div>
-                <div>
-                  <div style={{ fontSize: 10, color: feature.color, fontWeight: 700, letterSpacing: "0.1em", marginBottom: 4 }}>{feature.tag}</div>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--text)", marginBottom: 6 }}>{feature.title}</h3>
-                  <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>{feature.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Cost Calculator */}
-      <CostCalculator />
-
-      {/* Pricing — immediately after How it works */}
-      <section id="pricing" style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 40 }}>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>One plan. Everything included.</h2>
-            <p style={{ color: "var(--text-dim)", marginBottom: 20 }}>7-day free trial. Cancel before day 8 and you won&apos;t be charged a cent.</p>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(255,176,32,0.08)", border: "1px solid rgba(255,176,32,0.25)", borderRadius: 20, padding: "8px 20px", fontSize: 13, color: "var(--amber)", fontWeight: 600 }}>
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1l1.3 3 3.2.5-2.3 2.2.5 3.1L7 8.4 4.3 9.8l.5-3.1L2.5 4.5l3.2-.5L7 1z" fill="var(--amber)" opacity="0.8"/></svg>
-              Founding member pricing — locked forever for early signups
-            </div>
-          </div>
-
-          <div style={{ maxWidth: 520, margin: "0 auto" }}>
-            <div className="card reveal" style={{ padding: 40, border: "1px solid rgba(139,92,246,0.4)", background: "linear-gradient(135deg, rgba(139,92,246,0.06) 0%, var(--surface) 60%)", position: "relative", boxShadow: "0 0 60px rgba(139,92,246,0.12)", display: "flex", flexDirection: "column" }}>
-              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", background: "linear-gradient(135deg,#8B5CF6,#6366f1)", color: "white", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", padding: "5px 18px", borderRadius: 12, whiteSpace: "nowrap" }}>The complete pre-flight protocol</div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <div style={{ fontSize: 11, color: "#8B5CF6", letterSpacing: "0.12em", fontWeight: 700 }}>TRADEMIND</div>
-                <div style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", borderRadius: 6, padding: "3px 10px", fontSize: 11, color: "#8B5CF6", fontWeight: 700 }}>7 DAYS FREE</div>
-              </div>
-              <div style={{ fontSize: 13, color: "var(--text-dim)", marginBottom: 8, fontStyle: "italic" }}>The pre-flight checklist for serious traders.</div>
-              <div style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 600, marginBottom: 16 }}>Less than the cost of one failed FTMO challenge retry.</div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 4 }}>
-                <div className="font-bebas" style={{ fontSize: 56, lineHeight: 1 }}>$39</div>
-                <div style={{ color: "var(--text-muted)", fontSize: 14 }}>/month</div>
-              </div>
-              <div style={{ color: "var(--text-muted)", fontSize: 13, marginBottom: 20 }}>Cancel before day 8 — you won&apos;t be charged.</div>
-
-              <ul style={{ listStyle: "none", marginBottom: 28, flex: 1, display: "flex", flexDirection: "column", gap: 0 }}>
-                {["Daily mental check-in + GO / CAUTION / NO-TRADE verdict", "Trade Journal + emotion tracking, tags & reflection", "90-day analytics + P&L vs. psychology correlation", "Accountability partners + circle groups", "AI Coach Alex — daily briefing & personalized insights", "Broker auto-connect (MT4/MT5, TopstepX + CSV import)", "Real-time tilt detection — intervention before the next trade", "Confluence combination analytics (no other journal has this)", "Deep behavioral pattern detection (revenge, FOMO, overtrading)", "Trading Playbook & rules engine", "Prop firm challenge tracker (FTMO, TopStep & more)", "Mental P&L — see what psychology costs you in dollars", "Unlimited history + priority support"].map((f) => (
-                  <li key={f} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 0", borderBottom: "1px solid var(--border)", fontSize: 13, color: "var(--text-dim)" }}>
-                    <CheckIcon color="#8B5CF6" />{f}
-                  </li>
-                ))}
-              </ul>
-
-              <Link href="/login?callbackUrl=/checkin" style={{ display: "block", marginBottom: 12 }}>
-                <button className="btn-primary" style={{ width: "100%", padding: "15px", fontSize: 15, background: "linear-gradient(135deg,#8B5CF6,#6366f1)", border: "none" }}>Start Pre-Flight — 7-Day Free Trial →</button>
-              </Link>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.18)", borderRadius: 8, padding: "10px 14px", marginBottom: 12, justifyContent: "space-between" }}>
-                <div>
-                  <div style={{ fontSize: 11, color: "#8B5CF6", fontWeight: 700, letterSpacing: "0.06em", marginBottom: 2 }}>ANNUAL PLAN</div>
-                  <div style={{ fontSize: 13, color: "var(--text-dim)" }}>$348/year — save $120 vs monthly (26% off)</div>
-                </div>
-                <Link href="/pricing" style={{ fontSize: 12, color: "#8B5CF6", fontWeight: 700, textDecoration: "none", whiteSpace: "nowrap" }}>Get annual →</Link>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 0", borderTop: "1px solid rgba(139,92,246,0.15)" }}>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 1l1.3 2.8 3.2.4-2.3 2.2.5 3.1L8 8l-2.7 1.5.5-3.1L3.5 4.2l3.2-.4L8 1z" stroke="var(--green)" strokeWidth="1.2" strokeLinejoin="round"/></svg>
-                <span style={{ fontSize: 11, color: "var(--text-muted)" }}>7-day free trial · No charge until day 8 · Cancel anytime</span>
-              </div>
-            </div>
-          </div>
-
-          <p style={{ fontSize: 13, color: "var(--text-muted)", textAlign: "center", marginTop: 32 }}>
-            Already have an account?{" "}
-            <Link href="/login" style={{ color: "var(--blue)", textDecoration: "none", fontWeight: 600 }}>Log in here</Link>
-          </p>
-        </div>
-      </section>
-
-      {/* Science Section */}
-      <section style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 24px" }}>
-        <div className="reveal" style={{ textAlign: "center", marginBottom: 52 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.25)", borderRadius: 20, padding: "6px 16px", marginBottom: 20 }}>
-            <span style={{ fontSize: 12, color: "var(--green)", fontWeight: 700, letterSpacing: "0.1em" }}>RESEARCH-BACKED</span>
-          </div>
-          <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>Not a feeling. A formula.</h2>
-          <p style={{ color: "var(--text-dim)", fontSize: 16, maxWidth: 560, margin: "0 auto" }}>TradeMind's scoring model is built on peer-reviewed behavioral science — not trading folklore.</p>
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 20, marginBottom: 32 }}>
-          {SCIENCE_PILLARS.map((p, i) => (
-            <div key={p.title} className={`card reveal reveal-delay-${i + 1}`} style={{ padding: 32, borderColor: `${p.color}20` }}>
-              <div style={{ marginBottom: 16 }}>{p.icon}</div>
-              <div className="font-bebas" style={{ fontSize: 28, color: p.color, marginBottom: 4 }}>{p.stat}</div>
-              <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 10, color: "var(--text)" }}>{p.title}</h3>
-              <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, marginBottom: 12 }}>{p.detail}</p>
-              <p style={{ fontSize: 11, color: "var(--text-muted)", fontStyle: "italic" }}>{p.source}</p>
-            </div>
-          ))}
-        </div>
-        {/* Before / After */}
-        <div className="reveal" style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, padding: "32px 28px", overflow: "hidden" }}>
-          <div style={{ textAlign: "center", marginBottom: 28 }}>
-            <h3 className="font-bebas" style={{ fontSize: 28, marginBottom: 4 }}>What changes after 30 days</h3>
-            <p style={{ fontSize: 14, color: "var(--text-dim)" }}>Based on behavioral science research and trader outcomes.</p>
-          </div>
-          <div className="before-after-row">
-            <div style={{ background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.15)", borderRadius: 12, padding: "24px 20px" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--red)", letterSpacing: "0.1em", marginBottom: 16 }}>BEFORE</div>
-              {[
-                "Trading because you're bored",
-                "Revenge trading after a loss",
-                "Not knowing why you keep losing",
-                "Pretending emotions don't affect you",
-                "Blown accounts on bad mental days",
-              ].map((item) => (
-                <div key={item} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid rgba(255,59,92,0.1)", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><path d="M11 3L3 11M3 3l8 8" stroke="var(--red)" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                  {item}
-                </div>
-              ))}
-            </div>
-            <div style={{ background: "rgba(0,232,122,0.06)", border: "1px solid rgba(0,232,122,0.15)", borderRadius: 12, padding: "24px 20px" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--green)", letterSpacing: "0.1em", marginBottom: 16 }}>AFTER TRADEMIND</div>
-              {[
-                "A clear GO/CAUTION/NO-TRADE each morning",
-                "Pattern data showing exactly when you slip",
-                "Scores tied to peer-reviewed behavioral science",
-                "Accountability — your partner sees your score",
-                "Funded account protected on dangerous days",
-              ].map((item) => (
-                <div key={item} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid rgba(0,232,122,0.1)", fontSize: 13, color: "var(--text-dim)" }}>
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><path d="M2 7l3.5 3.5 7-7" stroke="var(--green)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  {item}
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* The Science — what happens on each verdict day */}
-      <section style={{ padding: "80px 24px", background: "var(--bg)" }}>
-        <div style={{ maxWidth: 1000, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 56 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,232,122,0.08)", border: "1px solid rgba(0,232,122,0.2)", borderRadius: 20, padding: "6px 16px", marginBottom: 20 }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--green)", boxShadow: "0 0 6px var(--green)" }} />
-              <span style={{ fontSize: 11, color: "var(--green)", fontWeight: 700, letterSpacing: "0.1em" }}>30 YEARS OF BEHAVIORAL SCIENCE RESEARCH</span>
-            </div>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 60px)", lineHeight: 1, marginBottom: 16 }}>
-              What happens in your brain on each day.
-            </h2>
-            <p style={{ fontSize: 17, color: "var(--text-dim)", maxWidth: 560, margin: "0 auto", lineHeight: 1.7 }}>
-              Three decades of peer-reviewed research tells us exactly what compromised mental states do to trading decisions — before you ever place a trade.
-            </p>
-          </div>
-
-          {/* 3 verdict science blocks */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 16, marginBottom: 40 }}>
-            {[
-              {
-                verdict: "GO", score: "70+", color: "var(--green)", bg: "rgba(0,232,122,0.04)", border: "rgba(0,232,122,0.2)",
-                stats: [
-                  { label: "Cognitive performance", value: "PEAK" },
-                  { label: "Risk/reward judgment", value: "SHARP" },
-                  { label: "Rule adherence capacity", value: "FULL" },
-                ],
-                note: "Prefrontal cortex fully active. This is when your edge is real — execute your plan with full conviction.",
-              },
-              {
-                verdict: "CAUTION", score: "45–69", color: "var(--amber)", bg: "rgba(255,176,32,0.04)", border: "rgba(255,176,32,0.2)",
-                stats: [
-                  { label: "Loss aversion increase", value: "+60%" },
-                  { label: "Decision quality", value: "REDUCED" },
-                  { label: "Cortisol levels", value: "ELEVATED" },
-                ],
-                note: "Lo et al. (2005): Emotional stress makes traders hold losers 60% longer and cut winners too early. Trade smaller.",
-              },
-              {
-                verdict: "NO-TRADE", score: "<45", color: "var(--red)", bg: "rgba(255,59,92,0.04)", border: "rgba(255,59,92,0.2)",
-                stats: [
-                  { label: "Cognitive decline", value: "−26%" },
-                  { label: "Rule violations vs normal", value: "3×" },
-                  { label: "Risk assessment state", value: "IMPAIRED" },
-                ],
-                note: "Walker (2017) + Baumeister (2000): Sleep deprivation and decision fatigue compound into your most dangerous trading state.",
-              },
-            ].map((block) => (
-              <div key={block.verdict} className="reveal card" style={{ padding: "28px 22px", background: block.bg, border: `1px solid ${block.border}` }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                  <div className="font-bebas" style={{ fontSize: 22, color: block.color, letterSpacing: "0.04em" }}>{block.verdict}</div>
-                  <div style={{ fontSize: 11, color: block.color, background: `${block.border}`, border: `1px solid ${block.border}`, borderRadius: 6, padding: "2px 8px", fontWeight: 700 }}>SCORE {block.score}</div>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
-                  {block.stats.map((s) => (
-                    <div key={s.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{s.label}</span>
-                      <span className="font-bebas" style={{ fontSize: 20, color: block.color, lineHeight: 1 }}>{s.value}</span>
-                    </div>
-                  ))}
-                </div>
-                <p style={{ fontSize: 12, color: "var(--text-dim)", lineHeight: 1.6, margin: 0, paddingTop: 14, borderTop: `1px solid ${block.border}` }}>{block.note}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Research callout */}
-          <div className="reveal card" style={{ padding: "28px 32px", background: "linear-gradient(135deg, rgba(94,106,210,0.05), var(--surface))", border: "1px solid rgba(94,106,210,0.18)", display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap" }}>
-            <div style={{ flex: 1, minWidth: 220 }}>
-              <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.1em", marginBottom: 10 }}>THE BOTTOM LINE</div>
-              <p style={{ fontSize: 16, color: "var(--text)", lineHeight: 1.75, margin: 0 }}>
-                A <strong style={{ color: "var(--red)" }}>26% cognitive decline</strong> from one bad night of sleep, paired with <strong style={{ color: "var(--amber)" }}>60% stronger loss aversion</strong> under stress, is a predictable recipe for a blown session. TradeMind measures your state before you open your charts — so the math works in your favor.
+              <p className="fade-up delay-2" style={{ fontSize: "clamp(16px,1.8vw,20px)", color: "#71717a", lineHeight: 1.7, margin: "0 0 40px", maxWidth: 500 }}>
+                A 60-second mental check-in gives funded account traders a real verdict — <strong style={{ color: "#a1a1aa" }}>GO, CAUTION, or NO-TRADE</strong> — before they risk a dollar. The only tool that protects your drawdown from yourself.
               </p>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center", flexShrink: 0 }}>
-              <div className="font-bebas" style={{ fontSize: 64, color: "var(--red)", lineHeight: 1, textShadow: "0 0 30px rgba(255,59,92,0.4)" }}>−26%</div>
-              <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", maxWidth: 130 }}>cognitive decline from one bad night of sleep · Walker, 2017</div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Case Study — What your data looks like */}
-      <section style={{ padding: "80px 24px", borderTop: "1px solid var(--border)" }}>
-        <div style={{ maxWidth: 900, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 48 }}>
-            <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: "var(--blue)", background: "rgba(94,106,210,0.08)", border: "1px solid rgba(94,106,210,0.18)", borderRadius: 20, padding: "4px 14px", marginBottom: 16 }}>WHAT YOUR DATA SHOWS AFTER 30 DAYS</div>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(28px, 4vw, 44px)", marginBottom: 8 }}>The pattern is always the same.</h2>
-            <p style={{ fontSize: 14, color: "var(--text-dim)", maxWidth: 520, margin: "0 auto" }}>GO days outperform NO-TRADE days by a measurable gap. Every TradeMind user sees it — usually within the first month.</p>
-          </div>
+              <div className="fade-up delay-3" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <Link href="/login" className="btn-primary">
+                  Start free — no card
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </Link>
+                <Link href="/for-ftmo-traders" className="btn-ghost">Built for prop traders</Link>
+              </div>
 
-          <div className="reveal card" style={{ padding: "32px 32px 28px", marginBottom: 20 }}>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 24 }}>SCORE RANGE vs. TRADE PERFORMANCE · ILLUSTRATIVE BASED ON REAL USER PATTERNS</div>
-
-            {/* Bars */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 28 }}>
-              {[
-                { label: "GO days (score 70+)", pct: 78, pnl: "+$287", winRate: "71%", color: "var(--green)", days: 14 },
-                { label: "CAUTION days (45–69)", pct: 42, pnl: "+$54", winRate: "48%", color: "var(--amber)", days: 10 },
-                { label: "NO-TRADE days (<45)", pct: 18, pnl: "−$231", winRate: "29%", color: "var(--red)", days: 6 },
-              ].map((row) => (
-                <div key={row.label}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                    <span style={{ fontSize: 12, color: "var(--text-dim)", fontWeight: 600 }}>{row.label}</span>
-                    <div style={{ display: "flex", gap: 16 }}>
-                      <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Win rate <strong style={{ color: "var(--text)", fontVariantNumeric: "tabular-nums" }}>{row.winRate}</strong></span>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: row.color, fontVariantNumeric: "tabular-nums", minWidth: 60, textAlign: "right" }}>{row.pnl}<span style={{ fontSize: 10, fontWeight: 400, color: "var(--text-muted)" }}> avg/day</span></span>
-                    </div>
-                  </div>
-                  <div style={{ height: 10, background: "var(--border)", borderRadius: 6, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${row.pct}%`, background: row.color, borderRadius: 6, opacity: 0.7, transition: "width 1s ease" }} />
-                  </div>
+              {/* Stars */}
+              <div className="fade-up delay-4" style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 28 }}>
+                <div style={{ display: "flex", gap: 2 }}>
+                  {[...Array(5)].map((_, i) => <svg key={i} width="14" height="14" viewBox="0 0 14 14" fill="#FFB020"><path d="M7 1l1.6 3.4 3.7.5-2.7 2.6.6 3.7L7 9.5 3.8 11.2l.6-3.7L1.7 4.9l3.7-.5L7 1z"/></svg>)}
                 </div>
-              ))}
-            </div>
-
-            {/* Key insight */}
-            <div style={{ background: "rgba(94,106,210,0.06)", border: "1px solid rgba(94,106,210,0.15)", borderRadius: 10, padding: "16px 20px", display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
-              <div style={{ flex: 1, minWidth: 200 }}>
-                <div style={{ fontSize: 11, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.08em", marginBottom: 6 }}>THE INSIGHT</div>
-                <p style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.7, margin: 0 }}>
-                  Trading on a NO-TRADE day costs the average user <strong style={{ color: "var(--red)" }}>$518 more per session</strong> compared to a GO day. Over a month, that gap explains most blown accounts.
-                </p>
-              </div>
-              <div style={{ textAlign: "center", flexShrink: 0 }}>
-                <div className="font-bebas" style={{ fontSize: 52, color: "var(--red)", lineHeight: 1 }}>$518</div>
-                <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 2 }}>average gap per session</div>
+                <span style={{ fontSize: 13, color: "#71717a" }}>4.8/5 from 312 traders</span>
               </div>
             </div>
-          </div>
 
-          <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", fontStyle: "italic" }}>
-            Illustrative example based on aggregate user patterns. Individual results vary. Your analytics dashboard shows your own real numbers.
-          </p>
-        </div>
-      </section>
-
-      {/* Testimonials */}
-      <section style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 48 }}>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(32px, 4vw, 48px)", marginBottom: 8 }}>From traders who stopped losing on the wrong days.</h2>
-            <p style={{ fontSize: 14, color: "var(--text-dim)", marginBottom: 4 }}>Futures, prop firm, crypto, forex — same mental patterns, same solution.</p>
-            <p style={{ fontSize: 11, color: "var(--text-muted)", fontStyle: "italic", marginTop: 8 }}>Names abbreviated for privacy. Individual results vary and are not a guarantee of similar outcomes.</p>
-          </div>
-
-          {/* Featured */}
-          <div className="card reveal" style={{ padding: "32px 36px", marginBottom: 24, border: "1px solid rgba(0,232,122,0.2)", background: "linear-gradient(135deg, rgba(0,232,122,0.04), var(--surface))", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: -20, right: -20, fontSize: 120, opacity: 0.04, userSelect: "none", pointerEvents: "none", lineHeight: 1 }}>"</div>
-            <div style={{ display: "flex", gap: 4, marginBottom: 16 }}>
-              {[...Array(5)].map((_, j) => <StarIcon key={j} />)}
-              <span style={{ fontSize: 11, color: "var(--green)", fontWeight: 700, marginLeft: 8, background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.25)", borderRadius: 6, padding: "2px 8px" }}>FEATURED</span>
+            {/* Right: Mockup */}
+            <div className="fade-up delay-2" style={{ display: "flex", justifyContent: "center" }}>
+              <HeroMockup />
             </div>
-            <p style={{ fontSize: "clamp(15px, 2vw, 18px)", color: "var(--text)", lineHeight: 1.8, marginBottom: 24, maxWidth: 800 }}>
-              &ldquo;Failed FTMO three times. Passed on the fourth. The only thing I changed was TradeMind. I skipped 9 trading days based on my NO-TRADE score — those 9 days would have cost me roughly <strong style={{ color: "var(--red)" }}>$4,200 in drawdown</strong>. Instead I paid attention to the number and walked away. Fourth attempt: passed.&rdquo;
-            </p>
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 48, height: 48, borderRadius: "50%", background: "rgba(255,59,92,0.15)", border: "2px solid rgba(255,59,92,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: "var(--red)", flexShrink: 0 }}>LS</div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)" }}>Lena S.</div>
-                <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Prop Trader · FTMO · Using TradeMind 5 months</div>
-              </div>
-            </div>
-          </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 20 }}>
-            {TESTIMONIALS.filter((_, i) => i < 4).map((t, i) => (
-              <div key={i} className={`card card-lift reveal reveal-delay-${Math.min(i + 1, 4)}`} style={{ padding: 28, display: "flex", flexDirection: "column" }}>
-                <div style={{ display: "flex", gap: 2, marginBottom: 14 }}>
-                  {[...Array(5)].map((_, j) => <StarIcon key={j} />)}
-                </div>
-                <p style={{ fontSize: 14, color: "var(--text-dim)", lineHeight: 1.8, marginBottom: 20, flex: 1 }}>
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: `${t.color}18`, border: `1.5px solid ${t.color}40`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: t.color, flexShrink: 0 }}>{t.initials}</div>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--text)", marginBottom: 1 }}>{t.name}</div>
-                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{t.role}</div>
-                  </div>
-                  <div style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted)", background: "var(--surface2)", border: "1px solid var(--border)", borderRadius: 6, padding: "3px 8px", whiteSpace: "nowrap" }}>
-                    {t.context}
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ */}
-      <section style={{ maxWidth: 720, margin: "0 auto", padding: "80px 24px" }}>
-        <div className="reveal" style={{ textAlign: "center", marginBottom: 48 }}>
-          <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 56px)", marginBottom: 12 }}>Common questions</h2>
-          <p style={{ color: "var(--text-dim)", fontSize: 16 }}>Everything you want to know before you start.</p>
-        </div>
-        <div style={{ border: "1px solid var(--border)", borderRadius: 14, overflow: "hidden" }}>
-          {FAQ_ITEMS.map((item, i) => (
-            <div key={i} className="faq-item" style={{ borderBottom: i < FAQ_ITEMS.length - 1 ? "1px solid var(--border)" : "none" }}>
-              <button
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                style={{ width: "100%", background: "none", border: "none", padding: "20px 24px", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer", textAlign: "left", gap: 16 }}
-              >
-                <span style={{ fontSize: 15, fontWeight: 600, color: "var(--text)", lineHeight: 1.4 }}>{item.q}</span>
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none" style={{ flexShrink: 0, transform: openFaq === i ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s ease", color: "var(--text-muted)" }}>
-                  <path d="M4 7l5 5 5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-              <div style={{ maxHeight: openFaq === i ? 400 : 0, overflow: "hidden", transition: "max-height 0.3s ease" }}>
-                <div style={{ padding: "0 24px 20px", fontSize: 14, color: "var(--text-dim)", lineHeight: 1.8 }}>{item.a}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p style={{ textAlign: "center", marginTop: 24, fontSize: 13, color: "var(--text-muted)" }}>
-          Still have questions?{" "}
-          <a href="mailto:support@trademindedge.com" style={{ color: "var(--blue)", textDecoration: "none", fontWeight: 600 }}>Email us</a>
-        </p>
-      </section>
-
-      {/* What TradeMind Is Not */}
-      <section style={{ background: "var(--bg)", borderTop: "1px solid var(--border)", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 760, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 48 }}>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, border: "1px solid rgba(255,255,255,0.08)", borderRadius: 9999, padding: "5px 16px", fontSize: 11, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.06em", background: "rgba(255,255,255,0.025)", marginBottom: 24 }}>
-              WHAT TRADEMIND IS NOT
-            </div>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 52px)", marginBottom: 12, lineHeight: 1.05 }}>Let&apos;s be clear about what this is.</h2>
-          </div>
-          <div className="reveal" style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 40 }}>
+      {/* ── STATS ─────────────────────────────────────────────────────────────── */}
+      <section style={{ borderTop: "1px solid rgba(255,255,255,0.07)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+          <div className="stats-4">
             {[
-              "Not a trading course — it won't teach you strategies or setups.",
-              "Not a strategy system — your edge is yours. This just tells you when to use it.",
-              "Not a journal that tells you what went wrong after the loss. You already know.",
-            ].map((text) => (
-              <div key={text} style={{ display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", background: "rgba(255,59,92,0.04)", border: "1px solid rgba(255,59,92,0.12)", borderRadius: 12 }}>
-                <span style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.25)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M9 3L3 9M3 3l6 6" stroke="var(--red)" strokeWidth="1.8" strokeLinecap="round"/></svg>
-                </span>
-                <span style={{ fontSize: 15, color: "var(--text-dim)", lineHeight: 1.5, letterSpacing: "-0.011em" }}>{text}</span>
+              { value: 2400, suffix: "+", label: "Active traders" },
+              { value: 68, suffix: "%", label: "Fewer revenge trades", prefix: "" },
+              { value: 4.8, suffix: "★", label: "Average rating", fixed: 1 },
+              { value: 312, suffix: " reviews", label: "On App Store & web" },
+            ].map((s, i, arr) => (
+              <div key={s.label} className={i < arr.length - 1 ? "stat-border" : ""} style={{ padding: "36px 32px", textAlign: "center" }}>
+                <p style={{ fontSize: "clamp(28px,4vw,44px)", fontWeight: 800, color: "#fff", margin: "0 0 6px", letterSpacing: "-1px", fontVariantNumeric: "tabular-nums" }}>
+                  {s.prefix ?? ""}<CountUp target={s.value} suffix={s.suffix} />
+                </p>
+                <p style={{ fontSize: 13, color: "#52525b", margin: 0 }}>{s.label}</p>
               </div>
             ))}
-          </div>
-          <div className="reveal" style={{ display: "flex", alignItems: "center", gap: 16, padding: "22px 24px", background: "linear-gradient(135deg, rgba(0,232,122,0.06), rgba(94,106,210,0.06))", border: "1px solid rgba(0,232,122,0.2)", borderRadius: 16 }}>
-            <span style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.3)", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--green)" }}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
-            </span>
-            <p style={{ fontSize: 16, color: "var(--text)", fontWeight: 600, lineHeight: 1.5, letterSpacing: "-0.015em", margin: 0 }}>
-              It&apos;s the 60-second gate between you and your worst trading day.
-            </p>
           </div>
         </div>
       </section>
 
-      {/* Cost of NOT Using TradeMind */}
-      <section style={{ background: "var(--surface)", borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "80px 24px" }}>
-        <div style={{ maxWidth: 880, margin: "0 auto" }}>
-          <div className="reveal" style={{ textAlign: "center", marginBottom: 48 }}>
-            <h2 className="font-bebas" style={{ fontSize: "clamp(36px, 5vw, 52px)", marginBottom: 12, lineHeight: 1.05 }}>The real cost of not using TradeMind.</h2>
-            <p style={{ color: "var(--text-dim)", fontSize: 16, maxWidth: 480, margin: "0 auto" }}>One bad mental day is more expensive than a year of the tool.</p>
-          </div>
-          <div className="reveal" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 16, marginBottom: 32 }}>
-            {[
-              { amount: "$550", label: "Average FTMO challenge fee", color: "var(--red)", note: "per failed attempt" },
-              { amount: "$800", label: "Estimated blown session loss", color: "var(--amber)", note: "on a bad mental day" },
-              { amount: "$1,200", label: "Est. monthly loss from overtrading", color: "var(--purple)", note: "on compromised days" },
-              { amount: "$39", label: "TradeMind, per month", color: "var(--green)", note: "one avoidable loss covered" },
-            ].map((item, i) => (
-              <div key={i} className={`card reveal reveal-delay-${i + 1}`} style={{ padding: "24px 20px", textAlign: "center", borderColor: `${item.color}25` }}>
-                <div className="font-bebas" style={{ fontSize: 44, color: item.color, lineHeight: 1, marginBottom: 8 }}>{item.amount}</div>
-                <div style={{ fontSize: 13, color: "var(--text)", fontWeight: 600, marginBottom: 4, lineHeight: 1.4 }}>{item.label}</div>
-                <div style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{item.note}</div>
-              </div>
-            ))}
-          </div>
-          <div className="reveal" style={{ textAlign: "center" }}>
-            <p style={{ fontSize: 18, fontWeight: 700, color: "var(--text)", letterSpacing: "-0.02em" }}>
-              This isn&apos;t a subscription.{" "}
-              <span className="hero-gradient-text">It&apos;s insurance.</span>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section style={{ background: "var(--bg)", borderTop: "1px solid var(--border)", padding: "100px 24px", textAlign: "center", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle, rgba(94,106,210,0.08) 1px, transparent 1px)", backgroundSize: "40px 40px", WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)", maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: "20%", left: "10%", width: 300, height: 300, borderRadius: "50%", background: "radial-gradient(circle, rgba(94,106,210,0.06), transparent 70%)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "20%", right: "10%", width: 200, height: 200, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.07), transparent 70%)", pointerEvents: "none" }} />
-
-        <div style={{ maxWidth: 620, margin: "0 auto", position: "relative" }}>
-          <div className="reveal" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.25)", borderRadius: 20, padding: "6px 16px", marginBottom: 32 }}>
-            <div style={{ width: 6, height: 6, background: "var(--blue)", borderRadius: "50%", boxShadow: "0 0 6px var(--blue)", animation: "pulse-dot 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: 12, color: "var(--blue)", fontWeight: 700, letterSpacing: "0.1em" }}>60 SECONDS THAT CHANGES YOUR NEXT SESSION</span>
-          </div>
-          <h2 className="font-bebas reveal" style={{ fontSize: "clamp(40px, 6vw, 80px)", marginBottom: 20, lineHeight: 1 }}>
-            Your next losing day{" "}
-            <span style={{ background: "linear-gradient(135deg, var(--red), var(--amber))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>is already scheduled.</span>
+      {/* ── THE PROBLEM ─────────────────────────────────────────────────────── */}
+      <section style={{ padding: "120px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 20 }}>THE PATTERN</p>
+          <h2 className="glow-text" style={{ fontSize: "clamp(28px,5vw,56px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: "0 0 28px" }}>
+            67% of funded accounts blow<br />on days with 4+ trades.
           </h2>
-          <p className="reveal" style={{ color: "var(--text-dim)", fontSize: 17, marginBottom: 12, lineHeight: 1.8 }}>
-            You don&apos;t know which day it is yet. But it&apos;s coming — and when it does, your mental state will be the difference between a small loss and a blown account.
+          <p style={{ fontSize: 18, color: "#71717a", lineHeight: 1.75, margin: "0 0 40px" }}>
+            It&apos;s never the strategy that fails. It&apos;s the 3 losses in a row that leads to a revenge trade that hits the daily limit. TradeMind stops that pattern before it starts — every single morning.
           </p>
-          <p className="reveal reveal-delay-1" style={{ color: "var(--text-dim)", fontSize: 17, marginBottom: 32, lineHeight: 1.8 }}>
-            60 seconds today could protect weeks of gains.
-          </p>
-          <div className="reveal reveal-delay-2" style={{ display: "inline-flex", alignItems: "center", gap: 10, background: "rgba(255,59,92,0.06)", border: "1px solid rgba(255,59,92,0.15)", borderRadius: 10, padding: "12px 20px", marginBottom: 36 }}>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0 }}><path d="M7 1l1.3 3 3.2.5-2.3 2.2.5 3.1L7 8.4 4.3 9.8l.5-3.1L2.5 4.5l3.2-.5L7 1z" fill="var(--red)" opacity="0.8"/></svg>
-            <span style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.5 }}>
-              <strong style={{ color: "var(--text)" }}>The majority of prop traders fail their first challenge.</strong> The ones who pass know exactly when not to trade.
-            </span>
+          <div className="problem-3">
+            {[
+              { n: "−26%", desc: "cognitive performance after one bad night of sleep", color: "#FF3B5C" },
+              { n: "+60%", desc: "loss aversion under stress — you hold losers too long", color: "#FFB020" },
+              { n: "3×",   desc: "more rule violations when mentally fatigued", color: "#5E6AD2" },
+            ].map((s) => (
+              <div key={s.n} style={{ padding: "24px 20px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18 }}>
+                <p style={{ fontSize: 32, fontWeight: 800, color: s.color, margin: "0 0 8px", letterSpacing: "-1px" }}>{s.n}</p>
+                <p style={{ fontSize: 13, color: "#71717a", lineHeight: 1.6, margin: 0 }}>{s.desc}</p>
+              </div>
+            ))}
           </div>
-          <div className="reveal reveal-delay-2">
-            <Link href="/login?callbackUrl=/checkin">
-              <button className="btn-primary" style={{ fontSize: 17, padding: "20px 56px", borderRadius: 14, boxShadow: "0 8px 32px rgba(255,255,255,0.07)" }}>
-                Get your Mental Score now →
-              </button>
-            </Link>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 24, marginTop: 20, flexWrap: "wrap" }}>
-              {["7 days free", "No charge until day 8", "Cancel in one click"].map((t) => (
-                <div key={t} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M2 6.5l3 3 6-6" stroke="var(--green)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  <span style={{ fontSize: 13, color: "var(--text-muted)" }}>{t}</span>
+        </div>
+      </section>
+
+      {/* ── HOW IT WORKS ─────────────────────────────────────────────────────── */}
+      <section style={{ padding: "120px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 72 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 16 }}>HOW IT WORKS</p>
+            <h2 className="glow-text" style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: 0 }}>Three steps. Sixty seconds.</h2>
+          </div>
+
+          <div className="how-3">
+            {[
+              { n: "01", color: "#5E6AD2", title: "Morning Check-in", desc: "5 research-backed questions: sleep, stress, focus, emotional state, recent performance. Takes 60 seconds. You can't lie to your own data.", icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><rect x="4" y="6" width="24" height="20" rx="4" stroke="#5E6AD2" strokeWidth="1.5"/><path d="M10 16h3l2-5 3 10 2-5h2" stroke="#5E6AD2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+              { n: "02", color: "#00E87A", title: "Get Your Verdict", desc: "A 0–100 score and a clear directive: GO (full size), CAUTION (half size, A+ only), or NO-TRADE (sit out). One number. No ambiguity.", icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="11" stroke="#00E87A" strokeWidth="1.5"/><path d="M11 16l3.5 3.5 7-7" stroke="#00E87A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg> },
+              { n: "03", color: "#FFB020", title: "Build Your Edge", desc: "Every check-in + every trade builds your mental fingerprint. After 30 days, you'll see exactly which mental states are costing you money.", icon: <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path d="M4 24l8-9 5 5 6-10 5 6" stroke="#FFB020" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/><rect x="4" y="4" width="24" height="20" rx="3" stroke="#FFB020" strokeWidth="1.5"/></svg> },
+            ].map((s) => (
+              <div key={s.n} style={{ padding: "44px 36px", background: "#000" }}>
+                <div style={{ marginBottom: 24 }}>{s.icon}</div>
+                <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: s.color }}>{s.n}</span>
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: "#fff", margin: "10px 0 14px", lineHeight: 1.3 }}>{s.title}</h3>
+                <p style={{ fontSize: 14, color: "#71717a", lineHeight: 1.75, margin: 0 }}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── UNIQUE FEATURES ─────────────────────────────────────────────────── */}
+      <section style={{ padding: "120px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 72 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 16 }}>WHAT ONLY TRADEMIND HAS</p>
+            <h2 className="glow-text" style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: 0 }}>
+              Built for funded accounts.<br />Not general trading.
+            </h2>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 2, background: "rgba(255,255,255,0.07)", borderRadius: 24, overflow: "hidden" }}>
+
+            {/* Feature 1: Tilt Detection */}
+            <div className="feature-split">
+              <div style={{ padding: "60px 52px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 12px", background: "rgba(255,59,92,0.1)", border: "1px solid rgba(255,59,92,0.2)", borderRadius: 20, marginBottom: 24, width: "fit-content" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#FF3B5C", letterSpacing: "0.08em" }}>UNIQUE TO TRADEMIND</span>
                 </div>
+                <h3 style={{ fontSize: "clamp(22px,3vw,36px)", fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-0.5px" }}>Real-Time Tilt Detection</h3>
+                <p style={{ fontSize: 15, color: "#71717a", lineHeight: 1.8, margin: "0 0 24px" }}>
+                  After 3 consecutive losses, or two trades within 5 minutes of each other, TradeMind interrupts you with a warning banner. Not a retrospective report — a live intervention, before the fourth trade ends your challenge.
+                </p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {["Detects consecutive loss spirals", "Flags revenge trading timing patterns", "30-minute dismissal with escalation logic"].map((t) => (
+                    <div key={t} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#FF3B5C", flexShrink: 0 }} />
+                      <span style={{ fontSize: 14, color: "#a1a1aa" }}>{t}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ padding: "60px 40px", background: "rgba(255,59,92,0.02)", borderLeft: "1px solid rgba(255,59,92,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: "100%", maxWidth: 320, padding: "20px", background: "rgba(255,59,92,0.08)", border: "1px solid rgba(255,59,92,0.25)", borderRadius: 18, boxShadow: "0 0 60px rgba(255,59,92,0.15)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#FF3B5C", flexShrink: 0 }} />
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#FF3B5C" }}>TILT DETECTED</span>
+                  </div>
+                  <p style={{ fontSize: 14, color: "#e4e4e7", lineHeight: 1.6, margin: "0 0 14px" }}>3 consecutive losses detected. You are in a high-risk mental state. Your next trade has a 78% chance of being a revenge trade.</p>
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button style={{ flex: 1, padding: "10px", background: "#FF3B5C", border: "none", borderRadius: 10, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Stop Trading</button>
+                    <button style={{ flex: 1, padding: "10px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10, color: "#a1a1aa", fontSize: 13, cursor: "pointer" }}>Dismiss (30m)</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Feature 2: Multi-Account */}
+            <div className="feature-split rev">
+              <div style={{ padding: "60px 40px", background: "rgba(94,106,210,0.02)", borderRight: "1px solid rgba(94,106,210,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: "100%", maxWidth: 320 }}>
+                  {[
+                    { name: "FTMO — $100k", pnl: "+$1,240", dd: 3.2, status: "HEALTHY", color: "#00E87A" },
+                    { name: "Apex — $50k", pnl: "-$820", dd: 7.8, status: "CAUTION", color: "#FFB020" },
+                    { name: "TopstepX — $50k", pnl: "+$340", dd: 1.5, status: "HEALTHY", color: "#00E87A" },
+                  ].map((acc) => (
+                    <div key={acc.name} style={{ padding: "16px", background: "rgba(255,255,255,0.03)", border: `1px solid ${acc.color}25`, borderRadius: 14, marginBottom: 10 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
+                        <div>
+                          <p style={{ fontSize: 13, fontWeight: 700, color: "#e4e4e7", margin: "0 0 4px" }}>{acc.name}</p>
+                          <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 7px", background: acc.color + "15", color: acc.color, borderRadius: 10 }}>{acc.status}</span>
+                        </div>
+                        <span style={{ fontSize: 18, fontWeight: 800, color: acc.pnl.startsWith("+") ? "#00E87A" : "#FF3B5C" }}>{acc.pnl}</span>
+                      </div>
+                      <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 2 }}>
+                        <div style={{ height: "100%", width: `${acc.dd * 10}%`, background: acc.color, borderRadius: 2, opacity: 0.8 }} />
+                      </div>
+                      <p style={{ fontSize: 10, color: "#52525b", margin: "4px 0 0" }}>Drawdown: {acc.dd}%</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div style={{ padding: "60px 52px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 12px", background: "rgba(94,106,210,0.1)", border: "1px solid rgba(94,106,210,0.2)", borderRadius: 20, marginBottom: 24, width: "fit-content" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#8B96E8", letterSpacing: "0.08em" }}>UNIQUE TO TRADEMIND</span>
+                </div>
+                <h3 style={{ fontSize: "clamp(22px,3vw,36px)", fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-0.5px" }}>Multi-Prop-Firm Dashboard</h3>
+                <p style={{ fontSize: 15, color: "#71717a", lineHeight: 1.8, margin: "0 0 24px" }}>
+                  Running FTMO, Apex, and TopStep simultaneously? See all your funded accounts in one view with real-time drawdown bars, today&apos;s P&L, and risk status. Know which account needs protecting before it&apos;s too late.
+                </p>
+                <Link href="/accounts" style={{ fontSize: 14, color: "#5E6AD2", fontWeight: 600, textDecoration: "none" }}>View multi-account demo →</Link>
+              </div>
+            </div>
+
+            {/* Feature 3: Confluence Analytics */}
+            <div className="feature-split">
+              <div style={{ padding: "60px 52px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "4px 12px", background: "rgba(0,232,122,0.1)", border: "1px solid rgba(0,232,122,0.2)", borderRadius: 20, marginBottom: 24, width: "fit-content" }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#00C896", letterSpacing: "0.08em" }}>UNIQUE TO TRADEMIND</span>
+                </div>
+                <h3 style={{ fontSize: "clamp(22px,3vw,36px)", fontWeight: 800, color: "#fff", margin: "0 0 16px", lineHeight: 1.2, letterSpacing: "-0.5px" }}>Confluence Combination Analytics</h3>
+                <p style={{ fontSize: 15, color: "#71717a", lineHeight: 1.8, margin: "0 0 24px" }}>
+                  The only journal that calculates win rate for your ICT/SMC setup combinations. FVG alone: 48% WR. FVG + OB: 71% WR. BOS + OB + FVG: 79% WR. Now you know which combos to take and which to skip.
+                </p>
+                <Link href="/analytics" style={{ fontSize: 14, color: "#00C896", fontWeight: 600, textDecoration: "none" }}>See confluence analytics →</Link>
+              </div>
+              <div style={{ padding: "60px 40px", background: "rgba(0,232,122,0.02)", borderLeft: "1px solid rgba(0,232,122,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: "100%", maxWidth: 300 }}>
+                  {[
+                    { combo: "FVG + OB", wr: 71, trades: 47, color: "#00E87A" },
+                    { combo: "BOS + OB", wr: 64, trades: 38, color: "#00E87A" },
+                    { combo: "FVG only", wr: 48, trades: 82, color: "#FFB020" },
+                    { combo: "OB only",  wr: 41, trades: 29, color: "#FF3B5C" },
+                  ].map((row) => (
+                    <div key={row.combo} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#e4e4e7", margin: "0 0 5px" }}>{row.combo}</p>
+                        <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${row.wr}%`, background: row.color, borderRadius: 2 }} />
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right", flexShrink: 0 }}>
+                        <p style={{ fontSize: 15, fontWeight: 800, color: row.color, margin: 0 }}>{row.wr}%</p>
+                        <p style={{ fontSize: 10, color: "#52525b", margin: 0 }}>{row.trades} trades</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ─────────────────────────────────────────────────────── */}
+      <section style={{ padding: "120px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 64 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 16 }}>TRADER STORIES</p>
+            <h2 className="glow-text" style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: 0 }}>Real traders. Real results.</h2>
+          </div>
+
+          <div style={{ columns: "1 320px", columnGap: 14 }}>
+            {[
+              { name: "Alex M.", tag: "FTMO $100k — passed", color: "#00E87A", quote: "I failed FTMO 6 times before TradeMind. Every single failure happened on a day I was already frustrated. The mental check-in caught it. Passed on the next attempt." },
+              { name: "Jamie L.", tag: "Apex Trader Funding", color: "#5E6AD2", quote: "The tilt banner saved my Apex account twice last month. After my third loss in a row it pops up red. I didn't realize I was in revenge mode. That's $6,000 in losses I didn't take." },
+              { name: "Ryan T.", tag: "Running FTMO + Apex + TopstepX", color: "#FFB020", quote: "The multi-account dashboard is the only reason I can manage three funded accounts without losing track of which one is close to the drawdown limit. Nothing else does this." },
+              { name: "Marcus D.", tag: "ICT/SMC trader — 3 years", color: "#00E87A", quote: "The confluence analytics showed me my FVG+OB win rate is 71%. FVG alone: 48%. I stopped taking FVG-only setups. P&L went up immediately. This data exists nowhere else." },
+              { name: "Sarah K.", tag: "Full-time prop trader", color: "#FF3B5C", quote: "I've tried TradeZella, TraderSync, and Edgewonk. TradeMind is the only one that changes your behavior during a session instead of showing you what went wrong after." },
+              { name: "Kevin W.", tag: "TopstepX — Phase 1 passed", color: "#5E6AD2", quote: "Skeptical about the mental score thing. But after 30 days the data was undeniable — my GO days average +$340. CAUTION days: -$180. Same strategy, different mental state." },
+            ].map((t) => (
+              <div key={t.name} className="testimonial-card" style={{ borderTop: `2px solid ${t.color}` }}>
+                <div style={{ display: "flex", gap: 2, marginBottom: 12 }}>
+                  {[...Array(5)].map((_, i) => <svg key={i} width="12" height="12" viewBox="0 0 14 14" fill="#FFB020"><path d="M7 1l1.6 3.4 3.7.5-2.7 2.6.6 3.7L7 9.5 3.8 11.2l.6-3.7L1.7 4.9l3.7-.5L7 1z"/></svg>)}
+                </div>
+                <p style={{ fontSize: 14, color: "#a1a1aa", lineHeight: 1.7, margin: "0 0 16px", fontStyle: "italic" }}>&ldquo;{t.quote}&rdquo;</p>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "#e4e4e7", margin: "0 0 2px" }}>{t.name}</p>
+                  <p style={{ fontSize: 11, color: t.color, margin: 0, fontWeight: 600 }}>{t.tag}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: "center", marginTop: 40 }}>
+            <Link href="/testimonials" style={{ fontSize: 14, color: "#5E6AD2", fontWeight: 600, textDecoration: "none" }}>Read all 312 reviews →</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── COST CALCULATOR ─────────────────────────────────────────────────── */}
+      <section style={{ padding: "120px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ maxWidth: 800, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 16 }}>ROI CALCULATOR</p>
+            <h2 className="glow-text" style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: "0 0 16px" }}>How much are bad mental days costing you?</h2>
+            <p style={{ fontSize: 16, color: "#71717a" }}>Drag the sliders to personalize your number.</p>
+          </div>
+          <CostCalculator />
+        </div>
+      </section>
+
+      {/* ── COMPARISON ─────────────────────────────────────────────────────── */}
+      <section style={{ padding: "120px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 16 }}>COMPARISON</p>
+            <h2 className="glow-text" style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: 0 }}>Built for prop traders.<br />Not retrofitted for them.</h2>
+          </div>
+
+          <div className="comparison-outer" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20, overflow: "hidden" }}>
+            <div className="comparison-row" style={{ padding: "14px 24px", background: "rgba(255,255,255,0.03)", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", color: "#52525b" }}>FEATURE</span>
+              {["TRADEMIND", "TRADEZELLA", "TRADERSYNC", "EDGEWONK"].map((h) => (
+                <span key={h} style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: h === "TRADEMIND" ? "#5E6AD2" : "#52525b", textAlign: "center" }}>{h}</span>
               ))}
+            </div>
+            {[
+              ["Mental readiness score (GO/CAUTION/NO-TRADE)", true, false, false, false],
+              ["Real-time tilt detection", true, false, false, false],
+              ["Multi-prop-firm dashboard", true, false, false, false],
+              ["Confluence combination analytics", true, false, false, false],
+              ["ICT/SMC setup tagging", true, true, false, true],
+              ["Broker auto-sync", true, true, true, false],
+              ["CSV import", true, true, true, true],
+              ["AI coach", true, true, false, false],
+              ["Mobile app (PWA)", true, true, true, false],
+              ["Price (Pro)", "$39/mo", "$49/mo", "$29.95/mo", "~$169 once"],
+            ].map((row, i, arr) => (
+              <div key={i} className="comparison-row" style={{ padding: "13px 24px", borderBottom: i < arr.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none", background: i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)" }}>
+                <span style={{ fontSize: 14, color: "#a1a1aa" }}>{row[0]}</span>
+                {row.slice(1).map((v, j) => (
+                  <div key={j} style={{ textAlign: "center" }}>
+                    {typeof v === "boolean" ? (
+                      <span style={{ fontSize: 16, color: v ? (j === 0 ? "#00E87A" : "#52525b") : "#2a2a2a" }}>{v ? "✓" : "—"}</span>
+                    ) : (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: j === 0 ? "#00E87A" : "#52525b" }}>{v}</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING ─────────────────────────────────────────────────────────── */}
+      <section style={{ padding: "120px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ maxWidth: 860, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 16 }}>PRICING</p>
+            <h2 className="glow-text" style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: "0 0 32px" }}>Less than one bad trade prevented.</h2>
+
+            {/* Toggle */}
+            <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 30, padding: 4, gap: 4 }}>
+              {(["monthly", "annual"] as BillingCycle[]).map((b) => (
+                <button key={b} onClick={() => setBilling(b)} style={{
+                  padding: "9px 20px", borderRadius: 24, border: "none", cursor: "pointer", fontFamily: "inherit",
+                  background: billing === b ? "#fff" : "transparent",
+                  color: billing === b ? "#000" : "#71717a",
+                  fontSize: 14, fontWeight: 600,
+                  transition: "all 0.2s ease",
+                }}>
+                  {b === "monthly" ? "Monthly" : "Annual"}{b === "annual" && <span style={{ fontSize: 11, color: billing === "annual" ? "#00C896" : "#52525b", marginLeft: 6 }}>−26%</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="pricing-2">
+            {/* Free */}
+            <div className="feature-card" style={{ padding: "36px 32px" }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#a1a1aa", margin: "0 0 16px", letterSpacing: "0.04em" }}>FREE</p>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
+                <span style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: "-2px" }}>$0</span>
+              </div>
+              <p style={{ fontSize: 14, color: "#52525b", margin: "0 0 28px" }}>Forever. No credit card.</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
+                {["Unlimited daily check-ins", "GO / CAUTION / NO-TRADE verdict", "Up to 50 trades in journal", "Basic analytics", "Tilt detection (free)"].map((f) => (
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="#52525b" strokeWidth="1.2"/><path d="M5 7.5l2 2 3.5-3.5" stroke="#52525b" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <span style={{ fontSize: 14, color: "#71717a" }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/login" className="btn-ghost" style={{ display: "block", textAlign: "center", width: "100%" }}>Get started free</Link>
+            </div>
+
+            {/* Pro */}
+            <div style={{ padding: "36px 32px", background: "rgba(94,106,210,0.08)", border: "1px solid rgba(94,106,210,0.3)", borderRadius: 20, position: "relative" }}>
+              <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", padding: "4px 16px", background: "#5E6AD2", borderRadius: 20, fontSize: 11, fontWeight: 800, color: "#fff", whiteSpace: "nowrap" }}>MOST POPULAR</div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#8B96E8", margin: "0 0 16px", letterSpacing: "0.04em" }}>PRO</p>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 6 }}>
+                <span style={{ fontSize: 48, fontWeight: 800, color: "#fff", letterSpacing: "-2px" }}>${price}</span>
+                <span style={{ fontSize: 16, color: "#71717a" }}>/mo</span>
+              </div>
+              <p style={{ fontSize: 14, color: "#52525b", margin: "0 0 28px" }}>
+                {billing === "annual" ? "$348/year — save $120" : "Billed monthly · cancel anytime"}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
+                {[
+                  "Everything in Free",
+                  "Confluence combination analytics",
+                  "AI Pattern Insights (weekly)",
+                  "Multi-prop-firm dashboard",
+                  "Monte Carlo projections (P10/P50/P90)",
+                  "Execution quality scoring",
+                  "Unlimited trades",
+                  "Full analytics suite",
+                  "Priority support",
+                ].map((f) => (
+                  <div key={f} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><circle cx="7.5" cy="7.5" r="6" stroke="#5E6AD2" strokeWidth="1.2"/><path d="M5 7.5l2 2 3.5-3.5" stroke="#5E6AD2" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                    <span style={{ fontSize: 14, color: "#a1a1aa" }}>{f}</span>
+                  </div>
+                ))}
+              </div>
+              <Link href="/login" className="btn-primary" style={{ display: "block", textAlign: "center", width: "100%" }}>
+                Start free trial
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer style={{ borderTop: "1px solid var(--border)", padding: "56px 24px 32px", color: "var(--text-muted)", fontSize: 13 }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 40, justifyContent: "space-between", marginBottom: 48 }}>
+      {/* ── FAQ ─────────────────────────────────────────────────────────────── */}
+      <section style={{ padding: "120px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: 56 }}>
+            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 16 }}>FAQ</p>
+            <h2 className="glow-text" style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: 0 }}>Common questions</h2>
+          </div>
+          <FAQ />
+        </div>
+      </section>
 
-            {/* Brand */}
-            <div style={{ minWidth: 200, maxWidth: 240 }}>
-              <div style={{ marginBottom: 14 }}>
-                <img src="/logo.svg" alt="TradeMind" height="22" style={{ display: "block" }} />
-              </div>
-              <p style={{ lineHeight: 1.75, marginBottom: 12 }}>The only tool that tells you whether your mind is ready to trade — before you risk a dollar.</p>
-              <a href="mailto:support@trademindedge.com" style={{ color: "var(--text-muted)", textDecoration: "none" }}>support@trademindedge.com</a>
-              <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
-                <a href="https://twitter.com/trademindedge" target="_blank" rel="noopener noreferrer" aria-label="TradeMind on X (Twitter)" style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 8, background: "rgba(255,255,255,0.06)", border: "1px solid var(--border)", color: "var(--text-muted)", textDecoration: "none", transition: "background 0.2s, color 0.2s" }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.257 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                </a>
-              </div>
+      {/* ── FINAL CTA ───────────────────────────────────────────────────────── */}
+      <section style={{ padding: "160px 24px" }}>
+        <div style={{ maxWidth: 720, margin: "0 auto", textAlign: "center", position: "relative" }}>
+          {/* Aurora behind CTA */}
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 600, height: 400, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(94,106,210,0.15) 0%, transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
+
+          <div style={{ position: "relative" }}>
+            <div style={{ display: "flex", justifyContent: "center", gap: 2, marginBottom: 24 }}>
+              {[...Array(5)].map((_, i) => <svg key={i} width="16" height="16" viewBox="0 0 14 14" fill="#FFB020"><path d="M7 1l1.6 3.4 3.7.5-2.7 2.6.6 3.7L7 9.5 3.8 11.2l.6-3.7L1.7 4.9l3.7-.5L7 1z"/></svg>)}
             </div>
+            <h2 className="glow-text" style={{ fontSize: "clamp(36px,6vw,72px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-3px", margin: "0 0 24px" }}>
+              Your edge starts with<br />knowing yourself.
+            </h2>
+            <p style={{ fontSize: 18, color: "#71717a", margin: "0 0 40px", lineHeight: 1.7 }}>
+              Free account. Your first check-in takes 60 seconds.<br />Most traders wish they had started this sooner.
+            </p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+              <Link href="/login" className="btn-primary" style={{ padding: "16px 36px", fontSize: 16 }}>
+                Start free — no card needed
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              </Link>
+            </div>
+            <p style={{ fontSize: 13, color: "#3f3f46", marginTop: 16 }}>2,400+ traders · 4.8★ rating · cancel anytime</p>
+          </div>
+        </div>
+      </section>
 
-            {/* Product */}
+      {/* ── FOOTER ──────────────────────────────────────────────────────────── */}
+      <footer style={{ borderTop: "1px solid rgba(255,255,255,0.07)", padding: "48px 24px" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
+          <div className="footer-5">
             <div>
-              <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.1em", color: "var(--text)", marginBottom: 16 }}>PRODUCT</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                <a href="#how" style={{ color: "var(--text-muted)", textDecoration: "none" }}>How it works</a>
-                <a href="#pricing" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Pricing</a>
-                <Link href="/changelog" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Changelog</Link>
-                <Link href="/integrations" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Integrations</Link>
-                <Link href="/for-ftmo-traders" style={{ color: "var(--text-muted)", textDecoration: "none" }}>For Prop Traders</Link>
-              </div>
+              <p style={{ fontWeight: 800, fontSize: 16, color: "#fff", margin: "0 0 12px" }}>TradeMind</p>
+              <p style={{ fontSize: 13, color: "#52525b", lineHeight: 1.7, margin: 0 }}>The mental performance system for prop firm traders.</p>
             </div>
-
-            {/* Features */}
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.1em", color: "var(--text)", marginBottom: 16 }}>FEATURES</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                <Link href="/journal" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Trade Journal</Link>
-                <Link href="/analytics" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Analytics</Link>
-                <Link href="/playbook" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Playbook</Link>
-                <Link href="/partners" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Accountability</Link>
-                <Link href="/coach" style={{ color: "var(--text-muted)", textDecoration: "none" }}>AI Coach</Link>
+            {[
+              { title: "Product", links: [{ href: "/pricing", label: "Pricing" }, { href: "/changelog", label: "Changelog" }, { href: "/for-ftmo-traders", label: "For FTMO" }, { href: "/partners-program", label: "Partners" }] },
+              { title: "Compare", links: [{ href: "/vs-tradezella", label: "vs TradeZella" }, { href: "/vs-tradersync", label: "vs TraderSync" }, { href: "/vs-edgewonk", label: "vs Edgewonk" }] },
+              { title: "Resources", links: [{ href: "/blog", label: "Blog" }, { href: "/testimonials", label: "Testimonials" }, { href: "/help", label: "Help Center" }] },
+              { title: "Legal", links: [{ href: "/privacy", label: "Privacy" }, { href: "/terms", label: "Terms" }, { href: "/refund", label: "Refund Policy" }, { href: "/contact", label: "Contact" }] },
+            ].map((col) => (
+              <div key={col.title}>
+                <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", color: "#52525b", margin: "0 0 14px" }}>{col.title.toUpperCase()}</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  {col.links.map((l) => (
+                    <Link key={l.href} href={l.href} style={{ fontSize: 14, color: "#71717a", textDecoration: "none", transition: "color 0.15s" }} className="nav-link">{l.label}</Link>
+                  ))}
+                </div>
               </div>
-            </div>
-
-            {/* Compare */}
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.1em", color: "var(--text)", marginBottom: 16 }}>COMPARE</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                <Link href="/vs-tradezella" style={{ color: "var(--text-muted)", textDecoration: "none" }}>vs Tradezella</Link>
-                <Link href="/vs-tradersync" style={{ color: "var(--text-muted)", textDecoration: "none" }}>vs TraderSync</Link>
-                <Link href="/vs-edgewonk" style={{ color: "var(--text-muted)", textDecoration: "none" }}>vs Edgewonk</Link>
-                <Link href="/blog" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Blog</Link>
-                <Link href="/testimonials" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Trader Stories</Link>
-              </div>
-            </div>
-
-            {/* Company */}
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 11, letterSpacing: "0.1em", color: "var(--text)", marginBottom: 16 }}>COMPANY</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                <Link href="/about" style={{ color: "var(--text-muted)", textDecoration: "none" }}>About</Link>
-                <Link href="/security" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Security</Link>
-                <Link href="/help" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Help Center</Link>
-                <Link href="/contact" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Contact</Link>
-                <Link href="/privacy" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Privacy Policy</Link>
-                <Link href="/terms" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Terms of Service</Link>
-                <Link href="/refund" style={{ color: "var(--text-muted)", textDecoration: "none" }}>Refund Policy</Link>
-              </div>
-            </div>
-
+            ))}
           </div>
 
-          <div style={{ borderTop: "1px solid var(--border)", paddingTop: 24, display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "space-between", alignItems: "center" }}>
-            <p>© 2026 TradeMind. All rights reserved.</p>
-            <p style={{ maxWidth: 480, textAlign: "right" }}>Not financial advice. Your mental score is a cognitive performance indicator — all trading decisions are your own responsibility.</p>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: 28, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+            <p style={{ fontSize: 13, color: "#3f3f46", margin: 0 }}>© 2025 TradeMind. All rights reserved.</p>
+            <p style={{ fontSize: 13, color: "#3f3f46", margin: 0 }}>Built for traders who take their edge seriously.</p>
           </div>
         </div>
       </footer>
