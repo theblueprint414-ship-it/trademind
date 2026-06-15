@@ -880,11 +880,14 @@ export default function DashboardPage() {
                 </div>
               </div>
               <div style={{ display: "flex", gap: 10, flexShrink: 0, flexWrap: "wrap" }}>
-                <Link href="/analytics?demo=true">
-                  <button className="btn-primary" style={{ padding: "10px 20px", fontSize: 13, whiteSpace: "nowrap" }}>View Demo Analytics →</button>
+                <Link href="/import">
+                  <button className="btn-primary" style={{ padding: "10px 20px", fontSize: 13, whiteSpace: "nowrap" }}>Import CSV →</button>
                 </Link>
                 <Link href="/settings?tab=broker">
                   <button className="btn-ghost" style={{ padding: "10px 16px", fontSize: 13, whiteSpace: "nowrap" }}>Connect Broker</button>
+                </Link>
+                <Link href="/analytics?demo=true">
+                  <button className="btn-ghost" style={{ padding: "10px 16px", fontSize: 13, whiteSpace: "nowrap" }}>View Demo</button>
                 </Link>
               </div>
             </div>
