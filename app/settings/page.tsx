@@ -1080,7 +1080,7 @@ export default function SettingsPage() {
                   <div style={{ width: 36, height: 36, borderRadius: 9, background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.25)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "var(--blue)", letterSpacing: "0.05em", flexShrink: 0 }}>TRD</div>
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 2 }}>Tradovate</div>
-                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Apex, Funded Next, Lucid, TopStep futures — login with username &amp; password</div>
+                    <div style={{ fontSize: 12, color: "var(--text-muted)" }}>Apex, Funded Next, Lucid, TopStep futures — import via CSV, free</div>
                   </div>
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{ color: "var(--text-muted)", flexShrink: 0 }}><path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>

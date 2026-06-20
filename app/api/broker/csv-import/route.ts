@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { requirePlan } from "@/lib/planGuard";
+import { requireAuth } from "@/lib/planGuard";
 import { rateLimit } from "@/lib/ratelimit";
 import { NextRequest } from "next/server";
 
@@ -214,7 +214,9 @@ export async function POST(request: NextRequest) {
   const rl = await rateLimit(request, "strict");
   if (!rl.ok) return rl.response!;
 
-  const guard = await requirePlan(["pro", "premium"]);
+  // CSV import is a free feature (advertised as such in onboarding and the journal) —
+  // only the live broker API sync requires a paid plan.
+  const guard = await requireAuth();
   if (!guard.ok) return guard.response;
 
   const formData = await request.formData().catch(() => null);

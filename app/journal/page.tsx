@@ -1238,6 +1238,7 @@ export default function JournalPage() {
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
+  const [cbBlock, setCbBlock] = useState<{ blocked: true; tradeCount: number; effectiveLimit: number; dailyLimit: number; message: string } | null>(null);
   const [showWarning, setShowWarning] = useState(false);
   const [warningMsg, setWarningMsg] = useState("");
   const [showPreCheck, setShowPreCheck] = useState(false);
@@ -1440,6 +1441,9 @@ export default function JournalPage() {
           setLossPrompt({ id: data.entry.id, pnl: parsedPnl });
           setLossReflect("");
         }
+      } else if (data.circuitBreaker) {
+        setCbBlock({ blocked: true, tradeCount: data.tradeCount, effectiveLimit: data.effectiveLimit, dailyLimit: data.dailyLimit, message: data.error });
+        setShowForm(false);
       } else {
         showToast(data.error ?? "Failed to save trade — try again", "error");
       }
@@ -1764,6 +1768,24 @@ export default function JournalPage() {
 
   return (
     <div style={{ background: "var(--bg)", minHeight: "100vh" }} className="has-bottom-nav">
+
+      {/* ── CIRCUIT BREAKER HARD BLOCK BANNER ──────────────────────────────── */}
+      {cbBlock && (
+        <div style={{ position: "sticky", top: 0, zIndex: 80, background: "rgba(255,59,92,0.12)", backdropFilter: "blur(12px)", borderBottom: "1px solid rgba(255,59,92,0.35)", padding: "12px 20px", display: "flex", alignItems: "center", gap: 14 }}>
+          <div style={{ width: 10, height: 10, borderRadius: "50%", background: "var(--red)", boxShadow: "0 0 8px var(--red)", flexShrink: 0 }} />
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, color: "var(--red)", letterSpacing: "0.08em", marginBottom: 2 }}>CIRCUIT BREAKER — TRADES BLOCKED</div>
+            <div style={{ fontSize: 13, color: "var(--text-dim)", lineHeight: 1.5 }}>{cbBlock.message}</div>
+          </div>
+          <div style={{ textAlign: "right", flexShrink: 0 }}>
+            <div style={{ fontSize: 22, fontWeight: 800, color: "var(--red)", lineHeight: 1 }}>{cbBlock.tradeCount}/{cbBlock.effectiveLimit}</div>
+            <div style={{ fontSize: 10, color: "var(--text-muted)" }}>trades today</div>
+          </div>
+          <button onClick={() => setCbBlock(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 4, display: "flex", fontFamily: "inherit" }}>
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </button>
+        </div>
+      )}
 
       <div className="app-header">
         <Link href="/dashboard" style={{ textDecoration: "none" }}>

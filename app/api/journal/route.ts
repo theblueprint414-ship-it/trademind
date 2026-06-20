@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { requireAuth, requirePlan } from "@/lib/planGuard";
+import { requireAuth } from "@/lib/planGuard";
 import { rateLimit } from "@/lib/ratelimit";
 import { logger } from "@/lib/logger";
 import { NextRequest } from "next/server";
@@ -73,9 +73,10 @@ export async function POST(request: NextRequest) {
   const user = await db.user.findUnique({ where: { id: auth.userId }, select: { plan: true } });
   const isPro = user?.plan === "pro" || user?.plan === "premium";
 
-  // Free users: max 3 trades/day (basic fields only — no emotion/psychology data)
+  const today = new Date().toISOString().split("T")[0];
+
+  // Free users: max 3 trades/day
   if (!isPro) {
-    const today = new Date().toISOString().split("T")[0];
     const todayCount = await db.tradeEntry.count({ where: { userId: auth.userId, date: today } });
     if (todayCount >= FREE_DAILY_LIMIT) {
       return Response.json({ error: "Free plan limit: 3 trades/day. Upgrade to TradeMind for unlimited journaling.", limitReached: true }, { status: 403 });
@@ -95,6 +96,37 @@ export async function POST(request: NextRequest) {
 
   if (!date || typeof date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return Response.json({ error: "Invalid date" }, { status: 400 });
+  }
+
+  // ── Circuit Breaker enforcement ───────────────────────────────────────────
+  // Always enforce on the actual trade date; score-adaptive limit uses today's check-in.
+  const cbSettings = await db.circuitBreaker.findUnique({ where: { userId: auth.userId } });
+  if (cbSettings?.isActive) {
+    const tradeCount = await db.tradeEntry.count({ where: { userId: auth.userId, date } });
+    let effectiveLimit = cbSettings.dailyLimit;
+
+    if (cbSettings.scoreAdaptive) {
+      const checkin = await db.checkin.findUnique({
+        where: { userId_date: { userId: auth.userId, date: today } },
+        select: { verdict: true },
+      });
+      if (checkin?.verdict === "NO-TRADE") effectiveLimit = 0;
+      else if (checkin?.verdict === "CAUTION") effectiveLimit = Math.ceil(cbSettings.dailyLimit * 0.5);
+      else if (!checkin) effectiveLimit = Math.ceil(cbSettings.dailyLimit * 0.75);
+    }
+
+    if (tradeCount >= effectiveLimit) {
+      return Response.json({
+        error: effectiveLimit === 0
+          ? "Circuit breaker: your mental score is NO-TRADE today. No trades can be logged."
+          : `Circuit breaker: daily limit of ${effectiveLimit} trade${effectiveLimit === 1 ? "" : "s"} reached (${tradeCount} logged today). Reset at midnight.`,
+        circuitBreaker: true,
+        blocked: true,
+        tradeCount,
+        effectiveLimit,
+        dailyLimit: cbSettings.dailyLimit,
+      }, { status: 429 });
+    }
   }
   if (side && !["long", "short"].includes(side)) {
     return Response.json({ error: "Invalid side" }, { status: 400 });
@@ -185,7 +217,8 @@ export async function PATCH(request: NextRequest) {
   const rl = await rateLimit(request, "normal");
   if (!rl.ok) return rl.response!;
 
-  const guard = await requirePlan(["pro", "premium"]);
+  // Editing your own entries is free — only live broker sync/import is paid.
+  const guard = await requireAuth();
   if (!guard.ok) return guard.response;
 
   const { searchParams } = new URL(request.url);
@@ -305,7 +338,8 @@ export async function DELETE(request: NextRequest) {
   const rl = await rateLimit(request, "normal");
   if (!rl.ok) return rl.response!;
 
-  const guard = await requirePlan(["pro", "premium"]);
+  // Deleting your own entries is free — only live broker sync/import is paid.
+  const guard = await requireAuth();
   if (!guard.ok) return guard.response;
 
   const { searchParams } = new URL(request.url);
