@@ -170,7 +170,7 @@ function CostCalculator() {
       <div className="calc-3">
         {[
           { label: "Yearly losses on bad days", value: `$${yearlyLoss.toLocaleString()}`, color: "#FF3B5C", sub: "without intervention" },
-          { label: "Preventable with TradeMind", value: `$${preventable.toLocaleString()}`, color: "#FFB020", sub: "~60% stopped by mental gating" },
+          { label: "Preventable with TradeMind", value: `$${preventable.toLocaleString()}`, color: "#FFB020", sub: "illustrative estimate, not a guarantee" },
           { label: "Net ROI vs $468/yr", value: roi > 0 ? `+$${roi.toLocaleString()}` : `-$${Math.abs(roi).toLocaleString()}`, color: roi > 0 ? "#00E87A" : "#FF3B5C", sub: roi > 0 ? "TradeMind pays for itself" : "needs fewer bad days" },
         ].map((c) => (
           <div key={c.label} style={{ padding: "20px 16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 16, textAlign: "center" }}>
@@ -247,13 +247,12 @@ export default function LandingPage() {
   const softwareJsonLd = {
     "@context": "https://schema.org", "@type": "SoftwareApplication",
     name: "TradeMind", applicationCategory: "FinanceApplication",
-    operatingSystem: "Web, iOS, Android", url: "https://trademindedge.com",
+    operatingSystem: "Web (installable PWA)", url: "https://trademindedge.com",
     description: "The best trading journal for FTMO, Apex, and TopStep traders.",
     offers: [
       { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
       { "@type": "Offer", name: "Pro", price: "39", priceCurrency: "USD", billingDuration: "P1M" },
     ],
-    aggregateRating: { "@type": "AggregateRating", ratingValue: "4.8", reviewCount: "312", bestRating: "5" },
   };
 
   const faqJsonLd = {
@@ -342,15 +341,6 @@ export default function LandingPage() {
 
         .stat-border { border-right: 1px solid rgba(255,255,255,0.07); }
         @media (max-width: 640px) { .stat-border { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); } }
-
-        .testimonial-card {
-          break-inside: avoid;
-          background: rgba(255,255,255,0.02);
-          border: 1px solid rgba(255,255,255,0.07);
-          border-radius: 18px;
-          padding: 24px;
-          margin-bottom: 14px;
-        }
 
         input[type=range]::-webkit-slider-thumb { background: #5E6AD2; }
         input[type=range]::-moz-range-thumb { background: #5E6AD2; border: none; }
@@ -444,7 +434,7 @@ export default function LandingPage() {
               {/* Badge */}
               <div className="fade-up" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", background: "rgba(94,106,210,0.12)", border: "1px solid rgba(94,106,210,0.25)", borderRadius: 30, marginBottom: 32 }}>
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#5E6AD2", animation: "blink 2s ease-in-out infinite" }} />
-                <span style={{ fontSize: 12, fontWeight: 700, color: "#8B96E8", letterSpacing: "0.06em" }}>USED BY 2,400+ PROP TRADERS</span>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#8B96E8", letterSpacing: "0.06em" }}>FREE TO START · NO CARD NEEDED</span>
               </div>
 
               {/* Headline */}
@@ -464,12 +454,10 @@ export default function LandingPage() {
                 <Link href="/for-ftmo-traders" className="btn-ghost">Built for prop traders</Link>
               </div>
 
-              {/* Stars */}
-              <div className="fade-up delay-4" style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 28 }}>
-                <div style={{ display: "flex", gap: 2 }}>
-                  {[...Array(5)].map((_, i) => <svg key={i} width="14" height="14" viewBox="0 0 14 14" fill="#FFB020"><path d="M7 1l1.6 3.4 3.7.5-2.7 2.6.6 3.7L7 9.5 3.8 11.2l.6-3.7L1.7 4.9l3.7-.5L7 1z"/></svg>)}
-                </div>
-                <span style={{ fontSize: 13, color: "#71717a" }}>4.8/5 from 312 traders</span>
+              {/* Trust line */}
+              <div className="fade-up delay-4" style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 28 }}>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ color: "#52525b", flexShrink: 0 }}><path d="M7 1.5L2 3.5v3.5C2 10 4.5 12.5 7 13c2.5-.5 5-3 5-6V3.5L7 1.5z" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round"/></svg>
+                <span style={{ fontSize: 13, color: "#71717a" }}>Your credentials are encrypted, never stored in plaintext</span>
               </div>
             </div>
 
@@ -487,10 +475,10 @@ export default function LandingPage() {
         <div style={{ maxWidth: 1120, margin: "0 auto" }}>
           <div className="stats-4">
             {[
-              { value: 2400, suffix: "+", label: "Active traders" },
-              { value: 68, suffix: "%", label: "Fewer revenge trades", prefix: "" },
-              { value: 4.8, suffix: "★", label: "Average rating", fixed: 1 },
-              { value: 312, suffix: " reviews", label: "On App Store & web" },
+              { value: 60, suffix: "s", label: "Daily check-in time" },
+              { value: 9, suffix: "", label: "Broker & platform integrations" },
+              { value: 3, suffix: "", label: "Verdicts: GO / CAUTION / NO-TRADE" },
+              { value: 0, suffix: "", label: "Cost to start — free plan, no card", prefix: "$" },
             ].map((s, i, arr) => (
               <div key={s.label} className={i < arr.length - 1 ? "stat-border" : ""} style={{ padding: "36px 32px", textAlign: "center" }}>
                 <p style={{ fontSize: "clamp(28px,4vw,44px)", fontWeight: 800, color: "#fff", margin: "0 0 6px", letterSpacing: "-1px", fontVariantNumeric: "tabular-nums" }}>
@@ -508,19 +496,19 @@ export default function LandingPage() {
         <div style={{ maxWidth: 800, margin: "0 auto", textAlign: "center" }}>
           <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 20 }}>THE PATTERN</p>
           <h2 className="glow-text" style={{ fontSize: "clamp(28px,5vw,56px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: "0 0 28px" }}>
-            67% of funded accounts blow<br />on days with 4+ trades.
+            Funded accounts rarely blow<br />on a bad strategy.
           </h2>
           <p style={{ fontSize: 18, color: "#71717a", lineHeight: 1.75, margin: "0 0 40px" }}>
-            It&apos;s never the strategy that fails. It&apos;s the 3 losses in a row that leads to a revenge trade that hits the daily limit. TradeMind stops that pattern before it starts — every single morning.
+            They blow on the trade after three losses in a row — the one taken to get even, not the one in the plan. TradeMind stops that pattern before it starts, every single morning.
           </p>
           <div className="problem-3">
             {[
-              { n: "−26%", desc: "cognitive performance after one bad night of sleep", color: "#FF3B5C" },
-              { n: "+60%", desc: "loss aversion under stress — you hold losers too long", color: "#FFB020" },
-              { n: "3×",   desc: "more rule violations when mentally fatigued", color: "#5E6AD2" },
+              { n: "Sleep",   desc: "Poor sleep is consistently linked to worse decision-making and slower reaction time — exactly what a fast market punishes.", color: "#FF3B5C" },
+              { n: "Stress",  desc: "Under stress, traders tend to hold losers longer and cut winners short — the opposite of a good risk/reward habit.", color: "#FFB020" },
+              { n: "Fatigue", desc: "Mentally fatigued traders break their own rules more often — size, stop-loss, and trade-count limits included.", color: "#5E6AD2" },
             ].map((s) => (
               <div key={s.n} style={{ padding: "24px 20px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18 }}>
-                <p style={{ fontSize: 32, fontWeight: 800, color: s.color, margin: "0 0 8px", letterSpacing: "-1px" }}>{s.n}</p>
+                <p style={{ fontSize: 18, fontWeight: 800, color: s.color, margin: "0 0 8px", letterSpacing: "-0.3px" }}>{s.n}</p>
                 <p style={{ fontSize: 13, color: "#71717a", lineHeight: 1.6, margin: 0 }}>{s.desc}</p>
               </div>
             ))}
@@ -677,39 +665,17 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ─────────────────────────────────────────────────────── */}
+      {/* ── WHO IT'S FOR ─────────────────────────────────────────────────────── */}
       <section style={{ padding: "120px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
-        <div style={{ maxWidth: 1120, margin: "0 auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 16 }}>TRADER STORIES</p>
-            <h2 className="glow-text" style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: 0 }}>Real traders. Real results.</h2>
-          </div>
-
-          <div style={{ columns: "1 320px", columnGap: 14 }}>
-            {[
-              { name: "Alex M.", tag: "FTMO $100k — passed", color: "#00E87A", quote: "I failed FTMO 6 times before TradeMind. Every single failure happened on a day I was already frustrated. The mental check-in caught it. Passed on the next attempt." },
-              { name: "Jamie L.", tag: "Apex Trader Funding", color: "#5E6AD2", quote: "The tilt banner saved my Apex account twice last month. After my third loss in a row it pops up red. I didn't realize I was in revenge mode. That's $6,000 in losses I didn't take." },
-              { name: "Ryan T.", tag: "Running FTMO + Apex + TopstepX", color: "#FFB020", quote: "The multi-account dashboard is the only reason I can manage three funded accounts without losing track of which one is close to the drawdown limit. Nothing else does this." },
-              { name: "Marcus D.", tag: "ICT/SMC trader — 3 years", color: "#00E87A", quote: "The confluence analytics showed me my FVG+OB win rate is 71%. FVG alone: 48%. I stopped taking FVG-only setups. P&L went up immediately. This data exists nowhere else." },
-              { name: "Sarah K.", tag: "Full-time prop trader", color: "#FF3B5C", quote: "I've tried TradeZella, TraderSync, and Edgewonk. TradeMind is the only one that changes your behavior during a session instead of showing you what went wrong after." },
-              { name: "Kevin W.", tag: "TopstepX — Phase 1 passed", color: "#5E6AD2", quote: "Skeptical about the mental score thing. But after 30 days the data was undeniable — my GO days average +$340. CAUTION days: -$180. Same strategy, different mental state." },
-            ].map((t) => (
-              <div key={t.name} className="testimonial-card" style={{ borderTop: `2px solid ${t.color}` }}>
-                <div style={{ display: "flex", gap: 2, marginBottom: 12 }}>
-                  {[...Array(5)].map((_, i) => <svg key={i} width="12" height="12" viewBox="0 0 14 14" fill="#FFB020"><path d="M7 1l1.6 3.4 3.7.5-2.7 2.6.6 3.7L7 9.5 3.8 11.2l.6-3.7L1.7 4.9l3.7-.5L7 1z"/></svg>)}
-                </div>
-                <p style={{ fontSize: 14, color: "#a1a1aa", lineHeight: 1.7, margin: "0 0 16px", fontStyle: "italic" }}>&ldquo;{t.quote}&rdquo;</p>
-                <div>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: "#e4e4e7", margin: "0 0 2px" }}>{t.name}</p>
-                  <p style={{ fontSize: 11, color: t.color, margin: 0, fontWeight: 600 }}>{t.tag}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ textAlign: "center", marginTop: 40 }}>
-            <Link href="/testimonials" style={{ fontSize: 14, color: "#5E6AD2", fontWeight: 600, textDecoration: "none" }}>Read all 312 reviews →</Link>
-          </div>
+        <div style={{ maxWidth: 760, margin: "0 auto", textAlign: "center" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", color: "#5E6AD2", marginBottom: 16 }}>BUILT FOR FUNDED TRADERS</p>
+          <h2 className="glow-text" style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-2px", margin: "0 0 24px" }}>
+            We&apos;re early. The product isn&apos;t.
+          </h2>
+          <p style={{ fontSize: 17, color: "#71717a", lineHeight: 1.8, margin: "0 0 0" }}>
+            TradeMind is a new tool — we&apos;d rather earn your trust with a free check-in than fake a quote from a customer we don&apos;t have yet.
+            Try it today: run one morning check-in, log a trade, and judge it on what it actually does for your account.
+          </p>
         </div>
       </section>
 
@@ -866,14 +832,11 @@ export default function LandingPage() {
           <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 600, height: 400, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(94,106,210,0.15) 0%, transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
 
           <div style={{ position: "relative" }}>
-            <div style={{ display: "flex", justifyContent: "center", gap: 2, marginBottom: 24 }}>
-              {[...Array(5)].map((_, i) => <svg key={i} width="16" height="16" viewBox="0 0 14 14" fill="#FFB020"><path d="M7 1l1.6 3.4 3.7.5-2.7 2.6.6 3.7L7 9.5 3.8 11.2l.6-3.7L1.7 4.9l3.7-.5L7 1z"/></svg>)}
-            </div>
             <h2 className="glow-text" style={{ fontSize: "clamp(36px,6vw,72px)", fontWeight: 800, lineHeight: 1.05, letterSpacing: "-3px", margin: "0 0 24px" }}>
               Your edge starts with<br />knowing yourself.
             </h2>
             <p style={{ fontSize: 18, color: "#71717a", margin: "0 0 40px", lineHeight: 1.7 }}>
-              Free account. Your first check-in takes 60 seconds.<br />Most traders wish they had started this sooner.
+              Free account. Your first check-in takes 60 seconds.
             </p>
             <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
               <Link href="/login" className="btn-primary" style={{ padding: "16px 36px", fontSize: 16 }}>
@@ -881,7 +844,7 @@ export default function LandingPage() {
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
               </Link>
             </div>
-            <p style={{ fontSize: 13, color: "#3f3f46", marginTop: 16 }}>2,400+ traders · 4.8★ rating · cancel anytime</p>
+            <p style={{ fontSize: 13, color: "#3f3f46", marginTop: 16 }}>Free plan forever · cancel Pro anytime</p>
           </div>
         </div>
       </section>
@@ -897,7 +860,7 @@ export default function LandingPage() {
             {[
               { title: "Product", links: [{ href: "/pricing", label: "Pricing" }, { href: "/changelog", label: "Changelog" }, { href: "/for-ftmo-traders", label: "For FTMO" }, { href: "/partners-program", label: "Partners" }] },
               { title: "Compare", links: [{ href: "/vs-tradezella", label: "vs TradeZella" }, { href: "/vs-tradersync", label: "vs TraderSync" }, { href: "/vs-edgewonk", label: "vs Edgewonk" }] },
-              { title: "Resources", links: [{ href: "/blog", label: "Blog" }, { href: "/testimonials", label: "Testimonials" }, { href: "/help", label: "Help Center" }] },
+              { title: "Resources", links: [{ href: "/blog", label: "Blog" }, { href: "/testimonials", label: "Why TradeMind" }, { href: "/help", label: "Help Center" }] },
               { title: "Legal", links: [{ href: "/privacy", label: "Privacy" }, { href: "/terms", label: "Terms" }, { href: "/refund", label: "Refund Policy" }, { href: "/contact", label: "Contact" }] },
             ].map((col) => (
               <div key={col.title}>

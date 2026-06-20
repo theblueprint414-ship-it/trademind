@@ -61,7 +61,7 @@ export default function ForFtmoTraders() {
             It&apos;s not the strategy. It&apos;s the <em style={{ fontStyle: "italic", color: "#ef4444" }}>3 losses in a row</em> that leads to a revenge trade that blows the daily limit.
           </p>
           <p style={{ fontSize: 15, color: "#a1a1aa", margin: 0, lineHeight: 1.6 }}>
-            In a 2024 study of 10,000 FTMO accounts, <strong style={{ color: "#fff" }}>67% of failures happened on days with 4+ trades</strong> — the classic overtrading spiral. TradeMind detects this in real time.
+            It&apos;s the classic overtrading spiral — and it&apos;s almost never the first trade of the day that breaks the account. TradeMind detects it in real time, before the next trade goes out.
           </p>
         </div>
 
@@ -122,20 +122,18 @@ export default function ForFtmoTraders() {
           ))}
         </div>
 
-        {/* Testimonials */}
+        {/* What the circuit breaker actually does */}
+        <h2 style={{ fontSize: 22, fontWeight: 700, color: "#fff", margin: "0 0 16px" }}>What happens when you hit your limit</h2>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, marginBottom: 56 }}>
           {[
-            { quote: "I was failing FTMO for 6 months. After 2 weeks with TradeMind I noticed I was taking revenge trades on days when my mental score was below 50. I stopped trading on those days. Passed on the next attempt.", name: "Alex M.", tag: "FTMO passed — $100k account" },
-            { quote: "The tilt banner saved my Apex account twice last month. I didn't even realize I was in revenge mode until it popped up. That's $6,000 in losses I didn't take.", name: "Jamie L.", tag: "Apex Trader Funding" },
-            { quote: "Running 3 prop firm accounts at the same time. The multi-account dashboard is the only reason I can manage all of them without losing track of which one is close to the drawdown limit.", name: "Ryan T.", tag: "Running FTMO + Apex + TopstepX" },
-            { quote: "The mental check-in told me NO-TRADE on a Monday. I ignored it and traded anyway. Lost $2,400. It was right. Now I never skip it.", name: "Sarah K.", tag: "Funded Trader" },
+            { title: "Daily trade limit, enforced", body: "Set a number — 3, 5, 10. Once you hit it, new trades are blocked in the journal itself, not just flagged in a report you read tomorrow.", color: "#FF3B5C" },
+            { title: "Score-adaptive on bad days", body: "NO-TRADE verdict drops your limit to zero for the day. CAUTION cuts it in half. You don't have to remember to be careful — the limit does it for you.", color: "#FFB020" },
+            { title: "One number, before you risk anything", body: "Sleep, stress, focus, emotional state, recent performance — five questions, sixty seconds, one score from 0–100.", color: "#00C896" },
+            { title: "Built for funded accounts specifically", body: "Drawdown bars, daily-limit blocking, and multi-account tracking are designed around prop firm rules — not retrofitted from a general retail journal.", color: "#5E6AD2" },
           ].map((t) => (
-            <div key={t.name} style={{ padding: "20px", background: "#0d1117", border: "1px solid #1a1f2e", borderRadius: 14 }}>
-              <p style={{ fontSize: 13, color: "#a1a1aa", lineHeight: 1.65, margin: "0 0 14px", fontStyle: "italic" }}>&ldquo;{t.quote}&rdquo;</p>
-              <div>
-                <p style={{ fontSize: 13, fontWeight: 700, color: "#e4e4e7", margin: "0 0 2px" }}>{t.name}</p>
-                <p style={{ fontSize: 11, color: "#00C896", margin: 0, fontWeight: 600 }}>{t.tag}</p>
-              </div>
+            <div key={t.title} style={{ padding: "20px", background: "#0d1117", border: "1px solid #1a1f2e", borderRadius: 14, borderTop: `2px solid ${t.color}` }}>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: "0 0 8px" }}>{t.title}</p>
+              <p style={{ fontSize: 13, color: "#a1a1aa", lineHeight: 1.65, margin: 0 }}>{t.body}</p>
             </div>
           ))}
         </div>
