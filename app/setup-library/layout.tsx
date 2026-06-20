@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 
+// Forces dynamic rendering so proxy.ts (auth/onboarding gate) always runs —
+// otherwise this page is statically cached and the gate is bypassed on cache hits.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "ICT / SMC Setup Library — TradeMind",
   description: "Complete reference guide for ICT and Smart Money Concepts: Fair Value Gap, Order Block, BOS, ChoCh, SMT Divergence, Liquidity Sweep, Displacement, EQH/EQL. Step-by-step trade instructions for each setup.",

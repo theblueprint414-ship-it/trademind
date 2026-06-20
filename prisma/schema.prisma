@@ -24,6 +24,7 @@ model User {
   publicProfile  Boolean   @default(false)
   lsSubscriptionId String?
   lsCustomerId     String?
+  onboardedAt    DateTime? // set when the user completes (or explicitly skips) onboarding
   createdAt      DateTime  @default(now())
 
   // Prop Firm Challenge Mode

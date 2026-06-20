@@ -85,8 +85,14 @@ export default function OnboardingPage() {
     setStep(next);
   }
 
-  function finishOnboarding() {
-    document.cookie = "tm_onboarded=1; path=/; max-age=31536000";
+  async function finishOnboarding() {
+    try {
+      await fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ onboarded: true }),
+      });
+    } catch { /* dashboard will just re-show onboarding if this didn't land */ }
     router.push("/dashboard");
   }
 

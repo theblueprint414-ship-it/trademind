@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 
+// Forces dynamic rendering so proxy.ts (auth/onboarding gate) always runs —
+// otherwise this page is statically cached and the gate is bypassed on cache hits.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Pre-Trade Ritual — TradeMind",
   description: "A 60-second ritual before every trade: rate your conviction, write your thesis, confirm your stop loss. The traders who write down their edge before entering take better trades.",

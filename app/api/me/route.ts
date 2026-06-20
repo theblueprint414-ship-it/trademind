@@ -14,8 +14,18 @@ export async function GET(req: NextRequest) {
   try {
     const user = await db.user.findUnique({
       where: { id: session.user.id },
-      select: { plan: true, email: true, name: true, tradeLimit: true, emailReminders: true, traderType: true, publicProfile: true, dailyLossLimit: true, challengeEnabled: true, challengeFirm: true, challengeAccountSize: true, challengeDailyLimit: true, challengeMaxDrawdown: true, challengeStartDate: true, challengeEndDate: true, challengeProfitTarget: true, challengeTradingDaysTarget: true },
+      select: {
+        plan: true, email: true, name: true, tradeLimit: true, emailReminders: true, traderType: true, publicProfile: true, dailyLossLimit: true, challengeEnabled: true, challengeFirm: true, challengeAccountSize: true, challengeDailyLimit: true, challengeMaxDrawdown: true, challengeStartDate: true, challengeEndDate: true, challengeProfitTarget: true, challengeTradingDaysTarget: true,
+        onboardedAt: true,
+        _count: { select: { checkins: true, tradeEntries: true } },
+      },
     });
+
+    // A user is "new" (should be routed to onboarding) only if they've never finished/skipped
+    // it AND have no real activity yet — this avoids re-onboarding existing users retroactively
+    // after onboardedAt was introduced.
+    const isNewUser = !user?.onboardedAt && (user?._count.checkins ?? 0) === 0 && (user?._count.tradeEntries ?? 0) === 0;
+
     return Response.json({
       id: session.user.id,
       plan: user?.plan ?? "free",
@@ -26,6 +36,7 @@ export async function GET(req: NextRequest) {
       traderType: user?.traderType ?? null,
       publicProfile: user?.publicProfile ?? false,
       dailyLossLimit: user?.dailyLossLimit ?? null,
+      isNewUser,
       challenge: user?.challengeEnabled ? {
         enabled: true,
         firm: user.challengeFirm ?? null,
@@ -82,6 +93,10 @@ export async function PATCH(request: NextRequest) {
     } else {
       return Response.json({ error: "Invalid dailyLossLimit" }, { status: 400 });
     }
+  }
+
+  if (body.onboarded === true) {
+    data.onboardedAt = new Date();
   }
 
   if (Object.keys(data).length === 0) {

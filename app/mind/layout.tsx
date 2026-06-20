@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 
+// Forces dynamic rendering so proxy.ts (auth/onboarding gate) always runs —
+// otherwise this page is statically cached and the gate is bypassed on cache hits.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Mental Patterns — TradeMind",
   description: "See exactly how your sleep quality, caffeine intake, exercise habits, and alcohol consumption affect your trading P&L and win rate. Data-driven insights no other trading tool provides.",

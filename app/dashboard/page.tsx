@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import ScoreRing from "@/components/ScoreRing";
 import TradeLimit from "@/components/TradeLimit";
@@ -105,6 +105,7 @@ export default function DashboardPage() {
   const [patternInsights, setPatternInsights] = useState<Array<{ id: string; type: string; title: string; body: string; value?: string; action?: string; actionHref?: string }>>([]);
 
   const searchParams = useSearchParams();
+  const router = useRouter();
   useEffect(() => {
     if (searchParams.get("upgraded") === "true") {
       setShowUpgradeWelcome(true);
@@ -135,6 +136,10 @@ export default function DashboardPage() {
       fetch("/api/me")
         .then((r) => r.json())
         .then((d) => {
+          if (d.isNewUser) {
+            router.replace("/onboarding");
+            return;
+          }
           const pro = d.plan === "pro" || d.plan === "premium";
           setIsPro(pro);
           if (!pro && localStorage.getItem("trademind_nudge_eligible") === "1") {
