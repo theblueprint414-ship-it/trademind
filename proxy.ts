@@ -1,12 +1,15 @@
 import NextAuth from "next-auth";
 import { authConfig } from "@/auth.config";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import type { NextAuthRequest } from "next-auth";
 
 const { auth } = NextAuth(authConfig);
 
+// NOTE: "/" must NOT be matched with `startsWith` — every path starts with "/",
+// which previously made this allowlist match unconditionally and disabled the
+// entire auth gate for every route, for every user. It's checked as an exact
+// match below instead.
 const PUBLIC_PATHS = [
-  "/",
   "/login",
   "/login/verify",
   "/accept-invite",
@@ -34,8 +37,12 @@ const PUBLIC_PATHS = [
   "/testimonials",
   "/admin",
 ];
-const GATE_PATHS = ["/dashboard", "/partners", "/settings", "/checkin", "/journal", "/analytics", "/coach", "/recap", "/playbook", "/leaderboard", "/circles"];
 
+// First-time-user → /onboarding redirect is handled DB-side (see /api/me's
+// `isNewUser` + app/dashboard/page.tsx), not here — the Edge runtime this proxy
+// runs in has no Prisma/DB access, and the old approach (a client-only
+// `tm_onboarded` cookie) never reflected real account state across devices or
+// for accounts created before the cookie existed.
 export const proxy = auth((req: NextAuthRequest) => {
   const { pathname } = req.nextUrl;
 
@@ -47,6 +54,7 @@ export const proxy = auth((req: NextAuthRequest) => {
 
   // Allow public paths and static assets
   if (
+    pathname === "/" ||
     PUBLIC_PATHS.some((p) => pathname.startsWith(p)) ||
     pathname.startsWith("/api/") ||
     pathname.startsWith("/_next/")
@@ -55,17 +63,8 @@ export const proxy = auth((req: NextAuthRequest) => {
   }
 
   // Not logged in → redirect to login
-  if (!req.auth?.user?.id) {
-    if (pathname !== "/login") {
-      return NextResponse.redirect(new URL(`/login?callbackUrl=${encodeURIComponent(pathname)}`, req.url));
-    }
-    return NextResponse.next();
-  }
-
-  // First time user → redirect to onboarding
-  const onboarded = (req as NextRequest).cookies.get("tm_onboarded");
-  if (!onboarded && GATE_PATHS.some((p) => pathname.startsWith(p))) {
-    return NextResponse.redirect(new URL("/onboarding", req.url));
+  if (!req.auth?.user?.id && pathname !== "/login") {
+    return NextResponse.redirect(new URL(`/login?callbackUrl=${encodeURIComponent(pathname)}`, req.url));
   }
 
   return NextResponse.next();
