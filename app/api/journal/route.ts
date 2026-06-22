@@ -99,10 +99,20 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Circuit Breaker enforcement ───────────────────────────────────────────
-  // Always enforce on the actual trade date; score-adaptive limit uses today's check-in.
+  // Mirrors /api/circuit-breaker/status (used by the Chrome extension / MT4 EA)
+  // exactly, including the resetHour-anchored rolling window — otherwise a
+  // custom reset hour (e.g. 18:00 UTC for futures traders) would be respected
+  // by the extension but silently ignored by the web journal.
   const cbSettings = await db.circuitBreaker.findUnique({ where: { userId: auth.userId } });
   if (cbSettings?.isActive) {
-    const tradeCount = await db.tradeEntry.count({ where: { userId: auth.userId, date } });
+    const now = new Date();
+    const windowStart = new Date(now);
+    windowStart.setUTCHours(cbSettings.resetHour, 0, 0, 0);
+    if (now.getUTCHours() < cbSettings.resetHour) {
+      windowStart.setUTCDate(windowStart.getUTCDate() - 1);
+    }
+
+    const tradeCount = await db.tradeEntry.count({ where: { userId: auth.userId, createdAt: { gte: windowStart } } });
     let effectiveLimit = cbSettings.dailyLimit;
 
     if (cbSettings.scoreAdaptive) {
@@ -119,7 +129,7 @@ export async function POST(request: NextRequest) {
       return Response.json({
         error: effectiveLimit === 0
           ? "Circuit breaker: your mental score is NO-TRADE today. No trades can be logged."
-          : `Circuit breaker: daily limit of ${effectiveLimit} trade${effectiveLimit === 1 ? "" : "s"} reached (${tradeCount} logged today). Reset at midnight.`,
+          : `Circuit breaker: daily limit of ${effectiveLimit} trade${effectiveLimit === 1 ? "" : "s"} reached (${tradeCount} logged today). Resets at ${String(cbSettings.resetHour).padStart(2, "0")}:00 UTC.`,
         circuitBreaker: true,
         blocked: true,
         tradeCount,
