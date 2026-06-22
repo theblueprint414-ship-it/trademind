@@ -10,6 +10,18 @@ function parseTags(raw: string | null): string[] {
   try { return JSON.parse(raw) as string[]; } catch { return []; }
 }
 
+// All k-element subsets of `items` (items must already be sorted for stable keys).
+// Capped at size 3 — beyond that the combo count per trade grows combinatorially
+// (a trade can carry up to 10 setup tags) without adding meaningful signal.
+function combinations(items: string[], k: number): string[][] {
+  if (k > items.length) return [];
+  if (k === 0) return [[]];
+  const [head, ...rest] = items;
+  const withHead = combinations(rest, k - 1).map((c) => [head, ...c]);
+  const withoutHead = combinations(rest, k);
+  return [...withHead, ...withoutHead];
+}
+
 export async function GET(request: NextRequest) {
   const rl = await rateLimit(request, "normal");
   if (!rl.ok) return rl.response!;
@@ -60,18 +72,17 @@ export async function GET(request: NextRequest) {
       if (t.rMultiple !== null) { e.rSum += t.rMultiple; e.rCount++; }
     }
 
-    // 2-setup combos (order-independent)
+    // 2- and 3-setup combos (order-independent) — e.g. "FVG+OB" and "BOS+OB+FVG"
     if (setups.length >= 2) {
-      const sorted = [...setups].sort();
-      for (let i = 0; i < sorted.length - 1; i++) {
-        for (let j = i + 1; j < sorted.length; j++) {
-          const key = `${sorted[i]}+${sorted[j]}`;
-          if (!comboMap.has(key)) comboMap.set(key, { wins: 0, losses: 0, totalPnl: 0, rSum: 0, rCount: 0 });
-          const e = comboMap.get(key)!;
-          if (isWin) e.wins++; else if (pnl < 0) e.losses++;
-          e.totalPnl += pnl;
-          if (t.rMultiple !== null) { e.rSum += t.rMultiple; e.rCount++; }
-        }
+      const sorted = [...new Set(setups)].sort();
+      const combos = [...combinations(sorted, 2), ...combinations(sorted, 3)];
+      for (const combo of combos) {
+        const key = combo.join("+");
+        if (!comboMap.has(key)) comboMap.set(key, { wins: 0, losses: 0, totalPnl: 0, rSum: 0, rCount: 0 });
+        const e = comboMap.get(key)!;
+        if (isWin) e.wins++; else if (pnl < 0) e.losses++;
+        e.totalPnl += pnl;
+        if (t.rMultiple !== null) { e.rSum += t.rMultiple; e.rCount++; }
       }
     }
   }
